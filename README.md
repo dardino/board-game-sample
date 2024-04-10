@@ -37,7 +37,7 @@ Per clonare questo progetto, segui i seguenti passaggi:
 1. Apri il terminale nella cartella in cui desideri clonare il progetto.
 2. Esegui il comando `git clone https://github.com/gbrunori/board-game-sample.git` per clonare il repository.
 3. Entra nella cartella del progetto con il comando `cd board-game-sample`.
-4. esegui `git switch step-01`
+4. esegui `git switch blank-project`
 5. Ora sei pronto per iniziare a sviluppare il tuo progetto!
 
 <!-- Link Mapper -->
