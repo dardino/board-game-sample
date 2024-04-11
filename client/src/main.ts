@@ -1,24 +1,14 @@
-import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.ts'
+import { BgsJoinComponent } from "./components/bgsJoin/bgs-join.component";
+import { html } from "./tools/html";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://www.typescriptlang.org/" target="_blank">
-      <img src="${typescriptLogo}" class="logo vanilla" alt="TypeScript logo" />
-    </a>
-    <h1>Vite + TypeScript</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
-    </p>
-  </div>
-`
+BgsJoinComponent.register();
 
-setupCounter(document.querySelector<HTMLButtonElement>('#counter')!)
+const title = "Alla ricerca del McGuffin";
+const subTitle = "Un gioco di espolorazione ed avventura alla ricerca del famigerato McGuffin";
+
+document.querySelector<HTMLDivElement>('#app')!.innerHTML = html`
+  <h1>${title}</h1>
+  <h2>${subTitle}</h2>
+  <bgs-join></bgs-join>
+`;
+document.title = `${title} - ${subTitle}`;
