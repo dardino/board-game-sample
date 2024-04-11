@@ -1,16 +1,49 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
+import { FastifyRequest } from 'fastify';
+import { PlayersService } from 'src/players/players.service';
+import { PlayerDto } from '../entities/player.dto/player.dto';
 
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class MeService {
-  getMe(): string {
-    return 'Hello World!';
+  public static COOKIE_NICK = `player.nickname` as const;
+  #myNickName: string;
+
+  /**
+   * Costruisce una nuova istanza del servizio MeService.
+   *
+   * @param playersService Il servizio PlayersService utilizzato per gestire i giocatori.
+   * @param request L'oggetto FastifyRequest utilizzato per ottenere informazioni sulla richiesta.
+   */
+  constructor(
+    private readonly playersService: PlayersService,
+    @Inject(REQUEST) request: FastifyRequest,
+  ) {
+    this.#myNickName = request.cookies[MeService.COOKIE_NICK] ?? '';
   }
 
-  private counter = 0;
-  getCounter(): number {
-    return this.counter++;
+  /**
+   * Registra un nuovo utente con il nickname specificato.
+   * @param nickName Il nickname dell'utente da registrare.
+   * @returns Una Promise che restituisce il risultato dell'aggiunta del giocatore.
+   */
+  async registerMe(nickName: string) {
+    return await this.playersService.addPlayer(nickName);
   }
-  deleteCounter(): void {
-    this.counter = 0;
+  /**
+   * Elimina il giocatore con il nickname specificato.
+   * @returns Un booleano che indica se il giocatore è stato eliminato con successo.
+   */
+  async deleteMe() {
+    return await this.playersService.removePlayer(this.#myNickName);
+  }
+
+  /**
+   * Recupera le informazioni del giocatore per il nickname specificato.
+   * @returns Una Promise che si risolve in un oggetto PlayerDto se il giocatore viene trovato, altrimenti null.
+   */
+  async getMe(): Promise<PlayerDto | null> {
+    const player = await this.playersService.getPlayer(this.#myNickName);
+    return player;
   }
 }
