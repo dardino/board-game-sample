@@ -33,7 +33,6 @@ export function replacePlaceholders<
   (Object.entries(args ?? {}) as Array<[string, string]>).forEach(
     ([key, value]) => {
       const rx = escapeRegExp(`\${${key}}`);
-      console.log(rx);
       retString = retString.replace(new RegExp(rx, 'g'), value);
     },
   );

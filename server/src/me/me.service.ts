@@ -1,8 +1,8 @@
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { FastifyRequest } from 'fastify';
-import { PlayersService } from 'src/players/players.service';
 import { PlayerDto } from '../entities/player.dto/player.dto';
+import { PlayersService } from '../players/players.service';
 
 @Injectable({ scope: Scope.REQUEST })
 export class MeService {
@@ -40,9 +40,9 @@ export class MeService {
 
   /**
    * Recupera le informazioni del giocatore per il nickname specificato.
-   * @returns Una Promise che si risolve in un oggetto PlayerDto se il giocatore viene trovato, altrimenti null.
+   * @returns Una Promise che si risolve in un oggetto PlayerDto se il giocatore viene trovato.
    */
-  async getMe(): Promise<PlayerDto | null> {
+  async getMe(): Promise<PlayerDto> {
     const player = await this.playersService.getPlayer(this.#myNickName);
     return player;
   }
