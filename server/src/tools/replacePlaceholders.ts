@@ -28,7 +28,8 @@ const escapeRegExp = (str: string) =>
  */
 export function replacePlaceholders<
   TObj extends Readonly<Record<string, string>>,
->(obj: TObj, key: keyof TObj, args: TemplateParams<TObj[typeof key]>): string {
+  TKey extends keyof TObj,
+>(obj: TObj, key: TKey, args: TemplateParams<TObj[TKey]>): string {
   let retString: string = obj[key];
   (Object.entries(args ?? {}) as Array<[string, string]>).forEach(
     ([key, value]) => {

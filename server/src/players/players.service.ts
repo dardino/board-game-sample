@@ -17,7 +17,7 @@ export class PlayersService {
    * Restituisce tutti i giocatori attualmente registrati.
    * @returns Un array di oggetti PlayerDto rappresentanti i giocatori.
    */
-  async getAllPlayers(): Promise<PlayerDto[]> {
+  getAllPlayers(): PlayerDto[] {
     return this.#currentPlayers;
   }
 
@@ -47,7 +47,8 @@ export class PlayersService {
    * @returns Un booleano che indica se il giocatore esiste o no.
    */
   async playerExists(nickname: string): Promise<boolean> {
-    return this.#currentPlayers.some(hasNickname(nickname));
+    const cp = this.#currentPlayers;
+    return cp.some(hasNickname(nickname));
   }
   /**
    * Metodo per ottenere il numero totale di giocatori
@@ -66,7 +67,8 @@ export class PlayersService {
    * @throws {Error} Se non esiste un giocatore con il nickname specificato.
    */
   async getPlayer(nickname: string): Promise<PlayerDto> {
-    const player = this.#currentPlayers.find(hasNickname(nickname));
+    const cp = this.#currentPlayers;
+    const player = cp.find(hasNickname(nickname));
     if (!player) {
       throw new NotFoundException(
         replacePlaceholders(PLAYERS_MESSAGES, 'PLAYER_NOT_FOUND', {

@@ -36,4 +36,5 @@ export class GameDto {
     creator.isPlaying = true;
     return newGame;
   }
+
 }

@@ -1,4 +1,4 @@
 {
-  "jest.jestCommandLine": "pnpm jest",
+  "jest.jestCommandLine": "yarn jest",
   "jest.rootPath": "server"
 }

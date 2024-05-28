@@ -35,7 +35,7 @@ describe('PlayersService', () => {
      * Test case: should return an empty array.
      */
     it('should return an empty array', async () => {
-      const playerList = await service.getAllPlayers();
+      const playerList = service.getAllPlayers();
       expect(playerList).toBeInstanceOf(Array);
       expect(playerList.length).toEqual(0);
     });

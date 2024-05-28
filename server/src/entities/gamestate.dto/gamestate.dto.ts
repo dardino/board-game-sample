@@ -7,5 +7,9 @@ export class GamestateDto {
     return newGameState;
   }
 
-  public currentPlayers: PlayerDto[];
+  private currentPlayers: PlayerDto[];
+
+  public get playerList(): readonly PlayerDto[] {
+    return this.currentPlayers;
+  }
 }
