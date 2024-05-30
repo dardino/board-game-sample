@@ -1,4 +1,4 @@
-import { PlayerDto } from '../player.dto/player.dto';
+import { PlayerDto } from "../player.dto/player.dto";
 
 export class GamestateDto {
   static startNewGame(players: PlayerDto[]): GamestateDto | null {

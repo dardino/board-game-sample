@@ -1,7 +1,7 @@
-import { GamestateDto } from './gamestate.dto';
+import { GamestateDto } from "./gamestate.dto";
 
-describe('GamestateDto', () => {
-  it('should be defined', () => {
+describe("GamestateDto", () => {
+  it("should be defined", () => {
     expect(new GamestateDto()).toBeDefined();
   });
 });

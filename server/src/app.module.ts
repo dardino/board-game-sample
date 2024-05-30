@@ -1,7 +1,7 @@
-import { Module } from '@nestjs/common';
-import { MeController } from './me/me.controller';
-import { MeService } from './me/me.service';
-import { PlayersService } from './players/players.service';
+import { Module } from "@nestjs/common";
+import { MeController } from "./me/me.controller";
+import { MeService } from "./me/me.service";
+import { PlayersService } from "./players/players.service";
 
 @Module({
   imports: [],

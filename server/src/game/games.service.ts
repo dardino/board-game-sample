@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { GameDto } from 'src/entities/game.dto/game.dto';
-import { GAME_MESSAGES } from 'src/entities/game.dto/game.messages';
-import { hasNickname } from 'src/entities/player.dto/player.dto.utils';
-import { GameJoinException } from 'src/errors/gameJoin';
-import { PlayersService } from 'src/players/players.service';
-import { replacePlaceholders } from 'src/tools/replacePlaceholders';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { GameDto } from "src/entities/game.dto/game.dto";
+import { GAME_MESSAGES } from "src/entities/game.dto/game.messages";
+import { hasNickname } from "src/entities/player.dto/player.dto.utils";
+import { GameJoinException } from "src/errors/gameJoin";
+import { PlayersService } from "src/players/players.service";
+import { replacePlaceholders } from "src/tools/replacePlaceholders";
 
 @Injectable()
 export class GamesServices {
@@ -46,6 +46,10 @@ export class GamesServices {
     );
   }
 
+  async gameById(gameId: GameDto["gameId"]) {
+    return this.#allGames.find((game) => game.gameId === gameId);
+  }
+
   /**
    * Joins a player to a game.
    *
@@ -59,19 +63,19 @@ export class GamesServices {
     const game = this.#allGames.find((game) => game.gameId === gameId);
     if (!game) {
       throw new GameJoinException(
-        replacePlaceholders(GAME_MESSAGES, 'GAME_NOT_FOUND', {}),
+        replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", {}),
       );
     }
 
     if (game.startedAt != null) {
       throw new GameJoinException(
-        replacePlaceholders(GAME_MESSAGES, 'GAME_ALREDY_STARTED', {}),
+        replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", {}),
       );
     }
 
     if (game.connectedPlayers.some(hasNickname(nickname))) {
       throw new GameJoinException(
-        replacePlaceholders(GAME_MESSAGES, 'PLAYER_ALREDY_IN_GAME', {
+        replacePlaceholders(GAME_MESSAGES, "PLAYER_ALREDY_IN_GAME", {
           playername: nickname,
         }),
       );
@@ -79,14 +83,14 @@ export class GamesServices {
 
     if (game.connectedPlayers.length >= game.numberOfPlayers) {
       throw new GameJoinException(
-        replacePlaceholders(GAME_MESSAGES, 'GAME_IS_FULL', {}),
+        replacePlaceholders(GAME_MESSAGES, "GAME_IS_FULL", {}),
       );
     }
 
     game.connectedPlayers.push(player);
     player.isPlaying = true;
 
-    return replacePlaceholders(GAME_MESSAGES, 'PLAYER_JOINED', {
+    return replacePlaceholders(GAME_MESSAGES, "PLAYER_JOINED", {
       playername: player.nickname,
     });
   }
@@ -95,5 +99,23 @@ export class GamesServices {
     const player = await this.playersService.getPlayer(nickname);
     const newGame = await GameDto.createGame(gameTitle, player);
     return newGame;
+  }
+
+  async getGameStats(gameId: GameDto["gameId"]): Promise<{
+    playersMax: number;
+    playersMin: number;
+    joinedPlayers: number;
+    elapesd: number | null;
+  }> {
+    const game = await this.gameById(gameId);
+    if (!game) {
+      throw new NotFoundException("Game not found");
+    }
+    return {
+      elapesd: game.startedAt ? Date.now() - game.startedAt.valueOf() : null,
+      joinedPlayers: game.connectedPlayers.length,
+      playersMax: game.numberOfPlayers,
+      playersMin: 2,
+    };
   }
 }

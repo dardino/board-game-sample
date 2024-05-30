@@ -1,5 +1,5 @@
-import { GamestateDto } from '../gamestate.dto/gamestate.dto';
-import { PlayerDto } from '../player.dto/player.dto';
+import { GamestateDto } from "../gamestate.dto/gamestate.dto";
+import { PlayerDto } from "../player.dto/player.dto";
 
 let gameCounter = 0;
 
@@ -11,7 +11,7 @@ export class GameDto {
   public gameTitle: string;
   public numberOfPlayers: number;
   public connectedPlayers: PlayerDto[];
-  public createdBy: PlayerDto['nickname'];
+  public createdBy: PlayerDto["nickname"];
   public createdAt: Date;
   public startedAt: Date | null;
   public gameState: GamestateDto | null;
@@ -36,5 +36,4 @@ export class GameDto {
     creator.isPlaying = true;
     return newGame;
   }
-
 }

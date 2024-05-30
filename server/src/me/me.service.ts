@@ -1,12 +1,12 @@
-import { Inject, Injectable, Scope } from '@nestjs/common';
-import { REQUEST } from '@nestjs/core';
-import { FastifyRequest } from 'fastify';
-import { PlayerDto } from '../entities/player.dto/player.dto';
-import { PlayersService } from '../players/players.service';
+import { Inject, Injectable, Scope } from "@nestjs/common";
+import { REQUEST } from "@nestjs/core";
+import { FastifyRequest } from "fastify";
+import { PlayerDto } from "../entities/player.dto/player.dto";
+import { PlayersService } from "../players/players.service";
 
 @Injectable({ scope: Scope.REQUEST })
 export class MeService {
-  public static COOKIE_NICK = `player.nickname` as const;
+  public static COOKIE_NICK = "player.nickname" as const;
   #myNickName: string;
 
   /**
@@ -19,7 +19,7 @@ export class MeService {
     private readonly playersService: PlayersService,
     @Inject(REQUEST) request: FastifyRequest,
   ) {
-    this.#myNickName = request.cookies[MeService.COOKIE_NICK] ?? '';
+    this.#myNickName = request.cookies[MeService.COOKIE_NICK] ?? "";
   }
 
   /**

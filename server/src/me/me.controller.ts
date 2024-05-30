@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Post, Res } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
-import { PlayerDto } from 'src/entities/player.dto/player.dto';
-import { MeService } from './me.service';
+import { Body, Controller, Delete, Get, Post, Res } from "@nestjs/common";
+import { FastifyReply } from "fastify";
+import { PlayerDto } from "src/entities/player.dto/player.dto";
+import { MeService } from "./me.service";
 
-@Controller('me')
+@Controller("me")
 export class MeController {
   constructor(private readonly meService: MeService) {}
 
@@ -35,7 +35,7 @@ export class MeController {
    * @returns Una Promise che restituisce l'oggetto di successo contenente il nickname registrato.
    */
   async registerMe(
-    @Body() newPlayer: Pick<PlayerDto, 'nickname'>,
+    @Body() newPlayer: Pick<PlayerDto, "nickname">,
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
     const success = await this.meService.registerMe(newPlayer.nickname);

@@ -1,9 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PlayerDto } from '../entities/player.dto/player.dto';
-import { hasNickname } from '../entities/player.dto/player.dto.utils';
-import { ResourceAlredyExistsException } from '../errors/resourceAlredyExists';
-import { replacePlaceholders } from '../tools/replacePlaceholders';
-import { PLAYERS_MESSAGES } from './players.messages';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PlayerDto } from "../entities/player.dto/player.dto";
+import { hasNickname } from "../entities/player.dto/player.dto.utils";
+import { ResourceAlredyExistsException } from "../errors/resourceAlredyExists";
+import { replacePlaceholders } from "../tools/replacePlaceholders";
+import { PLAYERS_MESSAGES } from "./players.messages";
 
 /**
  * Servizio per la gestione dei giocatori.
@@ -30,7 +30,7 @@ export class PlayersService {
   async addPlayer(nickname: string): Promise<PlayerDto> {
     if (await this.playerExists(nickname)) {
       throw new ResourceAlredyExistsException(
-        replacePlaceholders(PLAYERS_MESSAGES, 'PLAYER_ARLEDY_EXISTS', {
+        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_ARLEDY_EXISTS", {
           nickname,
         }),
       );
@@ -71,7 +71,7 @@ export class PlayersService {
     const player = cp.find(hasNickname(nickname));
     if (!player) {
       throw new NotFoundException(
-        replacePlaceholders(PLAYERS_MESSAGES, 'PLAYER_NOT_FOUND', {
+        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_NOT_FOUND", {
           nickname,
         }),
       );
@@ -97,7 +97,7 @@ export class PlayersService {
     const index = this.#currentPlayers.findIndex(hasNickname(nickname));
     if (index === -1) {
       throw new NotFoundException(
-        replacePlaceholders(PLAYERS_MESSAGES, 'PLAYER_NOT_FOUND', {
+        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_NOT_FOUND", {
           nickname,
         }),
       );

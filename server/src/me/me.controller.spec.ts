@@ -1,16 +1,16 @@
-import { ContextIdFactory, REQUEST } from '@nestjs/core';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PlayersService } from '../players/players.service';
-import { MeController } from './me.controller';
-import { MeService } from './me.service';
+import { ContextIdFactory, REQUEST } from "@nestjs/core";
+import { Test, TestingModule } from "@nestjs/testing";
+import { PlayersService } from "../players/players.service";
+import { MeController } from "./me.controller";
+import { MeService } from "./me.service";
 
-describe('MeController', () => {
+describe("MeController", () => {
   let meController: MeController;
 
   beforeEach(async () => {
     const contextId = ContextIdFactory.create();
     jest
-      .spyOn(ContextIdFactory, 'getByRequest')
+      .spyOn(ContextIdFactory, "getByRequest")
       .mockImplementation(() => contextId);
 
     const app: TestingModule = await Test.createTestingModule({
@@ -20,7 +20,7 @@ describe('MeController', () => {
       .overrideProvider(REQUEST)
       .useValue({
         cookies: {
-          'player.nickname': 'test',
+          "player.nickname": "test",
         },
       })
       .compile();
@@ -31,14 +31,14 @@ describe('MeController', () => {
     expect(meController).not.toBe(null);
   });
 
-  describe('getMe', () => {
-    it('should fail if not present', async () => {
+  describe("getMe", () => {
+    it("should fail if not present", async () => {
       try {
         await meController.getMe();
-        fail('this method should fail');
+        fail("this method should fail");
       } catch (err) {
         expect(err.message).toBe(
-          'Non esiste un giocatore con il nickname test',
+          "Non esiste un giocatore con il nickname test",
         );
       }
     });

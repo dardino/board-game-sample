@@ -15,7 +15,7 @@ type _stringArgs<TS extends string> =
 export type TemplateParams<TS extends string> = Record<_stringArgs<TS>, string>;
 
 const escapeRegExp = (str: string) =>
-  str.replace(/[.*+?^${}()\|\[\]\\]/g, '\\$&');
+  str.replace(/[.*+?^${}()\|\[\]\\]/g, "\\$&");
 
 /**
  * Sostituisce i segnaposto all'interno di una stringa con i valori corrispondenti forniti come argomenti.
@@ -34,7 +34,7 @@ export function replacePlaceholders<
   (Object.entries(args ?? {}) as Array<[string, string]>).forEach(
     ([key, value]) => {
       const rx = escapeRegExp(`\${${key}}`);
-      retString = retString.replace(new RegExp(rx, 'g'), value);
+      retString = retString.replace(new RegExp(rx, "g"), value);
     },
   );
   return retString;
