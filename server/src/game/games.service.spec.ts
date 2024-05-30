@@ -145,7 +145,7 @@ describe("GamesService", () => {
       const testPlayer2 = await playerSvc.getPlayer("test 3");
 
       const game: GameDto = await GameDto.createGame("test 1", creator);
-      game.numberOfPlayers = 2;
+      game.maxPlayers = 2;
       game.connectedPlayers.push(testPlayer1);
       service.prepare([game]);
 
@@ -167,7 +167,7 @@ describe("GamesService", () => {
       const testPlayer2 = await playerSvc.getPlayer("test 3");
 
       const game: GameDto = await GameDto.createGame("test 1", creator);
-      game.numberOfPlayers = 2;
+      game.maxPlayers = 2;
       game.connectedPlayers.push(testPlayer1);
       game.startedAt = new Date();
 
@@ -196,7 +196,7 @@ describe("GamesService", () => {
       const testPlayer2 = await playerSvc.getPlayer("test 3");
 
       const game: GameDto = await GameDto.createGame("test 1", creator);
-      game.numberOfPlayers = 3;
+      game.maxPlayers = 3;
       game.connectedPlayers.push(testPlayer1);
 
       service.prepare([game]);

@@ -9,7 +9,8 @@ let gameCounter = 0;
 export class GameDto {
   public gameId: number;
   public gameTitle: string;
-  public numberOfPlayers: number;
+  public minPlayersToStart: number;
+  public maxPlayers: number;
   public connectedPlayers: PlayerDto[];
   public createdBy: PlayerDto["nickname"];
   public createdAt: Date;
@@ -27,7 +28,8 @@ export class GameDto {
     const newGame = new GameDto();
     newGame.gameTitle = title;
     newGame.gameId = gameCounter++;
-    newGame.numberOfPlayers = 4;
+    newGame.minPlayersToStart = 2;
+    newGame.maxPlayers = 4;
     newGame.connectedPlayers = [creator];
     newGame.createdBy = creator.nickname;
     newGame.createdAt = new Date();

@@ -30,7 +30,7 @@ export class GamesServices {
    */
   async getFreeGames() {
     return this.#allGames.filter(
-      (game) => game.connectedPlayers.length < game.numberOfPlayers,
+      (game) => game.connectedPlayers.length < game.maxPlayers,
     );
   }
 
@@ -81,7 +81,7 @@ export class GamesServices {
       );
     }
 
-    if (game.connectedPlayers.length >= game.numberOfPlayers) {
+    if (game.connectedPlayers.length >= game.maxPlayers) {
       throw new GameJoinException(
         replacePlaceholders(GAME_MESSAGES, "GAME_IS_FULL", {}),
       );
@@ -95,12 +95,23 @@ export class GamesServices {
     });
   }
 
+  /**
+   * Crea una istanza di partita
+   * @param nickname nikname del creatore della partita
+   * @param gameTitle titolo della partita
+   * @returns istanza del gioco creato
+   */
   async createNewGame(nickname: string, gameTitle: string) {
     const player = await this.playersService.getPlayer(nickname);
     const newGame = await GameDto.createGame(gameTitle, player);
     return newGame;
   }
 
+  /**
+   * Restituisce un oggetto contenente le informazioni utili ad un giocatore per collegarsi ad una partita
+   * @param gameId identificativo della partita
+   * @returns un oggetto con le informazioni sulla partita
+   */
   async getGameStats(gameId: GameDto["gameId"]): Promise<{
     playersMax: number;
     playersMin: number;
@@ -114,7 +125,7 @@ export class GamesServices {
     return {
       elapesd: game.startedAt ? Date.now() - game.startedAt.valueOf() : null,
       joinedPlayers: game.connectedPlayers.length,
-      playersMax: game.numberOfPlayers,
+      playersMax: game.maxPlayers,
       playersMin: 2,
     };
   }
