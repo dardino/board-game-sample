@@ -4,16 +4,16 @@ import { PlayerDto } from "@entities/player.dto/player.dto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
-import { RuleManagerService } from "./rule-manager.service";
+import { GameOneRuleService } from "./rule-manager.service";
 
-describe("RuleManagerService tests", () => {
-  let service: RuleManagerService;
+describe("GameOneRuleService tests", () => {
+  let service: GameOneRuleService;
   const addDelayedActionMock = jest.fn().mockImplementation(() => true);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
-        RuleManagerService,
+        GameOneRuleService,
         {
           provide: SystemPlayerService,
           useValue: {
@@ -23,7 +23,7 @@ describe("RuleManagerService tests", () => {
       ],
     }).compile();
 
-    service = module.get<RuleManagerService>(RuleManagerService);
+    service = module.get<GameOneRuleService>(GameOneRuleService);
   });
 
   it("RuleManagerService should be defined", () => {
@@ -38,10 +38,10 @@ describe("RuleManagerService tests", () => {
     const result = await service.start(game);
     expect(result).toBe(replacePlaceholders(GAME_MESSAGES, "GAME_STARTED", {}));
     expect(game.startedAt).toBeInstanceOf(Date);
-    expect(addDelayedActionMock).toHaveBeenCalledWith(
-      game.gameId,
-      game.gameState?.nextTournDeadline,
-      { action: "EndTurn", playerId: -1 },
-    );
+    expect(addDelayedActionMock).toHaveBeenCalledWith(game.gameId, {
+      action: "PlayerTurn_End",
+      playerId: -1,
+      runAt: game.gameState?.nextTournDeadline,
+    });
   });
 });

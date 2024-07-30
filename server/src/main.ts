@@ -11,7 +11,7 @@ async function bootstrap() {
     AppModule,
     new FastifyAdapter({ logger: true }),
   );
-  await app.register(fastifyCookie, {
+  await app.register(fastifyCookie as any, {
     secret: "my-secret", // for cookies signature
     parseOptions: {
       path: "/", // fondamentale per poter leggere i cookie anche dal browser

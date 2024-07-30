@@ -4,6 +4,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { PLAYERS_MESSAGES } from "src/players/players.messages";
 import { PlayersService } from "src/players/players.service";
+import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { GamesServices } from "./games.service";
 
@@ -19,7 +20,12 @@ describe("GamesService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GameOneRuleService, { provide: GamesServices, useClass: GamesServicesSubclass }, PlayersService],
+      providers: [
+        GameOneRuleService,
+        PlayersService,
+        SystemPlayerService,
+        GamesServicesSubclass,
+      ],
     }).compile();
 
     service = module.get<GamesServicesSubclass>(GamesServicesSubclass);

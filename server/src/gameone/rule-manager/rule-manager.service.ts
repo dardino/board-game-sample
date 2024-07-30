@@ -4,10 +4,8 @@ import { GamestateDto } from "@entities/gamestate.dto/gamestate.dto";
 import { PlayerDto } from "@entities/player.dto/player.dto";
 import { Injectable } from "@nestjs/common";
 import { RuleException } from "src/errors/rule";
-import { GameRuleService, RuleActionBase } from "src/rule-service-types/game-rule-types";
 import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
-import { GameOneActionKinds } from "../gameone-rules";
 
 type StartedGame = Omit<GameDto, "gameState" | "startedAt"> & {
   gameState: GamestateDto;
@@ -19,15 +17,9 @@ function isGameStarted(game: GameDto): game is StartedGame {
 }
 
 @Injectable()
-export class GameOneRuleService implements GameRuleService<GameOneActionKinds> {
+export class GameOneRuleService {
   constructor(private systemPlayer: SystemPlayerService) {
     //
-  }
-  executePlayerAction<T extends GameOneActionKinds>(gameId: number, action: RuleActionBase<T>): Promise<boolean> {
-    throw new Error("Method not implemented.");
-  }
-  queuePlayerAction<T extends GameOneActionKinds>(gameId: number, action: RuleActionBase<T>): Promise<boolean> {
-    throw new Error("Method not implemented.");
   }
 
   async addPlayer(game: GameDto, player: PlayerDto) {
@@ -50,14 +42,11 @@ export class GameOneRuleService implements GameRuleService<GameOneActionKinds> {
       );
     }
 
-    this.systemPlayer.addDelayedAction(
-      game.gameId,
-      {
-        action: "PlayerTurn_End" as GameOneActionKinds,
-        playerId: -1,
-        runAt: game.gameState!.nextTournDeadline,
-      }
-    );
+    this.systemPlayer.addDelayedAction(game.gameId, {
+      action: "PlayerTurn_End",
+      playerId: -1,
+      runAt: game.gameState!.nextTournDeadline,
+    });
 
     return replacePlaceholders(GAME_MESSAGES, "GAME_STARTED", {});
   }

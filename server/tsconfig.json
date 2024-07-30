@@ -11,14 +11,18 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
+    "strict": true,
+    "alwaysStrict": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
+    "strictPropertyInitialization": false,
+    "suppressExcessPropertyErrors": false,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@entities/*": ["src/entities/*"]
+      "@entities/*": [
+        "src/entities/*"
+      ]
     }
   }
 }

@@ -1,9 +1,10 @@
 import { ContextIdFactory, REQUEST } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
 import { GamesServices } from "src/game/games.service";
-import { RuleManagerService } from "src/gameone/rule-manager/rule-manager.service";
+import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { MeService } from "src/me/me.service";
 import { PlayersService } from "src/players/players.service";
+import { SystemPlayerService } from "src/system-player/system-player.service";
 import { MatchMakingController } from "./matchmaking.controller";
 
 describe("Match Making controller", () => {
@@ -18,7 +19,13 @@ describe("Match Making controller", () => {
 
     const app: TestingModule = await Test.createTestingModule({
       controllers: [MatchMakingController],
-      providers: [RuleManagerService, PlayersService, MeService, GamesServices],
+      providers: [
+        GameOneRuleService,
+        PlayersService,
+        SystemPlayerService,
+        MeService,
+        GamesServices,
+      ],
     })
       .overrideProvider(REQUEST)
       .useValue({

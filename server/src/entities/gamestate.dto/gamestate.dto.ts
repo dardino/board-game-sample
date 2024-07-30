@@ -13,7 +13,7 @@ export class GamestateDto {
     return newGameState;
   }
 
-  #currentPlayers: PlayerDto[];
+  #currentPlayers: PlayerDto[] = [];
   #turnPlayerIndex: number = 0;
   #nextTournDeadline: string = "";
 
