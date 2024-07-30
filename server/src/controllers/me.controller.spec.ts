@@ -1,8 +1,8 @@
 import { ContextIdFactory, REQUEST } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
+import { MeService } from "../me/me.service";
 import { PlayersService } from "../players/players.service";
 import { MeController } from "./me.controller";
-import { MeService } from "./me.service";
 
 describe("MeController", () => {
   let meController: MeController;

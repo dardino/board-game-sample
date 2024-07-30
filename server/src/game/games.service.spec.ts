@@ -1,6 +1,7 @@
 import { GameDto } from "@entities/game.dto/game.dto";
 import { GAME_MESSAGES } from "@entities/game.dto/game.messages";
 import { Test, TestingModule } from "@nestjs/testing";
+import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { PLAYERS_MESSAGES } from "src/players/players.messages";
 import { PlayersService } from "src/players/players.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
@@ -18,7 +19,7 @@ describe("GamesService", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GamesServicesSubclass, PlayersService],
+      providers: [GameOneRuleService, { provide: GamesServices, useClass: GamesServicesSubclass }, PlayersService],
     }).compile();
 
     service = module.get<GamesServicesSubclass>(GamesServicesSubclass);
@@ -218,6 +219,22 @@ describe("GamesService", () => {
       // Assert
       expect(result).toBe(successMessage);
       expect(game.connectedPlayers).toContain(testPlayer2);
+    });
+  });
+
+  describe("createNewGame", () => {
+    it("should correctly create game adding it to freegame list", async () => {
+      // Arrange
+      const nickname = "testPlayer";
+      await playerSvc.addPlayer(nickname);
+
+      // Act
+      const game = await service.createNewGame(nickname, "Game 1");
+
+      // Assert
+      const gameList = await service.getFreeGames();
+      expect(gameList.length).toBe(1);
+      expect(gameList[0]).toBe(game);
     });
   });
 });

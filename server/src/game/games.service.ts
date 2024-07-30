@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { GameDto } from "src/entities/game.dto/game.dto";
 import { GAME_MESSAGES } from "src/entities/game.dto/game.messages";
 import { hasNickname } from "src/entities/player.dto/player.dto.utils";
 import { GameJoinException } from "src/errors/gameJoin";
+import { GameStartException } from "src/errors/gameStart";
+import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { PlayersService } from "src/players/players.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
 
@@ -13,7 +15,12 @@ export class GamesServices {
   /**
    *
    */
-  constructor(private readonly playersService: PlayersService) {}
+  constructor(
+    private readonly playersService: PlayersService,
+    private readonly ruleManagerService: GameOneRuleService,
+  ) {
+    //
+  }
 
   async getList(): Promise<GameDto[]> {
     return this.#allGames;
@@ -87,12 +94,49 @@ export class GamesServices {
       );
     }
 
-    game.connectedPlayers.push(player);
+    this.ruleManagerService.addPlayer(game, player);
     player.isPlaying = true;
 
     return replacePlaceholders(GAME_MESSAGES, "PLAYER_JOINED", {
       playername: player.nickname,
     });
+  }
+
+  /**
+   * Start a game if game is ready to go.
+   *
+   * @param nickname - The nickname of the player.
+   * @param gameId - The ID of the game.
+   * @returns A date indicating the starting time.
+   * @throws {GameStartException} If the game is not found, player is not found, player is already connected to the game, the game is full or already started.
+   */
+  async startGame(nickname: string, gameId: number) {
+    const game = this.#allGames.find((game) => game.gameId === gameId);
+    if (!game) {
+      throw new GameStartException(
+        replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", {}),
+      );
+    }
+
+    if (game.connectedPlayers.length < game.minPlayersToStart) {
+      throw new GameStartException(
+        replacePlaceholders(GAME_MESSAGES, "GAME_IS_NOT_FULL", {}),
+      );
+    }
+
+    if (game.startedAt != null) {
+      throw new GameStartException(
+        replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", {}),
+      );
+    }
+
+    if (game.connectedPlayers[0].nickname !== nickname) {
+      throw new GameStartException(
+        replacePlaceholders(GAME_MESSAGES, "YOU_ARE_NOT_THE_GAME_OWNER", {}),
+      );
+    }
+
+    this.ruleManagerService.start(game);
   }
 
   /**
@@ -104,6 +148,7 @@ export class GamesServices {
   async createNewGame(nickname: string, gameTitle: string) {
     const player = await this.playersService.getPlayer(nickname);
     const newGame = await GameDto.createGame(gameTitle, player);
+    this.#allGames.push(newGame);
     return newGame;
   }
 
@@ -112,21 +157,19 @@ export class GamesServices {
    * @param gameId identificativo della partita
    * @returns un oggetto con le informazioni sulla partita
    */
-  async getGameStats(gameId: GameDto["gameId"]): Promise<{
+  getGameStats(game: GameDto): {
     playersMax: number;
     playersMin: number;
     joinedPlayers: number;
     elapesd: number | null;
-  }> {
-    const game = await this.gameById(gameId);
-    if (!game) {
-      throw new NotFoundException("Game not found");
-    }
+    title: string;
+  } {
     return {
       elapesd: game.startedAt ? Date.now() - game.startedAt.valueOf() : null,
       joinedPlayers: game.connectedPlayers.length,
       playersMax: game.maxPlayers,
       playersMin: 2,
+      title: game.gameTitle,
     };
   }
 }

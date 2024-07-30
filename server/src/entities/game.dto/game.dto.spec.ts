@@ -1,8 +1,8 @@
 import { PlayerDto } from "../player.dto/player.dto";
 import { GameDto } from "./game.dto";
 
-describe("GameDto", () => {
-  it("should be defined", () => {
+describe("GameDto tests", () => {
+  it("GameDto should be defined", () => {
     const player: PlayerDto = {
       id: 0,
       isPlaying: false,

@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, Post, Res } from "@nestjs/common";
 import { FastifyReply } from "fastify";
 import { PlayerDto } from "src/entities/player.dto/player.dto";
-import { MeService } from "./me.service";
+import { MeService } from "../me/me.service";
 
 @Controller("me")
 export class MeController {

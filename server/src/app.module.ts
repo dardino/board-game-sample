@@ -1,11 +1,15 @@
 import { Module } from "@nestjs/common";
-import { MeController } from "./me/me.controller";
+import { MatchMakingController } from "./controllers/matchmaking.controller";
+import { MeController } from "./controllers/me.controller";
+import { GamesServices } from "./game/games.service";
+import { RuleManagerService } from './gameone/rule-manager/rule-manager.service';
 import { MeService } from "./me/me.service";
 import { PlayersService } from "./players/players.service";
+import { SystemPlayerService } from './system-player/system-player.service';
 
 @Module({
   imports: [],
-  controllers: [MeController],
-  providers: [MeService, PlayersService],
+  controllers: [MeController, MatchMakingController],
+  providers: [MeService, PlayersService, GamesServices, RuleManagerService, SystemPlayerService],
 })
-export class AppModule {}
+export class AppModule { }

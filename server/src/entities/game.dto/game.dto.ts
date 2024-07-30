@@ -15,6 +15,7 @@ export class GameDto {
   public createdBy: PlayerDto["nickname"];
   public createdAt: Date;
   public startedAt: Date | null;
+
   public gameState: GamestateDto | null;
 
   /**
@@ -30,10 +31,10 @@ export class GameDto {
     newGame.gameId = gameCounter++;
     newGame.minPlayersToStart = 2;
     newGame.maxPlayers = 4;
+    newGame.gameState = null;
     newGame.connectedPlayers = [creator];
     newGame.createdBy = creator.nickname;
     newGame.createdAt = new Date();
-    newGame.gameState = null;
     newGame.startedAt = null;
     creator.isPlaying = true;
     return newGame;

@@ -1,4 +1,7 @@
 {
   "jest.jestCommandLine": "pnpm jest",
   "jest.debugMode": true,
+  "eslint.codeActionsOnSave.mode": "all",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
 }

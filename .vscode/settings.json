@@ -1,4 +1,7 @@
 {
   "jest.jestCommandLine": "yarn jest",
-  "jest.rootPath": "server"
+  "jest.rootPath": "server",
+  "eslint.codeActionsOnSave.mode": "all",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint"
 }
