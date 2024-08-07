@@ -64,6 +64,9 @@ export const PlaceTileReducer: StateReducer<PlaceTileAction> = (
     previousAction: action.kind,
     allowedNextActions: [],
     onboardTiles: tilesOnBoard,
+    currentPlayerPerformedActions: state.currentPlayerPerformedActions.concat([
+      action.kind,
+    ]),
   };
 };
 //#endregion PlaceTile

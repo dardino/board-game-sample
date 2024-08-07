@@ -115,7 +115,7 @@ export type GoToPlayerTurnAction = SetupAction<"GoToPlayerTurn">;
 //#endregion Setup
 
 //#region PlayerTurn
-export type PlayerTurnAction<Kind extends string, TAction> = GameAction<
+type PlayerTurnAction<Kind extends string, TAction> = GameAction<
   "PlayerTurn",
   Kind,
   TAction & { playerId: number }
@@ -137,9 +137,29 @@ export type FightAction = PlayerTurnAction<
 export type PassAction = PlayerTurnAction<"Pass", { direction: Connections }>;
 //#endregion PlayerTurn
 
+//#region PhaseFeed
+type PhaseFeedAction<Kind extends string, TAction = EmptyObject> = GameAction<
+  "PhaseFeed",
+  Kind,
+  TAction
+>;
+export type CheckEndGameAction = PhaseFeedAction<"CheckEndGame">;
+export type MoveNextEnemyAction = PhaseFeedAction<"MoveNextEnemy">;
+//#endregion PhaseFeed
+
+//#region EndGame
+type EndGameAction<Kind extends string, TAction = EmptyObject> = GameAction<
+  "EndGame",
+  Kind,
+  TAction
+>;
+export type AssignRatingAction = EndGameAction<"AssignRating">;
+//#endregion EndGame
+
 //#endregion ALL ACTIONS
 
 export type AllPossibleAction =
+  // Setup
   | SetPlayersAction
   | DrawBossAction
   | ShuffleTilesAction
@@ -147,10 +167,16 @@ export type AllPossibleAction =
   | SetPlayngOrderAction
   | CharacterSelectionAction
   | GoToPlayerTurnAction
+  // PlayerTurn
   | MoveAction
   | PickATileAction
   | PlaceTileAction
   | AwakeAction
   | FightAction
-  | PassAction;
+  | PassAction
+  // PhaseFeed
+  | CheckEndGameAction
+  | MoveNextEnemyAction
+  // EndGame
+  | AssignRatingAction;
 export type AllPossibleActionKind = AllPossibleAction["kind"];

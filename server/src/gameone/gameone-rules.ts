@@ -1,3 +1,4 @@
+import { autoPlayer } from "./autoplayer/autoplayer.middle";
 import { CharacterSelectionReducer } from "./rules/1_Setup/characterSelection.reducer";
 import { DrawBossReducer } from "./rules/1_Setup/drawBoss.reducer";
 import { GoToPlayerTurnReducer } from "./rules/1_Setup/gotoPlayerTurn.reducer";
@@ -11,6 +12,9 @@ import { MoveReducer } from "./rules/2_PlayerActions/move.reducer";
 import { PassReducer } from "./rules/2_PlayerActions/pass.reducer";
 import { PickATileReducer } from "./rules/2_PlayerActions/pickATile.reducer";
 import { PlaceTileReducer } from "./rules/2_PlayerActions/placeTIle.reducer";
+import { CheckEndGameReducer } from "./rules/3_PhaseFeed/checkEndGame.reducer";
+import { MoveNextEnemyReducer } from "./rules/3_PhaseFeed/moveNextEnemy.reducer";
+import { AssignRatingReducer } from "./rules/4_EndGame/assignRating.reducer";
 import {
   AllPossibleAction,
   AllPossibleActionKind,
@@ -26,6 +30,7 @@ type InferActionByKind<Kind extends AllPossibleActionKind> =
 const allActionsMap: {
   [key in AllPossibleActionKind]: StateReducer<InferActionByKind<key>>;
 } = {
+  // 1 Setup
   SetPlayers: SetPlayersReducer,
   ShuffleTiles: ShuffleTilesReducer,
   PlaceFirstTile: PlaceFirstTileReducer,
@@ -33,25 +38,40 @@ const allActionsMap: {
   SetPlayngOrder: SetPlayngOrderReducer,
   CharacterSelection: CharacterSelectionReducer,
   GoToPlayerTurn: GoToPlayerTurnReducer,
+  // 2 Player Turn
   Move: MoveReducer,
   PickATile: PickATileReducer,
   PlaceTile: PlaceTileReducer,
   Awake: AwakeReducer,
   Fight: FightReducer,
   Pass: PassReducer,
+  // 3 Phase Feed
+  CheckEndGame: CheckEndGameReducer,
+  MoveNextEnemy: MoveNextEnemyReducer,
+  // 4 End Game
+  AssignRating: AssignRatingReducer,
 };
 
 export const GameOneMatchManager = (
   gameState: GameoneState,
   action: AllPossibleAction,
 ): GameoneState => {
+  const newGameState = applyAction(gameState, action);
+  return autoPlayer(newGameState, applyAction);
+};
+
+export function applyAction(
+  gameState: GameoneState,
+  action: AllPossibleAction,
+): GameoneState {
   if (!gameState.allowedNextActions.includes(action.kind)) {
     throw new Error("Non è possibile eseguire questa azione!");
   }
   const reducer = allActionsMap[action.kind] as StateReducer<AllPossibleAction>;
   const partialGameState = reducer(gameState, action);
-  return {
+  const newGameState: GameoneState = {
     ...gameState,
     ...partialGameState,
   };
-};
+  return newGameState;
+}

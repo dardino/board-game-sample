@@ -27,15 +27,20 @@ export const Flow = {
     GoToPlayerTurn: ["Awake"],
   },
   PlayerTurn: {
-    Pass: ["Awake"],
+    Pass: ["CheckEndGame"],
     Awake: ["Move", "Fight"],
     Fight: ["Move", "Fight"],
     Move: ["Move", "Fight", "PickATile"],
     PickATile: ["PlaceTile"],
     PlaceTile: ["Move", "Fight"],
   },
-  PhaseFeed: {},
-  EndGame: {},
+  PhaseFeed: {
+    CheckEndGame: ["AssignRating", "MoveNextEnemy"],
+    MoveNextEnemy: ["CheckEndGame"],
+  },
+  EndGame: {
+    AssignRating: [],
+  },
 } satisfies {
   [key in GamePhases]: {
     [kind in InferKindsByPhase<key>]: AllPossibleActionKind[];

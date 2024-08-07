@@ -5,9 +5,14 @@ import {
   OTHER_TILES,
   STARTING_TILES,
 } from "./gameone-contents";
-import { GameOneMatchManager } from "./gameone-rules";
+import { applyAction, GameOneMatchManager } from "./gameone-rules";
+import { Flow } from "./rules/gameone.flow";
 import { prepareTile } from "./rules/gameone.tile.helpers";
-import { AllPossibleActionKind, getInitialState } from "./rules/state.types";
+import {
+  AllPossibleActionKind,
+  GamePhases,
+  getInitialState,
+} from "./rules/state.types";
 
 describe("GameOne - Rules", () => {
   describe("Setup Phase", () => {
@@ -17,7 +22,7 @@ describe("GameOne - Rules", () => {
     });
     it("Action SetPlayers as first action", () => {
       const initialGameState = getInitialState();
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "SetPlayers",
         players: [1, 2, 3, 4],
@@ -29,7 +34,7 @@ describe("GameOne - Rules", () => {
       const initialGameState = getInitialState();
       initialGameState.allowedNextActions = ["DrawBoss"];
       expect(initialGameState.boss).toBeNull();
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "DrawBoss",
       });
@@ -41,7 +46,7 @@ describe("GameOne - Rules", () => {
       const initialGameState = getInitialState();
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.allowedNextActions = ["ShuffleTiles"];
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "ShuffleTiles",
       });
@@ -53,7 +58,7 @@ describe("GameOne - Rules", () => {
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.players = [1, 2, 3, 4];
       initialGameState.allowedNextActions = ["PlaceFirstTile"];
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "PlaceFirstTile",
       });
@@ -67,7 +72,7 @@ describe("GameOne - Rules", () => {
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.players = [1, 2, 3, 4];
       initialGameState.allowedNextActions = ["SetPlayngOrder"];
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "SetPlayngOrder",
       });
@@ -78,7 +83,7 @@ describe("GameOne - Rules", () => {
       const initialGameState = getInitialState();
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.allowedNextActions = ["CharacterSelection"];
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "CharacterSelection",
         selectedCharacters: [
@@ -96,7 +101,7 @@ describe("GameOne - Rules", () => {
       const initialGameState = getInitialState();
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.allowedNextActions = ["GoToPlayerTurn"];
-      const newState = GameOneMatchManager(initialGameState, {
+      const newState = applyAction(initialGameState, {
         phase: "Setup",
         kind: "GoToPlayerTurn",
       });
@@ -171,7 +176,7 @@ describe("GameOne - Rules", () => {
     it("Move with explore", () => {
       const state = mockInitialGameState();
       // provo a muovere
-      let newState = GameOneMatchManager(state, {
+      let newState = applyAction(state, {
         phase: "PlayerTurn",
         kind: "Move",
         direction: "R",
@@ -180,7 +185,7 @@ describe("GameOne - Rules", () => {
       // ho bisogno di esplorare
       expect(newState.allowedNextActions).toStrictEqual(["PickATile"]);
       // decido in che direzione
-      newState = GameOneMatchManager(newState, {
+      newState = applyAction(newState, {
         phase: "PlayerTurn",
         kind: "PickATile",
         position: "TL",
@@ -190,12 +195,68 @@ describe("GameOne - Rules", () => {
       expect(newState.allowedNextActions).toStrictEqual(["PlaceTile"]);
       expect(newState.tileToPlace).not.toBeNull();
       // posiziono girandola di 1
-      newState = GameOneMatchManager(newState, {
+      newState = applyAction(newState, {
         phase: "PlayerTurn",
         kind: "PlaceTile",
         rotation: 1,
         playerId: 1,
       });
+    });
+  });
+
+  describe("GameOneMatchManager", () => {
+    test("GameOneMatchManager - Setup with autoplay shold stop on CharacterSelection", () => {
+      const initialGameState = getInitialState();
+      const newState = GameOneMatchManager(initialGameState, {
+        phase: "Setup",
+        kind: "SetPlayers",
+        players: [1, 2, 3, 4],
+      });
+      expect(newState.previousAction).toBe(
+        "SetPlayngOrder" satisfies AllPossibleActionKind,
+      );
+      expect(newState.allowedNextActions[0]).toBe(
+        "CharacterSelection" satisfies AllPossibleActionKind,
+      );
+    });
+    test("GameOneMatchManager - after CharacterSelection should stop after Player Awake", () => {
+      const initialGameState = getInitialState();
+      let newState = GameOneMatchManager(initialGameState, {
+        phase: "Setup",
+        kind: "SetPlayers",
+        players: [1, 2, 3, 4],
+      });
+      newState = GameOneMatchManager(newState, {
+        phase: "Setup",
+        kind: "CharacterSelection",
+        selectedCharacters: [
+          {
+            characterId: 4,
+            playerId: 1,
+            characterName: "Tizio",
+          },
+          {
+            characterId: 3,
+            playerId: 2,
+            characterName: "Caio",
+          },
+          {
+            characterId: 2,
+            playerId: 3,
+            characterName: "Sempronio",
+          },
+          {
+            characterId: 1,
+            playerId: 4,
+            characterName: "Riccardo",
+          },
+        ],
+      });
+      expect(newState.phase).toBe("PlayerTurn" satisfies GamePhases);
+      expect(newState.allowedNextActions).toStrictEqual(Flow.PlayerTurn.Awake);
+      expect(newState.previousAction).toBe(
+        "Awake" satisfies AllPossibleActionKind,
+      );
     });
   });
 });

@@ -9,6 +9,30 @@ import {
   StateReducer,
 } from "../state.types";
 
+/**
+ * Esegue un movimento con le regole di movimento:
+ *   un giocatore, per poter muovere, deve essere 'libero'.
+ *   un giocatore è libero se:
+ *     - è il suo turno
+ *     - è vivo (vita > 0)
+ *     - non è bloccato da nemici
+ *     - ha ancora movimenti a disposizione
+ *   per poter andare in una qualunque direzione deve esistere un 'passaggio' in quella direzione
+ *   il passaggio esiste se la tile in cui si trova il giocatore ha nella direzione specificata:
+ *     - una connessione possibile e nessuna tile collegata
+ *     - una connessione valida con la tile collegata
+ *   viceversa il movimento non sarà possibile se non c'è una connessione valida o potenzialmente valida.
+ * se il giocatore può muovere nella direzione indicata allora si verifica quanto segue:
+ *   - se e c'è giù una tile allora il movimento si conclude spostando il giocatore nella tile indicata.
+ *   - se non c'è una tile allora il giocatore deve prima:
+ *     - pescare una nuova tile (PickATile)
+ *     - orientarla e piazzarla nel modo corretto
+ *       e quindi si aggiungono eventuali nemici (PlaceTile)
+ *     - muovere il proprio personaggio nella tile appena aggiunta. (Move)
+ * @param state
+ * @param action
+ * @returns
+ */
 export const MoveReducer: StateReducer<MoveAction> = (state, action) => {
   // il giocatore può muovere se :
   // - è il suo turno

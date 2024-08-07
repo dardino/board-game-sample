@@ -1,6 +1,11 @@
 import { Flow } from "../gameone.flow";
 import { AwakeAction, StateReducer } from "../state.types";
 
+/**
+ * Attiva il giocatore di turno
+ * @param state stato attuale da cui capire chi è di turno
+ * @returns
+ */
 export const AwakeReducer: StateReducer<AwakeAction> = (state) => {
   let nextPlayer =
     state.previousAction === "GoToPlayerTurn"
