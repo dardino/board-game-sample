@@ -37,7 +37,7 @@ describe("MeController", () => {
         await meController.getMe();
         fail("this method should fail");
       } catch (err) {
-        expect(err.message).toBe(
+        expect((err as Error).message).toBe(
           "Non esiste un giocatore con il nickname test",
         );
       }

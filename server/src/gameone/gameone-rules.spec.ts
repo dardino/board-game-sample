@@ -5,11 +5,9 @@ import {
   OTHER_TILES,
   STARTING_TILES,
 } from "./gameone-contents";
-import {
-  GameOneMatchManager,
-  getInitialState,
-  prepareTile,
-} from "./gameone-rules";
+import { GameOneMatchManager } from "./gameone-rules";
+import { prepareTile } from "./rules/gameone.tile.helpers";
+import { AllPossibleActionKind, getInitialState } from "./rules/state.types";
 
 describe("GameOne - Rules", () => {
   describe("Setup Phase", () => {
@@ -68,7 +66,6 @@ describe("GameOne - Rules", () => {
       const initialGameState = getInitialState();
       initialGameState.boss = BOSS_ENEMIES[0];
       initialGameState.players = [1, 2, 3, 4];
-      expect(initialGameState.playerOrder.length).toBe(0);
       initialGameState.allowedNextActions = ["SetPlayngOrder"];
       const newState = GameOneMatchManager(initialGameState, {
         phase: "Setup",
@@ -76,7 +73,6 @@ describe("GameOne - Rules", () => {
       });
       expect(newState.previousAction).toBe("SetPlayngOrder");
       expect(newState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
-      expect(newState.playerOrder.length).toBe(4);
     });
     it("Action CharacterSelection", () => {
       const initialGameState = getInitialState();
@@ -105,7 +101,10 @@ describe("GameOne - Rules", () => {
         kind: "GoToPlayerTurn",
       });
       expect(newState.previousAction).toBe("GoToPlayerTurn");
-      expect(newState.allowedNextActions).toStrictEqual(["Move"]);
+      expect(newState.allowedNextActions).toStrictEqual([
+        "Awake",
+      ] as AllPossibleActionKind[]);
+      expect(newState.currentPlayerIndex).toBe(0);
     });
   });
   describe("Player Turn", () => {
@@ -153,7 +152,6 @@ describe("GameOne - Rules", () => {
       ];
       initialGameState.currentPlayerIndex = 0;
       initialGameState.currentPlayerPerformedActions = [];
-      initialGameState.playerOrder = [1, 2, 3, 4];
       initialGameState.players = [1, 2, 3, 4];
       initialGameState.onboardTiles = [
         prepareTile(STARTING_TILES[0], 0, initialGameState.players.slice()),
@@ -180,11 +178,11 @@ describe("GameOne - Rules", () => {
         playerId: 1,
       });
       // ho bisogno di esplorare
-      expect(newState.allowedNextActions).toStrictEqual(["GetTile"]);
+      expect(newState.allowedNextActions).toStrictEqual(["PickATile"]);
       // decido in che direzione
       newState = GameOneMatchManager(newState, {
         phase: "PlayerTurn",
-        kind: "GetTile",
+        kind: "PickATile",
         position: "TL",
         playerId: 1,
       });

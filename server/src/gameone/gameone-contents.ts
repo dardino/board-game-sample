@@ -176,22 +176,57 @@ export const CHARACTERS: Character[] = [
 ] as const;
 
 const connectionSchemas = {
-  // 6 connections:
+  /**
+   * tutti i lati collegabili (6)
+   */
   AllConnections: ["TL", "TR", "R", "L", "BR", "BL"],
-  // 5 connections:
+  /**
+   * tutti i lati collegabili tranne uno (5)
+   */
   AllButOneConnections: ["TL", "TR", "R", "L", "BR"],
-  // 4 connections:
+  /**
+   * 4 lati vicini collegabili, gli altri 2 no (4)
+   */
+  Near4: ["TL", "TR", "R", "BR"],
+  /**
+   * 3 lati vicini collegabili, poi uno all'opposto (4)
+   */
+  ForkConnections: ["TL", "TR", "R", "BL"],
+  /**
+   * 2 lati vicini e i 2 agli opposti collegabili (4)
+   */
   XConnections: ["TL", "TR", "BR", "BL"],
-  ForkConnections: ["TL", "TR", "R", "BR"],
-  // 3 connections:
-  StarConnections: ["TL", "R", "BR"],
-  YLConnections: ["TL", "TR", "L"],
-  YRConnections: ["TL", "TR", "R"],
-  // 2 connections:
-  Near: ["TL", "TR"],
+  /**
+   * 3 lati vicini collegabili (3)
+   */
+  Near3: ["TL", "TR", "R"],
+  /**
+   * 2 lati vicini collegabili e poi uno a distanza 1 in senso orario (3)
+   */
+  YRConnections: ["TL", "TR", "BR"],
+  /**
+   * 2 lati vicini collegabili e poi uno a distanza 1 in senso anti-orario (3)
+   */
+  YLConnections: ["TL", "TR", "BL"],
+  /**
+   * 3 lati tra di loro 'a stella' ovvero non vicini sono collegabili (3)
+   */
+  StarConnections: ["TL", "R", "BL"],
+  /**
+   * due lati vicini sono collegabili (2)
+   */
+  Near2: ["TL", "TR"],
+  /**
+   * due lati a distanza 1 sono collegabili (2)
+   */
   Jump1: ["TL", "R"],
+  /**
+   * due lati agli opposti sono collegabili (2)
+   */
   Opposite: ["L", "R"],
-  // 1 connections:
+  /**
+   * solo un lato è collegabile (vicolo cieco)
+   */
   OneConnection: ["TL"],
 } as const satisfies { [key: string]: Array<Connections> };
 export const STARTING_TILES: Tile[] = [
@@ -211,7 +246,7 @@ export const BOSS_TILES: Tile[] = [
     type: "Boss",
     enemies: ["Boss"],
     ring: 3,
-    conections: ["L"],
+    conections: connectionSchemas.OneConnection.slice(),
   },
 ];
 export const OTHER_TILES: Tile[] = [
@@ -221,7 +256,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "R", "BR"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 2,
@@ -229,7 +264,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.AllButOneConnections.slice(),
   },
   {
     id: 3,
@@ -237,7 +272,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "TR", "BR", "BL"],
+    conections: connectionSchemas.AllButOneConnections.slice(),
   },
   {
     id: 4,
@@ -245,7 +280,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "R", "BR"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 5,
@@ -253,7 +288,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 6,
@@ -261,7 +296,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.ForkConnections.slice(),
   },
   {
     id: 7,
@@ -269,7 +304,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.XConnections.slice(),
   },
   {
     id: 8,
@@ -277,7 +312,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.AllConnections.slice(),
   },
   {
     id: 9,
@@ -285,7 +320,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base", "Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.AllConnections.slice(),
   },
   {
     id: 10,
@@ -293,7 +328,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near4.slice(),
   },
   {
     id: 11,
@@ -301,7 +336,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.ForkConnections.slice(),
   },
   {
     id: 12,
@@ -309,7 +344,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base", "Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.XConnections.slice(),
   },
   {
     id: 13,
@@ -317,7 +352,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near4.slice(),
   },
   {
     id: 14,
@@ -325,7 +360,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.ForkConnections.slice(),
   },
   {
     id: 15,
@@ -333,7 +368,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 1,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.XConnections.slice(),
   },
   {
     id: 16,
@@ -341,7 +376,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near4.slice(),
   },
   {
     id: 17,
@@ -349,7 +384,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.ForkConnections.slice(),
   },
   {
     id: 18,
@@ -357,7 +392,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near3.slice(),
   },
   {
     id: 19,
@@ -365,7 +400,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YLConnections.slice(),
   },
   {
     id: 20,
@@ -373,7 +408,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YRConnections.slice(),
   },
   {
     id: 21,
@@ -381,7 +416,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near3.slice(),
   },
   {
     id: 22,
@@ -389,7 +424,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base", "Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.XConnections.slice(),
   },
   {
     id: 23,
@@ -397,7 +432,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base", "Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near4.slice(),
   },
   {
     id: 24,
@@ -405,7 +440,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YLConnections.slice(),
   },
   {
     id: 25,
@@ -413,7 +448,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YRConnections.slice(),
   },
   {
     id: 26,
@@ -421,7 +456,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 27,
@@ -429,7 +464,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base", "Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 28,
@@ -437,7 +472,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near4.slice(),
   },
   {
     id: 29,
@@ -445,7 +480,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced", "Base"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YRConnections.slice(),
   },
   {
     id: 30,
@@ -453,7 +488,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced", "Advanced"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.YLConnections.slice(),
   },
   {
     id: 31,
@@ -461,7 +496,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced"],
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 32,
@@ -469,7 +504,7 @@ export const OTHER_TILES: Tile[] = [
     enemies: ["Advanced"],
     type: "Room",
     ring: 2,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 33,
@@ -477,7 +512,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Opposite.slice(),
   },
   {
     id: 34,
@@ -485,7 +520,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near2.slice(),
   },
   {
     id: 35,
@@ -493,7 +528,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: null,
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Jump1.slice(),
   },
   {
     id: 36,
@@ -501,7 +536,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced"],
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Opposite.slice(),
   },
   {
     id: 37,
@@ -509,7 +544,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced", "Base"],
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.StarConnections.slice(),
   },
   {
     id: 38,
@@ -517,7 +552,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced", "Advanced"],
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Opposite.slice(),
   },
   {
     id: 39,
@@ -525,7 +560,7 @@ export const OTHER_TILES: Tile[] = [
     type: "Room",
     enemies: ["Advanced"],
     ring: 3,
-    conections: ["TL", "TR", "R", "L", "BR", "BL"],
+    conections: connectionSchemas.Near2.slice(),
   },
 ];
 
