@@ -48,15 +48,15 @@ describe("[GAME-ONE]", () => {
       "Fight",
       "Pass",
     ] satisfies AllPossibleActionKind[]);
-
+    expect(gameState.currentPlayerIndex).toBe(0);
     const playerOrder = gameState.players.slice();
-
+    let currentPlayerId = playerOrder[0];
     // giocatore 1 muove in alto a sinistra (TL)
     gameState = GameOneMatchManager(gameState, {
       phase: "PlayerTurn",
       kind: "Move",
       direction: "TL",
-      playerId: playerOrder[0],
+      playerId: currentPlayerId,
     });
     expect(gameState.allowedNextActions).toStrictEqual([
       "PlaceTile",
@@ -71,13 +71,22 @@ describe("[GAME-ONE]", () => {
     gameState = GameOneMatchManager(gameState, {
       kind: "PlaceTile",
       phase: "PlayerTurn",
-      playerId: playerOrder[0],
+      playerId: currentPlayerId,
       rotation: angle,
     });
     expect(gameState.onboardTiles.length).toBe(2);
     // mi aspetto di aver mosso e quindi il giocatore deve trovarsi nella nuova tile
     expect(
       gameState.onboardTiles[gameState.onboardTiles.length - 1].playersIn,
-    ).toStrictEqual([playerOrder[0]]);
+    ).toStrictEqual([currentPlayerId]);
+
+    // poi passo
+    gameState = GameOneMatchManager(gameState, {
+      kind: "Pass",
+      phase: "PlayerTurn",
+      playerId: currentPlayerId,
+    });
+    expect(gameState.currentPlayerIndex).toBe(1);
+    currentPlayerId = playerOrder[1];
   });
 });

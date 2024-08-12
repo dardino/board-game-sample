@@ -134,7 +134,7 @@ export type FightAction = PlayerTurnAction<
   "Fight",
   { tile: { x: number; y: number }; attack: { type: "" } }
 >;
-export type PassAction = PlayerTurnAction<"Pass", { direction: Connections }>;
+export type PassAction = PlayerTurnAction<"Pass", EmptyObject>;
 //#endregion PlayerTurn
 
 //#region PhaseFeed
