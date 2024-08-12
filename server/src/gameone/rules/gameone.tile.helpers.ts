@@ -94,3 +94,12 @@ const neighborhood: Record<Connections, [number, number]> = {
 export function getOppositeConnection(conn: Connections): Connections {
   return Connections[(Connections.indexOf(conn) + 3) % 6];
 }
+
+export function getAngle(
+  conn: Connections,
+  to: Connections,
+): 0 | 1 | 2 | 3 | 4 | 5 {
+  const connIndex = Connections.indexOf(conn);
+  const toIndex = Connections.indexOf(to) + 6;
+  return ((toIndex - connIndex) % 6) as 0 | 1 | 2 | 3 | 4 | 5;
+}

@@ -28,11 +28,11 @@ export const Flow = {
   },
   PlayerTurn: {
     Pass: ["CheckEndGame"],
-    Awake: ["Move", "Fight"],
-    Fight: ["Move", "Fight"],
-    Move: ["Move", "Fight", "PickATile"],
+    Awake: ["Move", "Fight", "Pass"],
+    Fight: ["Move", "Fight", "Pass"],
+    Move: ["Move", "Fight", "PickATile", "Pass"],
     PickATile: ["PlaceTile"],
-    PlaceTile: ["Move", "Fight"],
+    PlaceTile: ["Move", "Fight", "Pass"],
   },
   PhaseFeed: {
     CheckEndGame: ["AssignRating", "MoveNextEnemy"],

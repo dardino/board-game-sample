@@ -38,10 +38,23 @@ function getAction(state: GameoneState): AllPossibleAction | null {
         playerId: -1, // unico caso in cui non serve il player id
       };
     // PlayerTurn
+    case "Move":
+      if (
+        state.allowedNextActions.length === 1 &&
+        state.allowedNextActions[0] === "PickATile"
+      ) {
+        return {
+          phase: "PlayerTurn",
+          kind: "PickATile",
+          playerId: state.players[state.currentPlayerIndex],
+          position: state.placeTileAt!,
+        };
+      } else {
+        return null;
+      }
+    case "PickATile":
     case "Awake":
     case "Fight":
-    case "Move":
-    case "PickATile":
     case "PlaceTile":
       return null;
     case "Pass":

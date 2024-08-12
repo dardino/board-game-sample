@@ -1,6 +1,5 @@
 //#region Move
 
-import { Connections } from "src/gameone/gameone-contents";
 import { getPlayer } from "../gameone.rule.helpers";
 import {
   AllPossibleActionKind,
@@ -37,7 +36,9 @@ export const MoveReducer: StateReducer<MoveAction> = (state, action) => {
   // il giocatore può muovere se :
   // - è il suo turno
   if (state.players[state.currentPlayerIndex] !== action.playerId) {
-    throw new Error("non è il tuo turno!");
+    throw new Error(
+      `non è il tuo turno! (tocca al giocatore con ID <${state.players[state.currentPlayerIndex]}>)`,
+    );
   }
   // - non ci sono nemici nella stessa tile
   const { tile: myTile, character: myCharacter } = getPlayer(
@@ -65,7 +66,6 @@ export const MoveReducer: StateReducer<MoveAction> = (state, action) => {
     );
   }
   let allowedNextActions: AllPossibleActionKind[] = [];
-  const placeTileAt: Connections | null = null;
   if (nodeInDirection === null) {
     allowedNextActions = ["PickATile" as AllPossibleActionKind];
   } else {
@@ -78,7 +78,7 @@ export const MoveReducer: StateReducer<MoveAction> = (state, action) => {
     previousAction: action.kind,
     allowedNextActions,
     tileToPlace: null,
-    placeTileAt,
+    placeTileAt: action.direction,
     currentPlayerPerformedActions: state.currentPlayerPerformedActions.concat([
       action.kind,
     ]),
