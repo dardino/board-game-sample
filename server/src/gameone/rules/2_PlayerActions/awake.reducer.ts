@@ -7,6 +7,7 @@ import { AwakeAction, StateReducer } from "../state.types";
  * @returns
  */
 export const AwakeReducer: StateReducer<AwakeAction> = (state) => {
+
   let nextPlayer =
     state.previousAction === "GoToPlayerTurn"
       ? 0
@@ -19,4 +20,5 @@ export const AwakeReducer: StateReducer<AwakeAction> = (state) => {
     currentPlayerPerformedActions: ["Awake"],
     allowedNextActions: Flow.PlayerTurn.Awake,
   };
+
 };

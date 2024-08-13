@@ -5,6 +5,7 @@ export const GoToPlayerTurnReducer: StateReducer<GoToPlayerTurnAction> = (
   _state,
   action,
 ) => {
+
   return {
     phase: "PlayerTurn",
     previousAction: action.kind,
@@ -12,4 +13,5 @@ export const GoToPlayerTurnReducer: StateReducer<GoToPlayerTurnAction> = (
     currentPlayerIndex: 0,
     currentPlayerPerformedActions: [],
   };
+
 };

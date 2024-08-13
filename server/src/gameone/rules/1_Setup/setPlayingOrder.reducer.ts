@@ -6,15 +6,17 @@ import {
   StateReducer,
 } from "../state.types";
 
-//#region SetPlayngOrder
+// #region SetPlayngOrder
 export const SetPlayngOrderReducer: StateReducer<SetPlayngOrderAction> = (
   state,
   action,
 ) => {
+
   return {
     players: shuffleArray(state.players),
     allowedNextActions: Flow.Setup.SetPlayngOrder,
     previousAction: action.kind,
   } satisfies Partial<GameoneState>;
+
 };
-//#endregion SetPlayngOrder
+// #endregion SetPlayngOrder

@@ -1,18 +1,30 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { SystemPlayerService } from './system-player.service';
+import { Test, TestingModule } from "@nestjs/testing";
+import { SystemPlayerService } from "./system-player.service";
 
-describe('SystemPlayerService', () => {
-  let service: SystemPlayerService;
+describe(
+  "SystemPlayerService",
+  () => {
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [SystemPlayerService],
-    }).compile();
+    let service: SystemPlayerService;
 
-    service = module.get<SystemPlayerService>(SystemPlayerService);
-  });
+    beforeEach(async () => {
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [SystemPlayerService],
+      }).compile();
+
+      service = module.get<SystemPlayerService>(SystemPlayerService);
+
+    });
+
+    it(
+      "should be defined",
+      () => {
+
+        expect(service).toBeDefined();
+
+      },
+    );
+
+  },
+);

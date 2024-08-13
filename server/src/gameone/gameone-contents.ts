@@ -16,20 +16,27 @@ export interface Weapon {
 export interface Wearables {
   attacks: Weapon[];
   armor: Armor | null;
-  charm: Array<Armor | WeaponBonus>;
+  charm: (Armor | WeaponBonus)[];
 }
 export interface Armor {
   magic: number;
   phisic: number;
 }
-export const Connections = ["TL", "TR", "R", "BR", "BL", "L"] as const;
+export const Connections = [
+  "TL",
+  "TR",
+  "R",
+  "BR",
+  "BL",
+  "L",
+] as const;
 export type Connections = (typeof Connections)[number];
 
 export interface Tile {
   id: number;
   description: string;
   type: "Room" | "Boss" | "Start";
-  enemies: null | Array<Enemy["enemyClass"]>;
+  enemies: null | Enemy["enemyClass"][];
   ring: 0 | 1 | 2 | 3;
   conections: Connections[];
 }
@@ -86,7 +93,7 @@ export const WEAPONS = {
     dice: 6,
     range: 1,
   },
-} as const satisfies { [key: string]: Weapon };
+} as const satisfies Record<string, Weapon>;
 
 export const CHARACTERS: Character[] = [
   {
@@ -105,8 +112,12 @@ export const CHARACTERS: Character[] = [
     strenght: 2,
     agility: 1,
 
-    armor: { magic: 2, phisic: 0 },
-    attacks: [WEAPONS.FIST, WEAPONS.FIST],
+    armor: { magic: 2,
+      phisic: 0 },
+    attacks: [
+      WEAPONS.FIST,
+      WEAPONS.FIST,
+    ],
     charm: [],
     spells: [WEAPONS.FIREBALL],
   },
@@ -126,8 +137,12 @@ export const CHARACTERS: Character[] = [
     strenght: 3,
     agility: 2,
 
-    armor: { magic: 0, phisic: 2 },
-    attacks: [WEAPONS.FIST, WEAPONS.FIST],
+    armor: { magic: 0,
+      phisic: 2 },
+    attacks: [
+      WEAPONS.FIST,
+      WEAPONS.FIST,
+    ],
     charm: [],
     spells: [WEAPONS.FIREBALL],
   },
@@ -147,8 +162,12 @@ export const CHARACTERS: Character[] = [
     strenght: 1,
     agility: 2,
 
-    armor: { magic: 0, phisic: 2 },
-    attacks: [WEAPONS.FIST, WEAPONS.FIST],
+    armor: { magic: 0,
+      phisic: 2 },
+    attacks: [
+      WEAPONS.FIST,
+      WEAPONS.FIST,
+    ],
     charm: [],
     spells: [WEAPONS.FIREBALL],
   },
@@ -168,67 +187,137 @@ export const CHARACTERS: Character[] = [
     strenght: 1,
     agility: 3,
 
-    armor: { magic: 0, phisic: 2 },
-    attacks: [WEAPONS.FIST, WEAPONS.FIST],
+    armor: { magic: 0,
+      phisic: 2 },
+    attacks: [
+      WEAPONS.FIST,
+      WEAPONS.FIST,
+    ],
     charm: [],
     spells: [WEAPONS.FIREBALL],
   },
 ] as const;
 
 const connectionSchemas = {
+
   /**
    * tutti i lati collegabili (6)
    */
-  AllConnections: ["TL", "TR", "R", "L", "BR", "BL"],
+  AllConnections: [
+    "TL",
+    "TR",
+    "R",
+    "L",
+    "BR",
+    "BL",
+  ],
+
   /**
    * tutti i lati collegabili tranne uno (5)
    */
-  AllButOneConnections: ["TL", "TR", "R", "L", "BR"],
+  AllButOneConnections: [
+    "TL",
+    "TR",
+    "R",
+    "L",
+    "BR",
+  ],
+
   /**
    * 4 lati vicini collegabili, gli altri 2 no (4)
    */
-  Near4: ["TL", "TR", "R", "BR"],
+  Near4: [
+    "TL",
+    "TR",
+    "R",
+    "BR",
+  ],
+
   /**
    * 3 lati vicini collegabili, poi uno all'opposto (4)
    */
-  ForkConnections: ["TL", "TR", "R", "BL"],
+  ForkConnections: [
+    "TL",
+    "TR",
+    "R",
+    "BL",
+  ],
+
   /**
    * 2 lati vicini e i 2 agli opposti collegabili (4)
    */
-  XConnections: ["TL", "TR", "BR", "BL"],
+  XConnections: [
+    "TL",
+    "TR",
+    "BR",
+    "BL",
+  ],
+
   /**
    * 3 lati vicini collegabili (3)
    */
-  Near3: ["TL", "TR", "R"],
+  Near3: [
+    "TL",
+    "TR",
+    "R",
+  ],
+
   /**
    * 2 lati vicini collegabili e poi uno a distanza 1 in senso orario (3)
    */
-  YRConnections: ["TL", "TR", "BR"],
+  YRConnections: [
+    "TL",
+    "TR",
+    "BR",
+  ],
+
   /**
    * 2 lati vicini collegabili e poi uno a distanza 1 in senso anti-orario (3)
    */
-  YLConnections: ["TL", "TR", "BL"],
+  YLConnections: [
+    "TL",
+    "TR",
+    "BL",
+  ],
+
   /**
    * 3 lati tra di loro 'a stella' ovvero non vicini sono collegabili (3)
    */
-  StarConnections: ["TL", "R", "BL"],
+  StarConnections: [
+    "TL",
+    "R",
+    "BL",
+  ],
+
   /**
    * due lati vicini sono collegabili (2)
    */
-  Near2: ["TL", "TR"],
+  Near2: [
+    "TL",
+    "TR",
+  ],
+
   /**
    * due lati a distanza 1 sono collegabili (2)
    */
-  Jump1: ["TL", "R"],
+  Jump1: [
+    "TL",
+    "R",
+  ],
+
   /**
    * due lati agli opposti sono collegabili (2)
    */
-  Opposite: ["L", "R"],
+  Opposite: [
+    "L",
+    "R",
+  ],
+
   /**
    * solo un lato è collegabile (vicolo cieco)
    */
   OneConnection: ["TL"],
-} as const satisfies { [key: string]: Array<Connections> };
+} as const satisfies Record<string, Connections[]>;
 export const STARTING_TILES: Tile[] = [
   {
     description: "Partenza",
@@ -318,7 +407,10 @@ export const OTHER_TILES: Tile[] = [
     id: 9,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Base", "Base"],
+    enemies: [
+      "Base",
+      "Base",
+    ],
     ring: 1,
     conections: connectionSchemas.AllConnections.slice(),
   },
@@ -342,7 +434,10 @@ export const OTHER_TILES: Tile[] = [
     id: 12,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Base", "Base"],
+    enemies: [
+      "Base",
+      "Base",
+    ],
     ring: 1,
     conections: connectionSchemas.XConnections.slice(),
   },
@@ -422,7 +517,10 @@ export const OTHER_TILES: Tile[] = [
     id: 22,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Base", "Base"],
+    enemies: [
+      "Base",
+      "Base",
+    ],
     ring: 2,
     conections: connectionSchemas.XConnections.slice(),
   },
@@ -430,7 +528,10 @@ export const OTHER_TILES: Tile[] = [
     id: 23,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Base", "Base"],
+    enemies: [
+      "Base",
+      "Base",
+    ],
     ring: 2,
     conections: connectionSchemas.Near4.slice(),
   },
@@ -462,7 +563,10 @@ export const OTHER_TILES: Tile[] = [
     id: 27,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Base", "Base"],
+    enemies: [
+      "Base",
+      "Base",
+    ],
     ring: 2,
     conections: connectionSchemas.StarConnections.slice(),
   },
@@ -478,7 +582,10 @@ export const OTHER_TILES: Tile[] = [
     id: 29,
     description: "Stanza",
     type: "Room",
-    enemies: ["Advanced", "Base"],
+    enemies: [
+      "Advanced",
+      "Base",
+    ],
     ring: 2,
     conections: connectionSchemas.YRConnections.slice(),
   },
@@ -486,7 +593,10 @@ export const OTHER_TILES: Tile[] = [
     id: 30,
     description: "Stanza",
     type: "Room",
-    enemies: ["Advanced", "Advanced"],
+    enemies: [
+      "Advanced",
+      "Advanced",
+    ],
     ring: 2,
     conections: connectionSchemas.YLConnections.slice(),
   },
@@ -542,7 +652,10 @@ export const OTHER_TILES: Tile[] = [
     id: 37,
     description: "Corridoio",
     type: "Room",
-    enemies: ["Advanced", "Base"],
+    enemies: [
+      "Advanced",
+      "Base",
+    ],
     ring: 3,
     conections: connectionSchemas.StarConnections.slice(),
   },
@@ -550,7 +663,10 @@ export const OTHER_TILES: Tile[] = [
     id: 38,
     description: "Stanza",
     type: "Room",
-    enemies: ["Advanced", "Advanced"],
+    enemies: [
+      "Advanced",
+      "Advanced",
+    ],
     ring: 3,
     conections: connectionSchemas.Opposite.slice(),
   },
@@ -654,7 +770,10 @@ export const BOSS_ENEMIES: Enemy[] = [
       magic: 4,
       phisic: 4,
     },
-    attacks: [WEAPONS.SWORD, WEAPONS.FIREBALL],
+    attacks: [
+      WEAPONS.SWORD,
+      WEAPONS.FIREBALL,
+    ],
     charm: [],
     life: 15,
   },

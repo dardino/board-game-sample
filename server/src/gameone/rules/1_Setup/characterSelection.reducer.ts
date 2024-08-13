@@ -6,16 +6,14 @@ import {
   StateReducer,
 } from "../state.types";
 
-function buildCharacters({
+function buildCharacters ({
   characterId,
   characterName,
   playerId,
 }: CharacterSelectionAction["selectedCharacters"][number]): GameoneState["charactersByPlayers"][number] {
+
   const character = CHARACTERS.find((char) => char.characterId === characterId);
-  if (!character)
-    throw new Error(
-      "Non ho trovato un personaggio con questo id: " + characterId,
-    );
+  if (!character) throw new Error("Non ho trovato un personaggio con questo id: " + characterId);
   return {
     playerId,
     character: {
@@ -25,14 +23,17 @@ function buildCharacters({
       energy: character.startingEnergy,
     },
   };
+
 }
 
 export const CharacterSelectionReducer: StateReducer<
   CharacterSelectionAction
 > = (_state, action) => {
+
   return {
     charactersByPlayers: action.selectedCharacters.map(buildCharacters),
     allowedNextActions: Flow.Setup.CharacterSelection,
     previousAction: action.kind,
   };
+
 };

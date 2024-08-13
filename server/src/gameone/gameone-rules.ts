@@ -22,9 +22,9 @@ import {
   StateReducer,
 } from "./rules/state.types";
 
-//#region PHASE: "PlayerTurn"
+// #region PHASE: "PlayerTurn"
 
-//#endregion PHASE: "PlayerTurn"
+// #endregion PHASE: "PlayerTurn"
 type InferActionByKind<Kind extends AllPossibleActionKind> =
   AllPossibleAction & { kind: Kind };
 const allActionsMap: {
@@ -56,22 +56,37 @@ export const GameOneMatchManager = (
   gameState: GameoneState,
   action: AllPossibleAction,
 ): GameoneState => {
-  const newGameState = applyAction(gameState, action);
-  return autoPlayer(newGameState, applyAction);
+
+  const newGameState = applyAction(
+    gameState,
+    action,
+  );
+  return autoPlayer(
+    newGameState,
+    applyAction,
+  );
+
 };
 
-export function applyAction(
+export function applyAction (
   gameState: GameoneState,
   action: AllPossibleAction,
 ): GameoneState {
+
   if (!gameState.allowedNextActions.includes(action.kind)) {
+
     throw new Error("Non è possibile eseguire questa azione!");
+
   }
   const reducer = allActionsMap[action.kind] as StateReducer<AllPossibleAction>;
-  const partialGameState = reducer(gameState, action);
+  const partialGameState = reducer(
+    gameState,
+    action,
+  );
   const newGameState: GameoneState = {
     ...gameState,
     ...partialGameState,
   };
   return newGameState;
+
 }

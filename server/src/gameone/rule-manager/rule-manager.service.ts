@@ -12,42 +12,65 @@ type StartedGame = Omit<GameDto, "gameState" | "startedAt"> & {
   startedAt: Date;
 };
 
-function isGameStarted(game: GameDto): game is StartedGame {
+function isGameStarted (game: GameDto): game is StartedGame {
+
   return game.startedAt != null && game.gameState != null;
+
 }
 
 @Injectable()
 export class GameOneRuleService {
-  constructor(private systemPlayer: SystemPlayerService) {
+
+  constructor (private systemPlayer: SystemPlayerService) {
     //
   }
 
-  async addPlayer(game: GameDto, player: PlayerDto) {
+  async addPlayer (game: GameDto, player: PlayerDto) {
+
     return game.connectedPlayers.push(player);
+
   }
 
-  async start(game: GameDto) {
+  async start (game: GameDto) {
+
     if (isGameStarted(game)) {
-      throw new RuleException(
-        replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", {}),
-      );
+
+      throw new RuleException(replacePlaceholders(
+        GAME_MESSAGES,
+        "GAME_ALREDY_STARTED",
+        {},
+      ));
+
     }
 
     game.startedAt = new Date();
     game.gameState = GamestateDto.startNewGame(game.connectedPlayers);
 
     if (!isGameStarted(game)) {
-      throw new RuleException(
-        replacePlaceholders(GAME_MESSAGES, "ERROR_STARTING_GAME", {}),
-      );
+
+      throw new RuleException(replacePlaceholders(
+        GAME_MESSAGES,
+        "ERROR_STARTING_GAME",
+        {},
+      ));
+
     }
 
-    this.systemPlayer.addDelayedAction(game.gameId, {
-      action: "PlayerTurn_End",
-      playerId: -1,
-      runAt: game.gameState!.nextTournDeadline,
-    });
+    this.systemPlayer.addDelayedAction(
+      game.gameId,
+      {
+        action: "PlayerTurn_End",
+        playerId: -1,
+        runAt: game.gameState!.nextTournDeadline,
+      },
+    );
 
-    return replacePlaceholders(GAME_MESSAGES, "GAME_STARTED", {});
+    return replacePlaceholders(
+      GAME_MESSAGES,
+      "GAME_STARTED",
+      {},
+    );
+
   }
+
 }

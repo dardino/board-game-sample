@@ -4,7 +4,7 @@
  * @returns The extracted arguments as a union of string literals.
  */
 type _stringArgs<TS extends string> =
-  TS extends `${string}\$\{${infer TArgument}\}${infer R}`
+  TS extends `${string}$\{${infer TArgument}}${infer R}`
     ? TArgument | _stringArgs<R>
     : never;
 
@@ -14,8 +14,10 @@ type _stringArgs<TS extends string> =
  */
 export type TemplateParams<TS extends string> = Record<_stringArgs<TS>, string>;
 
-const escapeRegExp = (str: string) =>
-  str.replace(/[.*+?^${}()\|\[\]\\]/g, "\\$&");
+const escapeRegExp = (str: string) => str.replace(
+  /[.*+?^${}()|[\]\\]/g,
+  "\\$&",
+);
 
 /**
  * Sostituisce i segnaposto all'interno di una stringa con i valori corrispondenti forniti come argomenti.
@@ -29,14 +31,25 @@ const escapeRegExp = (str: string) =>
 export function replacePlaceholders<
   TObj extends Readonly<Record<string, string>>,
   TKey extends keyof TObj,
->(obj: TObj, key: TKey, args: TemplateParams<TObj[TKey]>): string {
+> (obj: TObj, key: TKey, args: TemplateParams<TObj[TKey]>): string {
+
   let retString: string = obj[key];
-  (Object.entries(args ?? {}) as Array<[string, string]>).forEach(
-    ([key, value]) => {
-      const rx = escapeRegExp(`\${${key}}`);
-      retString = retString.replace(new RegExp(rx, "g"), value);
-    },
-  );
+  (Object.entries(args ?? {}) as [string, string][]).forEach(([
+    key,
+    value,
+  ]) => {
+
+    const rx = escapeRegExp(`\${${key}}`);
+    retString = retString.replace(
+      new RegExp(
+        rx,
+        "g",
+      ),
+      value,
+    );
+
+  });
   return retString;
+
 }
 export type TemplateReplacer = typeof replacePlaceholders;

@@ -10,15 +10,19 @@ import { PLAYERS_MESSAGES } from "./players.messages";
  */
 @Injectable()
 export class PlayersService {
+
   #counter = 0;
+
   #currentPlayers: PlayerDto[] = [];
 
   /**
    * Restituisce tutti i giocatori attualmente registrati.
    * @returns Un array di oggetti PlayerDto rappresentanti i giocatori.
    */
-  getAllPlayers(): PlayerDto[] {
+  getAllPlayers (): PlayerDto[] {
+
     return this.#currentPlayers;
+
   }
 
   /**
@@ -27,18 +31,30 @@ export class PlayersService {
    * @returns Un oggetto PlayerDto rappresentante il nuovo giocatore aggiunto.
    * @throws {Error} Se esiste già un giocatore con il nickname specificato.
    */
-  async addPlayer(nickname: string): Promise<PlayerDto> {
+  async addPlayer (nickname: string): Promise<PlayerDto> {
+
     if (await this.playerExists(nickname)) {
-      throw new ResourceAlredyExistsException(
-        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_ARLEDY_EXISTS", {
+
+      throw new ResourceAlredyExistsException(replacePlaceholders(
+        PLAYERS_MESSAGES,
+        "PLAYER_ARLEDY_EXISTS",
+        {
           nickname,
-        }),
-      );
+        },
+      ));
+
     }
-    const newPlayer = new PlayerDto(this.#counter++, nickname, false);
+    const newPlayer = new PlayerDto(
+      this.#counter++,
+      nickname,
+      false,
+    );
     this.#currentPlayers.push(newPlayer);
     return newPlayer;
+
   }
+
+
   /**
    * Metodo per verificare se esiste un giocatore con un dato nickname
    * Questo metodo cerca nell'array dei giocatori un giocatore con il nickname specificato.
@@ -46,16 +62,22 @@ export class PlayersService {
    * @param nickname Il nickname del giocatore da verificare.
    * @returns Un booleano che indica se il giocatore esiste o no.
    */
-  async playerExists(nickname: string): Promise<boolean> {
+  async playerExists (nickname: string): Promise<boolean> {
+
     const cp = this.#currentPlayers;
     return cp.some(hasNickname(nickname));
+
   }
+
+
   /**
    * Metodo per ottenere il numero totale di giocatori
    * Questo metodo restituisce la lunghezza dell'array dei giocatori, che rappresenta il numero totale di giocatori.
    */
-  async getTotalPlayers(): Promise<number> {
+  async getTotalPlayers (): Promise<number> {
+
     return this.#currentPlayers.length;
+
   }
 
   /**
@@ -66,25 +88,33 @@ export class PlayersService {
    * @returns Un oggetto PlayerDto rappresentante il giocatore cercato.
    * @throws {Error} Se non esiste un giocatore con il nickname specificato.
    */
-  async getPlayer(nickname: string): Promise<PlayerDto> {
+  async getPlayer (nickname: string): Promise<PlayerDto> {
+
     const cp = this.#currentPlayers;
     const player = cp.find(hasNickname(nickname));
     if (!player) {
-      throw new NotFoundException(
-        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_NOT_FOUND", {
+
+      throw new NotFoundException(replacePlaceholders(
+        PLAYERS_MESSAGES,
+        "PLAYER_NOT_FOUND",
+        {
           nickname,
-        }),
-      );
+        },
+      ));
+
     }
     return player;
+
   }
 
   /**
    * Cancella l'elenco dei giocatori attuali.
    * @returns Una Promise che si risolve quando l'elenco dei giocatori viene cancellato.
    */
-  async clearPlayers(): Promise<void> {
+  async clearPlayers (): Promise<void> {
+
     this.#currentPlayers = [];
+
   }
 
   /**
@@ -93,16 +123,26 @@ export class PlayersService {
    * @returns Una Promise che si risolve in un booleano che indica se il giocatore è stato rimosso con successo.
    * @throws Un errore se non esiste un giocatore con il nickname fornito.
    */
-  async removePlayer(nickname: string): Promise<boolean> {
+  async removePlayer (nickname: string): Promise<boolean> {
+
     const index = this.#currentPlayers.findIndex(hasNickname(nickname));
     if (index === -1) {
-      throw new NotFoundException(
-        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_NOT_FOUND", {
+
+      throw new NotFoundException(replacePlaceholders(
+        PLAYERS_MESSAGES,
+        "PLAYER_NOT_FOUND",
+        {
           nickname,
-        }),
-      );
+        },
+      ));
+
     }
-    this.#currentPlayers.splice(index, 1);
+    this.#currentPlayers.splice(
+      index,
+      1,
+    );
     return true;
+
   }
+
 }

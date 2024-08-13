@@ -6,7 +6,7 @@ BgsJoinComponent.register();
 const title = "Alla ricerca del McGuffin";
 const subTitle = "Un gioco di espolorazione ed avventura alla ricerca del famigerato McGuffin";
 
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = html`
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = html`
   <h1>${title}</h1>
   <h2>${subTitle}</h2>
   <bgs-join></bgs-join>

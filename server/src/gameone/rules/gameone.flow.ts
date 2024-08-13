@@ -28,14 +28,34 @@ export const Flow = {
   },
   PlayerTurn: {
     Pass: ["CheckEndGame"],
-    Awake: ["Move", "Fight", "Pass"],
-    Fight: ["Move", "Fight", "Pass"],
-    Move: ["Move", "Fight", "PickATile", "Pass"],
+    Awake: [
+      "Move",
+      "Fight",
+      "Pass",
+    ],
+    Fight: [
+      "Move",
+      "Fight",
+      "Pass",
+    ],
+    Move: [
+      "Move",
+      "Fight",
+      "PickATile",
+      "Pass",
+    ],
     PickATile: ["PlaceTile"],
-    PlaceTile: ["Move", "Fight", "Pass"],
+    PlaceTile: [
+      "Move",
+      "Fight",
+      "Pass",
+    ],
   },
   PhaseFeed: {
-    CheckEndGame: ["AssignRating", "MoveNextEnemy"],
+    CheckEndGame: [
+      "AssignRating",
+      "MoveNextEnemy",
+    ],
     MoveNextEnemy: ["CheckEndGame"],
   },
   EndGame: {
@@ -48,16 +68,21 @@ export const Flow = {
 };
 
 const PlayerActions = Object.keys(Flow.PlayerTurn);
-export function isPlayerAction(
-  action: AllPossibleActionKind,
-): action is InferKindsByPhase<"PlayerTurn"> {
+export function isPlayerAction (action: AllPossibleActionKind): action is InferKindsByPhase<"PlayerTurn"> {
+
   return PlayerActions.includes(action);
+
 }
 
 export const removeActionFromArray = <T extends GamePhases>(
   availableActions: InferKindsByPhase<T>[],
   action: InferKindsByPhase<T>,
 ) => {
+
   const ix = availableActions.indexOf(action);
-  if (ix >= 0) availableActions.splice(ix, 1);
+  if (ix >= 0) availableActions.splice(
+    ix,
+    1,
+  );
+
 };

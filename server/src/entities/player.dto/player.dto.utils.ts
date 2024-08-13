@@ -7,6 +7,8 @@ import { PlayerDto } from "./player.dto";
  *          - `true` se il giocatore ha il nickname specificato,
  *          - `false` altrimenti.
  */
-export function hasNickname(nickname: string): Predicate<PlayerDto> {
+export function hasNickname (nickname: string): Predicate<PlayerDto> {
+
   return (player) => player.nickname === nickname;
+
 }

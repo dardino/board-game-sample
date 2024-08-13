@@ -14,15 +14,17 @@ export class SystemPlayerService {
   /**
    * costruttore della classe
    */
-  constructor() {
+  constructor () {
+
     // appena viene istanziata questa class lancio un setInterval per eseguire lo scodamento delle azioni
     this.#processAllGamesQueue();
+
   }
 
   /**
    * coda delle azioni indicizzata per gameId
    */
-  #actionGameQueue: { [key: string]: Array<DelayedAction> } = {};
+  #actionGameQueue: Record<string, DelayedAction[]> = {};
 
   /**
    * Aggiunge una azione a "tempo" alla coda delle azioni
@@ -30,10 +32,11 @@ export class SystemPlayerService {
    * @param executeAt indica quando questa azione dovrà essere eseguita
    * @param action azione da eseguire
    */
-  addDelayedAction(
+  addDelayedAction (
     gameId: number,
     action: RuleActionBase<string>,
   ): boolean {
+
     // mi assicuro che esista una array per questo game ID
     this.#actionGameQueue[gameId.toString()] ??= [];
     const { runAt, ...actionData } = action;
@@ -41,22 +44,29 @@ export class SystemPlayerService {
     this.#actionGameQueue[gameId.toString()].push({
       action: actionData,
       insertedAt: new Date().valueOf(),
-      executeAt: action.runAt ?? new Date().toISOString(),
+      executeAt: runAt ?? new Date().toISOString(),
     });
     return true;
+
   }
 
-  #processing: boolean = false;
-  async #processAllGamesQueue() {
+  #processing = false;
+
+  async #processAllGamesQueue () {
+
     if (this.#processing) return;
     this.#processing = true;
     const games = Object.keys(this.#actionGameQueue);
-    await Promise.all(games.map(gameId => this.#processGameQueue(gameId)))
+    await Promise.all(games.map((gameId) => this.#processGameQueue(gameId)));
     this.#processing = false;
+
   }
 
-  async #processGameQueue(gameId: string) {
+  async #processGameQueue (gameId: string) {
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const gameActions = this.#actionGameQueue[gameId];
 
   }
+
 }

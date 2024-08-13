@@ -10,31 +10,47 @@ type PathParams<T extends string> = T extends `${infer L}/${infer R}` ? _PathPar
 
 /**
  * Replaces path parameters in a given path string with corresponding values from an object.
- * 
+ *
  * @param path - The path string containing path parameters to be replaced.
  * @param pathArgs - An object containing key-value pairs representing the path parameters and their values.
  * @returns The updated path string with replaced path parameters.
  */
-function replacePathParameters<T>(path: string, pathArgs: T): string {
+function replacePathParameters<T> (path: string, pathArgs: T): string {
+
   let newPath: string = path;
-    (Object.entries(pathArgs ?? {}) as Array<[string, string]>).forEach(([key, value]) => {
-      newPath = path.replace(new RegExp(":" + key, "g"), value);
-    })
+  (Object.entries(pathArgs ?? {}) as [string, string][]).forEach(([
+    key,
+    value
+  ]) => {
+
+    newPath = path.replace(
+      new RegExp(
+        ":" + key,
+        "g"
+      ),
+      value
+    );
+
+  });
   return newPath;
+
 }
 
 /**
  * Base controller class for making API requests.
  */
 export class BaseController {
+
   #basePath: string;
 
   /**
    * Creates an instance of BaseController.
    * @param basePath - The base path for the API requests.
    */
-  constructor(basePath: string) {
+  constructor (basePath: string) {
+
     this.#basePath = basePath;
+
   }
 
   /**
@@ -43,9 +59,17 @@ export class BaseController {
    * @param pathArgs - The path parameters for the GET request.
    * @returns A promise that resolves to the response data.
    */
-  async get<ReturnType, T extends string>(path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
-    const newPath = replacePathParameters(path, pathArgs);
-    return this.fetch(newPath, "GET");
+  async get<ReturnType, T extends string> (path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
+
+    const newPath = replacePathParameters(
+      path,
+      pathArgs
+    );
+    return this.fetch(
+      newPath,
+      "GET"
+    );
+
   }
 
   /**
@@ -55,9 +79,18 @@ export class BaseController {
    * @param pathArgs - The path parameters for the POST request.
    * @returns A promise that resolves to the response data.
    */
-  async post<ReturnType, T extends string, TBody>(path: T, bodyArgs: TBody, pathArgs?: PathParams<T>): Promise<ReturnType> {
-    const newPath = replacePathParameters(path, pathArgs);
-    return this.fetch(newPath, "POST", bodyArgs);
+  async post<ReturnType, T extends string, TBody> (path: T, bodyArgs: TBody, pathArgs?: PathParams<T>): Promise<ReturnType> {
+
+    const newPath = replacePathParameters(
+      path,
+      pathArgs
+    );
+    return this.fetch(
+      newPath,
+      "POST",
+      bodyArgs
+    );
+
   }
 
   /**
@@ -66,9 +99,17 @@ export class BaseController {
    * @param pathArgs - The path parameters for the DELETE request.
    * @returns A promise that resolves to the response data.
    */
-  async delete<ReturnType, T extends string>(path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
-    const newPath = replacePathParameters(path, pathArgs);
-    return this.fetch(newPath, "DELETE");
+  async delete<ReturnType, T extends string> (path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
+
+    const newPath = replacePathParameters(
+      path,
+      pathArgs
+    );
+    return this.fetch(
+      newPath,
+      "DELETE"
+    );
+
   }
 
   /**
@@ -78,22 +119,32 @@ export class BaseController {
    * @param data - The request data.
    * @returns A promise that resolves to the response data.
    */
-  private async fetch<TResp>(
+  private async fetch<TResp> (
     path: string,
     method: "GET" | "POST" | "PUT" | "DELETE",
-    data?: any
+    data?: unknown
   ): Promise<TResp> {
-    const headers = !!data ? {
-      "Content-Type": "application/json",
-      // 'Content-Type': 'application/x-www-form-urlencoded',
-    } : undefined;
-    const result = await fetch(`/api/${this.#basePath}${path ? "/" : ""}${path}`, {
-      method,
-      body: JSON.stringify(data), // body data type must match "Content-Type" header
-      headers,
-    });
+
+    const headers = data
+      ? {
+        "Content-Type": "application/json"
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      }
+      : undefined;
+    const result = await fetch(
+      `/api/${this.#basePath}${path
+        ? "/"
+        : ""}${path}`,
+      {
+        method,
+        body: JSON.stringify(data), // body data type must match "Content-Type" header
+        headers
+      }
+    );
     return processResponse<TResp>(result);
+
   }
+
 }
 
 /**
@@ -102,24 +153,41 @@ export class BaseController {
  * @returns A promise that resolves to the response data.
  * @throws {ResponseError} If the response is not successful.
  */
-async function processResponse<TResp>(response: Response): Promise<TResp> {
+async function processResponse<TResp> (response: Response): Promise<TResp> {
+
   if (response.ok) {
+
     return await response.json();
+
   } else {
+
     const jsonError = await response.json();
-    throw new ResponseError(response.status, response.statusText, jsonError);
+    throw new ResponseError(
+      response.status,
+      response.statusText,
+      jsonError
+    );
+
   }
+
 }
 
 /**
  * Represents an error response from an HTTP request.
  */
 export class ResponseError {
+
+
   /**
    * Creates an instance of ResponseError.
    * @param status - The HTTP status code of the error response.
    * @param statusText - The HTTP status text of the error response.
    * @param body - The body of the error response.
    */
-  constructor(public status: number, public statusText: string, public body: { message: string, error?: string, statusCode: number }) { }
+  constructor (public status: number, public statusText: string, public body: {
+    message: string;
+    error?: string;
+    statusCode: number;
+  }) { }
+
 }

@@ -2,6 +2,8 @@
  * Rappresenta un oggetto di trasferimento dati (DTO) per un giocatore.
  */
 export class PlayerDto {
+
+
   /**
    * Identificatore del giocatore.
    */
@@ -23,9 +25,12 @@ export class PlayerDto {
    * @param nickname - Il nickname del giocatore.
    * @param isPlaying - Indica se il giocatore sta giocando o meno.
    */
-  constructor(id: number, nickname: string, isPlaying: boolean) {
+  constructor (id: number, nickname: string, isPlaying: boolean) {
+
     this.id = id;
     this.nickname = nickname;
     this.isPlaying = isPlaying;
+
   }
+
 }

@@ -1,27 +1,34 @@
-export function toMilliseconds(
+export function toMilliseconds (
   type: "h",
   hours: number,
   minutes?: number,
   seconds?: number,
   millisec?: number,
 ): number;
-export function toMilliseconds(
+export function toMilliseconds (
   type: "m",
   minutes: number,
   seconds?: number,
   millisec?: number,
 ): number;
-export function toMilliseconds(
+export function toMilliseconds (
   type: "s",
   seconds: number,
   millisec?: number,
 ): number;
-export function toMilliseconds(
+export function toMilliseconds (
   type: "s" | "h" | "m",
   ...args: (number | undefined)[]
 ): number {
-  const hours = type === "h" ? args[0] : 0;
-  const minutes = type === "h" ? args[1] : type === "m" ? args[0] : 0;
+
+  const hours = type === "h"
+    ? args[0]
+    : 0;
+  const minutes = type === "h"
+    ? args[1]
+    : type === "m"
+      ? args[0]
+      : 0;
   const seconds =
     type === "h"
       ? args[2]
@@ -45,6 +52,7 @@ export function toMilliseconds(
     (minutes ?? 0) * 60 * 1000 +
     (hours ?? 0) * 60 * 60 * 1000
   );
+
 }
 
 /**
@@ -52,6 +60,8 @@ export function toMilliseconds(
  * @param milliseconds millisecondi a partire da ora
  * @returns stringa ISO del timestamp
  */
-export function getTimeStampFromNow(milliseconds: number) {
+export function getTimeStampFromNow (milliseconds: number) {
+
   return new Date(new Date().valueOf() + milliseconds).toISOString();
+
 }

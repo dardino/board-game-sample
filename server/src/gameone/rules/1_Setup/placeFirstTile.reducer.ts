@@ -8,23 +8,29 @@ import {
   TILE_ANGLES,
 } from "../state.types";
 
-//#region PlaceFirstTile
+// #region PlaceFirstTile
 export const PlaceFirstTileReducer: StateReducer<PlaceFirstTileAction> = (
   state,
   action,
 ) => {
+
   if (state.players.length === 0) {
-    throw new Error(
-      "Impossibile piazzare la prima tile senza aggiungere i giocatori!",
-    );
+
+    throw new Error("Impossibile piazzare la prima tile senza aggiungere i giocatori!");
+
   }
   const firstTile = shuffleArray(STARTING_TILES)[0];
   const angle = shuffleArray(TILE_ANGLES.slice())[0];
-  const connected = prepareTile(firstTile, angle, state.players.slice());
+  const connected = prepareTile(
+    firstTile,
+    angle,
+    state.players.slice(),
+  );
   return {
     onboardTiles: [connected],
     allowedNextActions: Flow.Setup.PlaceFirstTile,
     previousAction: action.kind,
   };
+
 };
-//#endregion PlaceFirstTile
+// #endregion PlaceFirstTile

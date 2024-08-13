@@ -1,12 +1,13 @@
 import { Character, Connections, Enemy, Tile } from "../gameone-contents";
 
-//#region GameState
+// #region GameState
 export const GAME_PHASES = [
   "Setup",
   "PlayerTurn",
   "PhaseFeed",
   "EndGame",
 ] as const;
+
 /**
  *  0 = 0°;
  *  1 = 60°;
@@ -15,7 +16,14 @@ export const GAME_PHASES = [
  *  4 = 240°;
  *  5 = 300°;
  */
-export const TILE_ANGLES = [0, 1, 2, 3, 4, 5] as const;
+export const TILE_ANGLES = [
+  0,
+  1,
+  2,
+  3,
+  4,
+  5,
+] as const;
 export type GamePhases = (typeof GAME_PHASES)[number];
 export type TileAngles = (typeof TILE_ANGLES)[number];
 export type ConnectedTile = Tile & {
@@ -45,15 +53,16 @@ export interface GameoneState {
   };
   onboardTiles: ConnectedTile[];
   players: number[];
-  charactersByPlayers: Array<{
+  charactersByPlayers: {
     playerId: number;
     character: CharacterWithName;
-  }>;
+  }[];
   boss: Enemy | null;
   currentPlayerIndex: number;
   currentPlayerPerformedActions: AllPossibleActionKind[];
 }
-export function getInitialState(): GameoneState {
+export function getInitialState (): GameoneState {
+
   return {
     boss: null,
     charactersByPlayers: [],
@@ -72,26 +81,26 @@ export function getInitialState(): GameoneState {
     currentPlayerIndex: -1,
     currentPlayerPerformedActions: [],
   };
+
 }
 
-//#endregion GameState
+// #endregion GameState
 
-//#region reducer types
-interface EmptyObject {}
-type GameAction<TPhase extends GamePhases, TAction, OtherArgs = EmptyObject> = {
+// #region reducer types
+type GameAction<TPhase extends GamePhases, TAction, OtherArgs = object> = {
   phase: TPhase;
   kind: TAction;
 } & OtherArgs;
-export type StateReducer<TArgs extends GameAction<any, any, any>> = (
+export type StateReducer<TArgs extends GameAction<GamePhases, unknown, unknown>> = (
   oldState: GameoneState,
   args: TArgs,
 ) => Partial<GameoneState>;
-//#endregion reducer types
+// #endregion reducer types
 
-//#region ALL ACTIONS
+// #region ALL ACTIONS
 
-//#region Setup
-type SetupAction<Kind extends string, TAction = EmptyObject> = GameAction<
+// #region Setup
+type SetupAction<Kind extends string, TAction = object> = GameAction<
   "Setup",
   Kind,
   TAction
@@ -112,15 +121,15 @@ export type CharacterSelectionAction = SetupAction<
 >;
 export type DrawBossAction = SetupAction<"DrawBoss">;
 export type GoToPlayerTurnAction = SetupAction<"GoToPlayerTurn">;
-//#endregion Setup
+// #endregion Setup
 
-//#region PlayerTurn
+// #region PlayerTurn
 type PlayerTurnAction<Kind extends string, TAction> = GameAction<
   "PlayerTurn",
   Kind,
   TAction & { playerId: number }
 >;
-export type AwakeAction = PlayerTurnAction<"Awake", EmptyObject>;
+export type AwakeAction = PlayerTurnAction<"Awake", object>;
 export type PickATileAction = PlayerTurnAction<
   "PickATile",
   { position: Connections }
@@ -132,31 +141,33 @@ export type PlaceTileAction = PlayerTurnAction<
 export type MoveAction = PlayerTurnAction<"Move", { direction: Connections }>;
 export type FightAction = PlayerTurnAction<
   "Fight",
-  { tile: { x: number; y: number }; attack: { type: "" } }
+  { tile: { x: number;
+    y: number; };
+  attack: { type: "" }; }
 >;
-export type PassAction = PlayerTurnAction<"Pass", EmptyObject>;
-//#endregion PlayerTurn
+export type PassAction = PlayerTurnAction<"Pass", object>;
+// #endregion PlayerTurn
 
-//#region PhaseFeed
-type PhaseFeedAction<Kind extends string, TAction = EmptyObject> = GameAction<
+// #region PhaseFeed
+type PhaseFeedAction<Kind extends string, TAction = object> = GameAction<
   "PhaseFeed",
   Kind,
   TAction
 >;
 export type CheckEndGameAction = PhaseFeedAction<"CheckEndGame">;
 export type MoveNextEnemyAction = PhaseFeedAction<"MoveNextEnemy">;
-//#endregion PhaseFeed
+// #endregion PhaseFeed
 
-//#region EndGame
-type EndGameAction<Kind extends string, TAction = EmptyObject> = GameAction<
+// #region EndGame
+type EndGameAction<Kind extends string, TAction = object> = GameAction<
   "EndGame",
   Kind,
   TAction
 >;
 export type AssignRatingAction = EndGameAction<"AssignRating">;
-//#endregion EndGame
+// #endregion EndGame
 
-//#endregion ALL ACTIONS
+// #endregion ALL ACTIONS
 
 export type AllPossibleAction =
   // Setup

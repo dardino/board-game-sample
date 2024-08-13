@@ -3,8 +3,15 @@
   "jest.rootPath": "server",
   "eslint.codeActionsOnSave.mode": "all",
   "editor.formatOnSave": true,
+  "eslint.format.enable": true,
+  "eslint.enable": true,
   "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "[typescript]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
-  }
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
+  "eslint.lintTask.enable": true,
+  "eslint.useFlatConfig": true,
 }

@@ -9,21 +9,24 @@ export const CheckEndGameReducer: StateReducer<CheckEndGameAction> = (
   state,
   action,
 ) => {
+
   const newState: Partial<GameoneState> = {
     previousAction: action.kind,
     phase: "PhaseFeed",
   };
   const isBossDead = state.boss?.life === 0;
-  const allPlayersDead = state.charactersByPlayers.every(
-    (character) => character.character.life <= 0,
-  );
+  const allPlayersDead = state.charactersByPlayers.every((character) => character.character.life <= 0);
   if (isBossDead || allPlayersDead) {
+
     // partita finita
-    newState.allowedNextActions = Flow.PhaseFeed.CheckEndGame.filter(
-      (act) => act === "AssignRating",
-    );
+    newState.allowedNextActions = Flow.PhaseFeed.CheckEndGame.filter((act) => act === "AssignRating");
     newState.phase = "EndGame";
+
   } else {
+
+    // TODO: move enemies
+
   }
   return newState;
+
 };

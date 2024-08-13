@@ -13,11 +13,12 @@ import {
  * @param tile tile in cui il giocatore si trova
  * @returns lista delle azioni (kind) che il giocatore può fare
  */
-export function getPossibleActions(
+export function getPossibleActions (
   character: CharacterWithName,
   performedActions: AllPossibleActionKind[],
   tile: ConnectedTile,
 ) {
+
   const lastAction = performedActions.slice(-1)[0];
   const possibleActions: AllPossibleActionKind[] = isPlayerAction(lastAction)
     ? Flow.PlayerTurn[lastAction]
@@ -31,12 +32,21 @@ export function getPossibleActions(
   const notDead = character.life > 0;
   const canMove = hasOtherMoves && notBlocked && notDead;
   // se no rimuovo l'azione da quelle possibili
-  if (!canMove) removeActionFromArray(possibleActions, "Move");
+  if (!canMove) removeActionFromArray(
+    possibleActions,
+    "Move",
+  );
 
-  // rimuovo la "pick a tile" in quanto è una azione che può essere fatta solo se richiesto dal movimento,
-  // nel qual caso sarà l'azione di movimento ad impostarla come unica azione possibile
-  removeActionFromArray(possibleActions, "PickATile");
+  /*
+   * rimuovo la "pick a tile" in quanto è una azione che può essere fatta solo se richiesto dal movimento,
+   * nel qual caso sarà l'azione di movimento ad impostarla come unica azione possibile
+   */
+  removeActionFromArray(
+    possibleActions,
+    "PickATile",
+  );
   return possibleActions;
+
 }
 
 export interface PlayerStateInfo {
@@ -44,29 +54,29 @@ export interface PlayerStateInfo {
   character: CharacterWithName;
   possibleActions: AllPossibleActionKind[];
 }
+
 /**
  * cerca il giocatore e me restituisce lo stato
  * @param playerId id del giocatore da trovare
  * @param game stato della partita
  * @returns {PlayerStateInfo} informazioni sullo stato del giocatore come ad esempio tile in cui si trova, azioni possibili, info sul suo personaggio
  */
-export function getPlayer(
+export function getPlayer (
   playerId: number,
   game: GameoneState,
 ): PlayerStateInfo {
-  const tile = game.onboardTiles.find((tile) =>
-    tile.playersIn.includes(playerId),
-  );
+
+  const tile = game.onboardTiles.find((tile) => tile.playersIn.includes(playerId));
   if (!tile) throw new Error("il giocatore corrente non è sul tabellone!");
-  const character = game.charactersByPlayers.find(
-    (char) => char.playerId === playerId,
-  )?.character;
-  if (!character)
-    throw new Error("il giocatore corrente non ha scelto il suo personaggio");
+  const character = game.charactersByPlayers.find((char) => char.playerId === playerId)?.character;
+  if (!character) throw new Error("il giocatore corrente non ha scelto il suo personaggio");
   const possibleActions = getPossibleActions(
     character,
     game.currentPlayerPerformedActions,
     tile,
   );
-  return { tile, character, possibleActions };
+  return { tile,
+    character,
+    possibleActions };
+
 }

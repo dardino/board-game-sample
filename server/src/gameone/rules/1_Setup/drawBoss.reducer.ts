@@ -7,9 +7,11 @@ export const DrawBossReducer: StateReducer<DrawBossAction> = (
   _state,
   action,
 ) => {
+
   return {
     boss: shuffleArray(BOSS_ENEMIES)[0],
     previousAction: action.kind,
     allowedNextActions: Flow.Setup.DrawBoss,
   };
+
 };
