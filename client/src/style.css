@@ -5,8 +5,8 @@
 
   color-scheme: light dark;
   /* definisco i colori se il tema è "dark" */
-  color: rgba(255, 255, 255, 0.87);
-  background-color: rgb(36, 36, 36, 1);
+  --color: rgba(255, 255, 255, 0.87);
+  --background-color: rgb(36, 36, 36, 1);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -19,8 +19,8 @@
 @media (prefers-color-scheme: light) {
   :root {
     /* definisco l'inversione dei colori se il tema è "light" */
-    color: rgba(36, 36, 36, 0.87);
-    background-color: rgba(255, 255, 255, 1);
+    --color: rgba(36, 36, 36, 0.87);
+    --background-color: rgba(255, 255, 255, 1);
     --drop-shadow-color: rgba(69, 0, 255, 0.8);
   }
 }
@@ -33,11 +33,19 @@ html {
   min-height: 100vh;
   box-sizing: border-box;
   font-size: 10px;
+  background-image: url("./assets/background.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding: 1rem;
   box-sizing: content-box;
   /* larghezza minima per i dispositivi mobile */
   min-width: 320px;
@@ -48,17 +56,49 @@ body {
 }
 
 h1 {
-  border: solid 0.1rem #ffffff; /* ffffff è la rappresentazione html del colore rgb(255,255,255) ossia il bianco */
-  margin: 1rem;
-  padding: 1rem;
-  border-radius: 1rem;
-  filter: drop-shadow(0 0 0.2rem var(--drop-shadow-color));
+  /* ffffff è la rappresentazione html del colore rgb(255,255,255) ossia il bianco */
+  margin: 0rem auto 2rem auto;
+  padding: 1rem 8rem 3rem 8rem;
+  border-radius: 2rem;
+  text-align: center;
+  border-bottom: solid .3rem;
+  width: fit-content;
+  position: relative;
+
+  &::after {
+    /* Codice Unicode per il castello */
+    content: "\1F3F0";
+    position: absolute;
+    bottom: -0.7em;
+    display: inline-block;
+    width: fit-content;
+    margin: auto;
+    left: 0;
+    right: 0;
+    background-color: black;
+    box-shadow: 0 0 2rem 2rem #000000;
+    font-size: .5em;
+    padding: 0 1rem;
+    border-radius: 50%;
+  }
 }
 
-h1, h2 { /* questo selettore significa: cerca tutti gli elementi che si chiamano `h1` 
+h2 {
+  /* questo selettore significa: cerca tutti gli elementi che si chiamano `h1` 
 poi anche tutti gli elementi che si chiamano `h2` e applica le regole di stile qui di seguito */
   margin: 1rem;
   padding: 1rem;
+}
+
+#app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background-color: #000000bd;
+}
+
+main {
+  display: contents;
 }
 
 .hidden {

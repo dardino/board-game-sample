@@ -20,10 +20,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "baseUrl": "src",
     "paths": {
       "@dto/*": [
-        "../../server/src/entities/*"
+        "../server/src/entities/*"
       ]
     }
   },

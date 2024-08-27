@@ -1,14 +1,9 @@
-import { BgsJoinComponent } from "./components/bgsJoin/bgs-join.component";
+import { RouteOutlet } from "./routes/route-outlet/route-outlet.component";
 import { html } from "./tools/html";
 
-BgsJoinComponent.register();
-
-const title = "Alla ricerca del McGuffin";
-const subTitle = "Un gioco di espolorazione ed avventura alla ricerca del famigerato McGuffin";
+RouteOutlet.register();
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = html`
-  <h1>${title}</h1>
-  <h2>${subTitle}</h2>
-  <bgs-join></bgs-join>
+  <route-outlet id="MAIN"></route-outlet>
 `;
-document.title = `${title} - ${subTitle}`;
+document.title = "La Città Perduta di Eldalorisa";

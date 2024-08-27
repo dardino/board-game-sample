@@ -1,10 +1,11 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
 import { ResponseError } from "../../api/baseController";
 import { MeController } from "../../api/resources/me.controller";
+import { BgsComponentTypeStatic } from "../../helpers/components";
 import { cookieparser } from "../../tools/cookieparser";
 import template from "./bgs-join.template.html?raw";
 
-export class BgsJoinComponent extends HTMLElement {
+export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent extends HTMLElement {
 
   public static readonly tagName = "bgs-join";
 
@@ -12,7 +13,7 @@ export class BgsJoinComponent extends HTMLElement {
 
     customElements.define(
       BgsJoinComponent.tagName,
-      BgsJoinComponent
+      BgsJoinComponent,
     );
 
   }
@@ -97,6 +98,7 @@ export class BgsJoinComponent extends HTMLElement {
 
     super();
     this.innerHTML = template;
+    this.style.display = "contents";
     this.#cookie = cookieparser();
     this.#playerInfo.nickname = this.#cookie["player.nickname"] ?? "";
 
@@ -125,11 +127,11 @@ export class BgsJoinComponent extends HTMLElement {
 
     this.#elRegisterForm.addEventListener(
       "submit",
-      this.#submit
+      this.#submit,
     );
     this.#elLogout.addEventListener(
       "click",
-      this.#clickLogout
+      this.#clickLogout,
     );
 
   }
@@ -138,11 +140,11 @@ export class BgsJoinComponent extends HTMLElement {
 
     this.#elRegisterForm.removeEventListener(
       "submit",
-      this.#submit
+      this.#submit,
     );
     this.#elLogout.removeEventListener(
       "click",
-      this.#clickLogout
+      this.#clickLogout,
     );
 
   }
@@ -241,4 +243,4 @@ export class BgsJoinComponent extends HTMLElement {
   }
   // #endregion
 
-}
+};
