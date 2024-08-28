@@ -1,5 +1,7 @@
 import { Flow } from "../rules/gameone.flow";
-import { AllPossibleAction, GameoneState } from "../rules/state.types";
+import { AllPossibleAction, AllPossibleActionKind, GameoneState } from "../rules/state.types";
+
+const autoPlayerActionsDone = new Set<AllPossibleActionKind>([]);
 
 export const autoPlayer = (
   state: GameoneState,
@@ -12,6 +14,14 @@ export const autoPlayer = (
     const action = getAction(newState);
     if (action) {
 
+      if (autoPlayerActionsDone.has(action.kind)) {
+
+        throw new Error("Recursive action detected!, executed actions: " + Array.from(autoPlayerActionsDone.values()).join(", "));
+
+      }
+
+      autoPlayerActionsDone.add(action.kind);
+
       newState = nextAction(
         newState,
         action,
@@ -19,6 +29,7 @@ export const autoPlayer = (
 
     } else {
 
+      autoPlayerActionsDone.clear();
       break;
 
     }
@@ -81,22 +92,7 @@ function getAction (state: GameoneState): AllPossibleAction | null {
       };
     // End Game
     case "CheckEndGame":
-    {
-
-      const nextAction = (
-        state.allowedNextActions as typeof Flow.PhaseFeed.CheckEndGame
-      )[0];
-      return nextAction === "AssignRating"
-        ? {
-          phase: "EndGame",
-          kind: "AssignRating",
-        }
-        : {
-          phase: "PhaseFeed",
-          kind: nextAction,
-        };
-
-    }
+      return getCheckEndGameAction(state);
     case "MoveNextEnemy":
       return {
         phase: "PhaseFeed",
@@ -107,5 +103,38 @@ function getAction (state: GameoneState): AllPossibleAction | null {
 
   }
   return null;
+
+}
+
+/**
+ * Returns the next action to be performed based on the current game state.
+ *
+ * @param {GameoneState} state - The current game state.
+ * @returns {AllPossibleAction | null} The next action to be performed, or null if no action is available.
+ */
+function getCheckEndGameAction (state: GameoneState): AllPossibleAction | null {
+
+  const nextAction = (state.allowedNextActions as typeof Flow.PhaseFeed.CheckEndGame)[0];
+  switch (nextAction) {
+
+    case "AssignRating":
+      return {
+        phase: "EndGame",
+        kind: "AssignRating",
+      };
+    case "MoveNextEnemy":
+      return {
+        phase: "PhaseFeed",
+        kind: "MoveNextEnemy",
+      };
+    case "GoToPlayerTurn":
+      return {
+        phase: "Setup",
+        kind: "GoToPlayerTurn",
+      };
+    default:
+      return null;
+
+  }
 
 }

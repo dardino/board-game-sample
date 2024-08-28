@@ -10,4 +10,20 @@ export default [
   ] },
   { languageOptions: { globals: globals.node }},
   ...baseConfig,
+  {
+    rules: {
+      "@stylistic/function-call-argument-newline": [
+        "error",
+        "consistent",
+      ],
+      "@stylistic/object-property-newline": [
+        "error",
+        { allowAllPropertiesOnSameLine: true },
+      ],
+      "@stylistic/array-element-newline": [
+        "error",
+        "consistent",
+      ],
+    },
+  },
 ];

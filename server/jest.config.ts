@@ -14,6 +14,7 @@ export default {
   testEnvironment: "node",
   moduleNameMapper: {
     "src/(.*)": "<rootDir>/$1",
-    "@entities/(.*)": "<rootDir>/entities/$1",
+    "@dto/(.*)": "<rootDir>/entities/$1",
+    "@models/(.*)": "<rootDir>/models/$1",
   },
 };

@@ -20,7 +20,10 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@entities/*": [
+      "@models/*": [
+        "src/models/*"
+      ],
+      "@dto/*": [
         "src/entities/*"
       ]
     }

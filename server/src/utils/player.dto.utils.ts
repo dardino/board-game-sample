@@ -1,4 +1,4 @@
-import { PlayerDto } from "./player.dto";
+import { PlayerDto } from "../entities/player.dto/player.dto";
 
 /**
  * Verifica se un giocatore ha un nickname specifico.

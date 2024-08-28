@@ -6,7 +6,7 @@ import { CheckEndGameAction, GameoneState, StateReducer } from "../state.types";
  * @returns
  */
 export const CheckEndGameReducer: StateReducer<CheckEndGameAction> = (
-  state,
+  oldState,
   action,
 ) => {
 
@@ -14,8 +14,8 @@ export const CheckEndGameReducer: StateReducer<CheckEndGameAction> = (
     previousAction: action.kind,
     phase: "PhaseFeed",
   };
-  const isBossDead = state.boss?.life === 0;
-  const allPlayersDead = state.charactersByPlayers.every((character) => character.character.life <= 0);
+  const isBossDead = oldState.boss?.life === 0;
+  const allPlayersDead = oldState.charactersByPlayers.every((character) => character.character.life <= 0);
   if (isBossDead || allPlayersDead) {
 
     // partita finita
@@ -24,7 +24,30 @@ export const CheckEndGameReducer: StateReducer<CheckEndGameAction> = (
 
   } else {
 
-    // TODO: move enemies
+    const enemies = newState.onboardTiles?.map((tile) => tile.enemiesIn).flat() ?? [];
+    const nextPlayerIndex = (oldState.currentPlayerIndex + 1) % oldState.players.length;
+    if (nextPlayerIndex === 0) {
+
+      // è finito un giro intero, eseguo le operazioni di fine giro
+      throw new Error("not implemented");
+
+    }
+    if (enemies.length === 0) {
+
+      // go to next player
+      newState.phase = "PlayerTurn";
+      newState.previousAction = action.kind;
+      newState.allowedNextActions = Flow.Setup.GoToPlayerTurn;
+      newState.currentPlayerIndex = nextPlayerIndex;
+      newState.currentPlayerPerformedActions = [];
+
+
+    } else {
+
+      // TODO: move enemies
+      throw new Error("not implemented");
+
+    }
 
   }
   return newState;

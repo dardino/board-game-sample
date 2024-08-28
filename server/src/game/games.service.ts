@@ -1,17 +1,17 @@
+import { GAME_MESSAGES } from "@models/game.model/game.messages";
+import { GameModel } from "@models/game.model/game.model";
 import { Injectable } from "@nestjs/common";
-import { GameDto } from "src/entities/game.dto/game.dto";
-import { GAME_MESSAGES } from "src/entities/game.dto/game.messages";
-import { hasNickname } from "src/entities/player.dto/player.dto.utils";
 import { GameJoinException } from "src/errors/gameJoin";
 import { GameStartException } from "src/errors/gameStart";
 import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { PlayersService } from "src/players/players.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
+import { hasNickname } from "src/utils/player.dto.utils";
 
 @Injectable()
 export class GamesServices {
 
-  #allGames: GameDto[] = [];
+  #allGames: GameModel[] = [];
 
   /**
    *
@@ -23,13 +23,13 @@ export class GamesServices {
     //
   }
 
-  async getList (): Promise<GameDto[]> {
+  async getList (): Promise<GameModel[]> {
 
     return this.#allGames;
 
   }
 
-  protected setGames (games: GameDto[]) {
+  protected setGames (games: GameModel[]) {
 
     this.#allGames = games;
 
@@ -58,7 +58,7 @@ export class GamesServices {
 
   }
 
-  async gameById (gameId: GameDto["gameId"]) {
+  async gameById (gameId: GameModel["gameId"]) {
 
     return this.#allGames.find((game) => game.gameId === gameId);
 
@@ -198,7 +198,7 @@ export class GamesServices {
   async createNewGame (nickname: string, gameTitle: string) {
 
     const player = await this.playersService.getPlayer(nickname);
-    const newGame = await GameDto.createGame(
+    const newGame = await GameModel.createGame(
       gameTitle,
       player,
     );
@@ -212,7 +212,7 @@ export class GamesServices {
    * @param gameId identificativo della partita
    * @returns un oggetto con le informazioni sulla partita
    */
-  getGameStats (game: GameDto): {
+  getGameStats (game: GameModel): {
     playersMax: number;
     playersMin: number;
     joinedPlayers: number;

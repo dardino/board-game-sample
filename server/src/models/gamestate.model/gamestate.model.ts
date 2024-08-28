@@ -1,16 +1,16 @@
+import { PlayerDto } from "@dto/player.dto/player.dto";
 import { getTimeStampFromNow, toMilliseconds } from "src/tools/timingHelpers";
-import { PlayerDto } from "../player.dto/player.dto";
 
-export class GamestateDto {
+export class GamestateModel {
 
   static #maxTurnDuration = toMilliseconds(
     "s",
     30,
   );
 
-  static startNewGame (players: PlayerDto[]): GamestateDto | null {
+  static startNewGame (players: PlayerDto[]): GamestateModel | null {
 
-    const newGameState = new GamestateDto();
+    const newGameState = new GamestateModel();
     newGameState.#currentPlayers = players;
     newGameState.#nextTournDeadline = getTimeStampFromNow(this.#maxTurnDuration);
     return newGameState;

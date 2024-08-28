@@ -1,12 +1,12 @@
-import { GamestateDto } from "../gamestate.dto/gamestate.dto";
-import { PlayerDto } from "../player.dto/player.dto";
+import { PlayerDto } from "@dto/player.dto/player.dto";
+import { GamestateModel } from "../gamestate.model/gamestate.model";
 
 let gameCounter = 0;
 
 /**
  * Represents a game data transfer object.
  */
-export class GameDto {
+export class GameModel {
 
   public gameId: number;
 
@@ -24,18 +24,18 @@ export class GameDto {
 
   public startedAt: Date | null;
 
-  public gameState: GamestateDto | null;
+  public gameState: GamestateModel | null;
 
   /**
    * Creates a new game instance with the specified title and creator.
    *
    * @param title - The title of the game.
    * @param creator - The creator of the game.
-   * @returns A new instance of the GameDto class.
+   * @returns A new instance of the GameModel class.
    */
   static async createGame (title: string, creator: PlayerDto) {
 
-    const newGame = new GameDto();
+    const newGame = new GameModel();
     newGame.gameTitle = title;
     newGame.gameId = gameCounter++;
     newGame.minPlayersToStart = 2;

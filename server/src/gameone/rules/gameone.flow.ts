@@ -55,6 +55,7 @@ export const Flow = {
     CheckEndGame: [
       "AssignRating",
       "MoveNextEnemy",
+      "GoToPlayerTurn",
     ],
     MoveNextEnemy: ["CheckEndGame"],
   },

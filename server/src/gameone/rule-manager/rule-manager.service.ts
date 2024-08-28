@@ -1,18 +1,18 @@
-import { GameDto } from "@entities/game.dto/game.dto";
-import { GAME_MESSAGES } from "@entities/game.dto/game.messages";
-import { GamestateDto } from "@entities/gamestate.dto/gamestate.dto";
-import { PlayerDto } from "@entities/player.dto/player.dto";
+import { PlayerDto } from "@dto/player.dto/player.dto";
+import { GAME_MESSAGES } from "@models/game.model/game.messages";
+import { GameModel } from "@models/game.model/game.model";
+import { GamestateModel } from "@models/gamestate.model/gamestate.model";
 import { Injectable } from "@nestjs/common";
 import { RuleException } from "src/errors/rule";
 import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
 
-type StartedGame = Omit<GameDto, "gameState" | "startedAt"> & {
-  gameState: GamestateDto;
+type StartedGame = Omit<GameModel, "gameState" | "startedAt"> & {
+  gameState: GamestateModel;
   startedAt: Date;
 };
 
-function isGameStarted (game: GameDto): game is StartedGame {
+function isGameStarted (game: GameModel): game is StartedGame {
 
   return game.startedAt != null && game.gameState != null;
 
@@ -25,13 +25,13 @@ export class GameOneRuleService {
     //
   }
 
-  async addPlayer (game: GameDto, player: PlayerDto) {
+  async addPlayer (game: GameModel, player: PlayerDto) {
 
     return game.connectedPlayers.push(player);
 
   }
 
-  async start (game: GameDto) {
+  async start (game: GameModel) {
 
     if (isGameStarted(game)) {
 
@@ -44,7 +44,7 @@ export class GameOneRuleService {
     }
 
     game.startedAt = new Date();
-    game.gameState = GamestateDto.startNewGame(game.connectedPlayers);
+    game.gameState = GamestateModel.startNewGame(game.connectedPlayers);
 
     if (!isGameStarted(game)) {
 

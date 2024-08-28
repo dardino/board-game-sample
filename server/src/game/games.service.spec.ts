@@ -1,5 +1,5 @@
-import { GameDto } from "@entities/game.dto/game.dto";
-import { GAME_MESSAGES } from "@entities/game.dto/game.messages";
+import { GAME_MESSAGES } from "@models/game.model/game.messages";
+import { GameModel } from "@models/game.model/game.model";
 import { Test, TestingModule } from "@nestjs/testing";
 import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
 import { PLAYERS_MESSAGES } from "src/players/players.messages";
@@ -10,7 +10,7 @@ import { GamesServices } from "./games.service";
 
 class GamesServicesSubclass extends GamesServices {
 
-  prepare (games: GameDto[]) {
+  prepare (games: GameModel[]) {
 
     this.setGames(games);
 
@@ -51,7 +51,7 @@ describe(
 
             // Arrange
             const nickname = "testPlayer";
-            const game1: GameDto = await GameDto.createGame(
+            const game1: GameModel = await GameModel.createGame(
               "test 1",
               {
                 id: 1,
@@ -59,7 +59,7 @@ describe(
                 nickname: "testPlayer",
               },
             );
-            const game2: GameDto = await GameDto.createGame(
+            const game2: GameModel = await GameModel.createGame(
               "test 2",
               {
                 id: 2,
@@ -67,7 +67,7 @@ describe(
                 nickname: "testPlayer",
               },
             );
-            const game3: GameDto = await GameDto.createGame(
+            const game3: GameModel = await GameModel.createGame(
               "test 3",
               {
                 id: 3,
@@ -99,7 +99,7 @@ describe(
 
             // Arrange
             const nickname = "testPlayer";
-            const game1: GameDto = await GameDto.createGame(
+            const game1: GameModel = await GameModel.createGame(
               "test 1",
               {
                 id: 1,
@@ -107,7 +107,7 @@ describe(
                 nickname: "ciccio",
               },
             );
-            const game2: GameDto = await GameDto.createGame(
+            const game2: GameModel = await GameModel.createGame(
               "test 2",
               {
                 id: 2,
@@ -161,7 +161,7 @@ describe(
             // Arrange
             const nickname = "nonExistingPlayer";
             const palyerId = 1;
-            const game: GameDto = await GameDto.createGame(
+            const game: GameModel = await GameModel.createGame(
               "test 1",
               {
                 id: palyerId,
@@ -197,7 +197,7 @@ describe(
             const creator = await playerSvc.getPlayer("creator");
             const player2 = await playerSvc.getPlayer(nickname);
 
-            const game: GameDto = await GameDto.createGame(
+            const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
             );
@@ -234,7 +234,7 @@ describe(
             const testPlayer1 = await playerSvc.getPlayer("test 2");
             const testPlayer2 = await playerSvc.getPlayer("test 3");
 
-            const game: GameDto = await GameDto.createGame(
+            const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
             );
@@ -269,7 +269,7 @@ describe(
             const testPlayer1 = await playerSvc.getPlayer("test 2");
             const testPlayer2 = await playerSvc.getPlayer("test 3");
 
-            const game: GameDto = await GameDto.createGame(
+            const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
             );
@@ -307,7 +307,7 @@ describe(
             const testPlayer1 = await playerSvc.getPlayer("test 2");
             const testPlayer2 = await playerSvc.getPlayer("test 3");
 
-            const game: GameDto = await GameDto.createGame(
+            const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
             );

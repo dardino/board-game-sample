@@ -1,12 +1,13 @@
-import { PlayerDto } from "../player.dto/player.dto";
-import { GameDto } from "./game.dto";
+
+import { PlayerDto } from "@dto/player.dto/player.dto";
+import { GameModel } from "./game.model";
 
 describe(
-  "GameDto tests",
+  "GameModel tests",
   () => {
 
     it(
-      "GameDto should be defined",
+      "GameModel should be defined",
       () => {
 
         const player: PlayerDto = {
@@ -14,7 +15,7 @@ describe(
           isPlaying: false,
           nickname: "testPlayer",
         };
-        expect(GameDto.createGame(
+        expect(GameModel.createGame(
           "",
           player,
         )).toBeDefined();

@@ -23,65 +23,59 @@ const characters = [
     characterName: "Riccardo",
   },
 ];
-describe(
-  "[PlayerTurn] - Move",
-  () => {
+describe("[PlayerTurn] - Move", () => {
 
-    const getStateForMove = () => {
+  const getStateForMove = () => {
 
-      let state = getInitialState();
-      state = GameOneMatchManager(
-        state,
-        {
-          kind: "SetPlayers",
-          phase: "Setup",
-          players: [
-            1,
-            2,
-            3,
-            4,
-          ],
-        },
-      );
-      state = GameOneMatchManager(
-        state,
-        {
-          kind: "CharacterSelection",
-          phase: "Setup",
-          selectedCharacters: characters,
-        },
-      );
-      return state;
-
-    };
-
-    it(
-      "check move",
-      () => {
-
-        const state = getStateForMove();
-        const changes = MoveReducer(
-          state,
-          {
-            direction: "TL",
-            kind: "Move",
-            phase: "PlayerTurn",
-            playerId: state.players[0],
-          },
-        );
-        expect(changes).toStrictEqual({
-          allowedNextActions: ["PickATile"],
-          currentPlayerPerformedActions: [
-            "Awake",
-            "Move",
-          ],
-          placeTileAt: "TL",
-          previousAction: "Move",
-          tileToPlace: null,
-        });
-
+    let state = getInitialState();
+    state = GameOneMatchManager(
+      state,
+      {
+        kind: "SetPlayers",
+        phase: "Setup",
+        players: [
+          1,
+          2,
+          3,
+          4,
+        ],
       },
     );
+    state = GameOneMatchManager(
+      state,
+      {
+        kind: "CharacterSelection",
+        phase: "Setup",
+        selectedCharacters: characters,
+      },
+    );
+    return state;
 
-  },
-);
+  };
+
+  it("check move", () => {
+
+    const state = getStateForMove();
+    const changes = MoveReducer(
+      state,
+      {
+        direction: "TL",
+        kind: "Move",
+        phase: "PlayerTurn",
+        playerId: state.players[0],
+      },
+    );
+    expect(changes).toStrictEqual({
+      allowedNextActions: ["PickATile"],
+      currentPlayerPerformedActions: [
+        "Awake",
+        "Move",
+      ],
+      placeTileAt: "TL",
+      previousAction: "Move",
+      tileToPlace: null,
+    });
+
+  });
+
+});

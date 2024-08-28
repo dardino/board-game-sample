@@ -1,4 +1,4 @@
-import { GamestateDto } from "./gamestate.dto";
+import { GamestateModel } from "./gamestate.model";
 
 describe(
   "GamestateDto",
@@ -8,7 +8,7 @@ describe(
       "should be defined",
       () => {
 
-        expect(new GamestateDto()).toBeDefined();
+        expect(new GamestateModel()).toBeDefined();
 
       },
     );

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PlayerDto } from "../entities/player.dto/player.dto";
-import { hasNickname } from "../entities/player.dto/player.dto.utils";
 import { ResourceAlredyExistsException } from "../errors/resourceAlredyExists";
 import { replacePlaceholders } from "../tools/replacePlaceholders";
+import { hasNickname } from "../utils/player.dto.utils";
 import { PLAYERS_MESSAGES } from "./players.messages";
 
 /**
