@@ -35,7 +35,7 @@ function replacePathParameters<T> (path: string, pathArgs: T): string {
 /**
  * Base controller class for making API requests.
  */
-export class BaseController {
+export class BaseProxy {
 
   #basePath: string;
 

@@ -1,26 +1,31 @@
 import { BgsComponentTypeStatic } from "../helpers/components";
 import { BgsJoinComponent } from "../pages/bgsJoin/bgs-join.component";
 import { BgsLandingComponent } from "../pages/bgsLanding/bgs-landing.component";
+import { BgsLogoutComponent } from "../pages/bgsLogout/bgs-logout.component";
 import { BgsMasterComponent } from "../pages/bgsMaster/bgs-master.component";
 
 export interface RouteConfig {
   content: BgsComponentTypeStatic;
-  auth: boolean;
+  auth: "always" | "never" | "optional";
   children?: Record<string, RouteConfig>;
 }
 
 export const RouteConfigs = {
   "/*": {
     content: BgsMasterComponent,
-    auth: false,
+    auth: "optional",
     children: {
       "/": {
         content: BgsLandingComponent,
-        auth: false,
+        auth: "optional",
       },
       "/join": {
         content: BgsJoinComponent,
-        auth: false,
+        auth: "never",
+      },
+      "/logout": {
+        content: BgsLogoutComponent,
+        auth: "always",
       },
     } as const satisfies Record<string, RouteConfig>,
   },

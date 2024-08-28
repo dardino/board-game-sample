@@ -1,7 +1,7 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
-import { ResponseError } from "../../api/baseController";
-import { MeController } from "../../api/resources/me.controller";
 import { BgsComponentTypeStatic } from "../../helpers/components";
+import { navigate } from "../../routes/navigation";
+import { Registration } from "../../services/registration/registration.service";
 import { cookieparser } from "../../tools/cookieparser";
 import template from "./bgs-join.template.html?raw";
 
@@ -46,8 +46,6 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
 
   #cookie: Record<string, string> = {};
 
-  #imRegistered = false;
-
   #playerInfo: PlayerDto = { id: 0,
     isPlaying: false,
     nickname: "" };
@@ -58,7 +56,7 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
    * funzione che si occuperà di aggiornare gli elementi del DOM di questo componente basandosi sullo stato del componente
    */
   render () {
-    if (this.#imRegistered) {
+    if (Registration.instance.status === "registered") {
       this.#elNotRegistered.classList.add("hidden");
       this.#elRegistered.classList.remove("hidden");
     } else {
@@ -82,9 +80,10 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
 
   connectedCallback () {
     this.#attachEvents();
-    if (this.#playerInfo.nickname != "") {
-      this.#loadMe().finally(() => this.render());
-    }
+    Registration.instance.GetMe().then((resp) => {
+      if (!resp) return;
+      this.#playerInfo = resp;
+    });
   }
 
   disconnectedCallback () {
@@ -116,67 +115,26 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   }
 
   #clickLogout = () => {
-    this.#deleteMe().finally(() => this.render());
+    Registration.instance.Unregister().finally(() => this.render());
   };
 
   #submit = (event: SubmitEvent) => {
     event.preventDefault();
     event.stopImmediatePropagation();
-
-    this.#registerMe().finally(() => this.render());
+    Registration.instance.RegisterMe(this.#elInput.value).then(() => {
+      return Registration.instance.GetMe().then((resp) => {
+        if (!resp) {
+          this.#errorMessages = Registration.instance.Errors;
+          this.render();
+        } else {
+          this.#playerInfo = resp;
+          navigate("/");
+        }
+      });
+    });
   };
-    // #endregion
 
-  // #region controller logics
-  /**
-   * Loads the user's information asynchronously.
-   * If the user is found, sets the #imRegistered flag to true and assigns the response to #playerInfo.
-   * If the user is not found, sets the #imRegistered flag to false.
-   * If an error occurs, logs the error to the console.
-   */
-  async #loadMe () {
-    this.#errorMessages = [];
-    try {
-      const resp = await MeController.getMe();
-      this.#imRegistered = true;
-      this.#playerInfo = resp!;
-    } catch (err) {
-      if (err instanceof ResponseError && err.status === 404) {
-        // utente non trovato
-        this.#imRegistered = false;
-        this.#errorMessages = [err.body.message];
-      } else {
-        console.error(err);
-      }
-    }
-  }
-
-  async #registerMe () {
-    const nickName = this.#elInput.value;
-    this.#errorMessages = [];
-    try {
-      const resp = await MeController.registerMe(nickName);
-      this.#imRegistered = true;
-      this.#playerInfo = resp;
-    } catch (err) {
-      if (err instanceof ResponseError && err.status === 400) {
-        // esiste già:
-        this.#imRegistered = false;
-        this.#errorMessages = [err.body.message];
-      } else {
-        console.error(err);
-      }
-    }
-  }
-
-  async #deleteMe () {
-    this.#imRegistered = false;
-    try {
-      await MeController.deleteMe();
-    } catch (err) {
-      console.error(err);
-    }
-  }
   // #endregion
+
 
 };

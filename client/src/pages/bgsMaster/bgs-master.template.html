@@ -1,9 +1,13 @@
 <div class="masterPage">
   <nav>
     <ul>
-      <li><route-link to="/">Home</route-link></li>
-      <li><route-link to="/join">Register</route-link></li>
+      <li id="home"><route-link to="/">Home</route-link></li>
+      <li class="hidden" id="join"><route-link to="/join">Register</route-link></li>
+      <li class="hidden" id="logout"><route-link to="/logout">Logout</route-link></li>
     </ul>
+    <div>
+      <span id="user"></span>
+    </div>
   </nav>
   <main>
     <route-outlet></route-outlet>
