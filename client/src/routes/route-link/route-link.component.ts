@@ -24,7 +24,7 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
 
   constructor () {
     super();
-    this.#shadow = this.attachShadow({ mode: "closed" });
+    this.#shadow = this.attachShadow({ mode: "open" });
     this.#shadow.innerHTML = template;
   }
 
@@ -44,6 +44,15 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
 
   // adoptedCallback () {}
 
+
+  /**
+   * This method is called whenever one of the attributes
+   * defined in `observedAttributes` is changed.
+   *
+   * @param {string} name - The name of the attribute that changed.
+   * @param {string} oldValue - The old value of the attribute.
+   * @param {string} newValue - The new value of the attribute.
+   */
   attributeChangedCallback (name: string, oldValue: string, newValue: string) {
     console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}.`);
     switch (name) {

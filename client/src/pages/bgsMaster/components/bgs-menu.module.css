@@ -1,0 +1,55 @@
+.nav {
+  padding: 1rem;
+  background-color: #333333aa;
+  color: #fff;
+  font-size: 1.2rem;
+  border-bottom: solid .1rem black;
+
+  ul {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    list-style-type: none;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+  }
+
+  --skew-angle: -10deg;
+
+  route-link {
+    display: block;
+    border: solid 1px blue;
+    margin: 0;
+    padding: 1rem;
+    transform: skewX(var(--skew-angle));
+    border-radius: 1rem;
+    background-color: rgba(0, 0, 255, 0.2);
+    transition-duration: 0.2s;
+    transition-timing-function: ease-in;
+
+    &.active {
+      background-color: rgba(0, 0, 255, 0.5);
+      box-shadow: rgba(0, 0, 255, 0.5) 0 0 0.5rem 0.1rem;
+    }
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.5);
+      box-shadow: #ffffff 0 0 0.5rem 0.1rem;
+      color: yellow;
+    }
+
+    &::part(link) {
+      display: block;
+      transform: skewX(calc(-1 * var(--skew-angle)));
+      cursor: pointer;
+    }
+
+  }
+
+
+  li {
+    display: inline-flex;
+    list-style-type: none;
+  }
+}

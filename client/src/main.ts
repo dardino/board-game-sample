@@ -6,4 +6,4 @@ RouteOutlet.register();
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = html`
   <route-outlet id="MAIN"></route-outlet>
 `;
-document.title = "La Città Perduta di Eldalorisa";
+document.title = "La Città Perduta di Eldorasia";
