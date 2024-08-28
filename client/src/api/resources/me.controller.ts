@@ -27,30 +27,22 @@ export class MeController extends BaseController {
 
   // #region Private
   private constructor () {
-
     super("me");
-
   }
 
   private async getMe (): Promise<PlayerDto | null> {
-
     return await this.get<PlayerDto | null, "">("");
-
   }
 
   private async registerMe (nickname: string): Promise<PlayerDto> {
-
     return await this.post<PlayerDto, "", { nickname: string }>(
       "",
-      { nickname }
+      { nickname },
     );
-
   }
 
   private async deleteMe (): Promise<boolean> {
-
     return await this.delete<boolean, "">("");
-
   }
   // #region private
 

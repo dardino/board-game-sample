@@ -10,54 +10,38 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   public static readonly tagName = "bgs-join";
 
   public static register () {
-
     customElements.define(
       BgsJoinComponent.tagName,
       BgsJoinComponent,
     );
-
   }
 
   get #elNotRegistered () {
-
     return this.querySelector<HTMLDivElement>("#notRegistered")!;
-
   }
 
   get #elRegistered () {
-
     return this.querySelector<HTMLDivElement>("#registered")!;
-
   }
 
   get #elInput () {
-
     return this.querySelector<HTMLInputElement>("input")!;
-
   }
 
   get #elNickname () {
-
     return this.querySelector<HTMLSpanElement>("#nickname")!;
-
   }
 
   get #elRegisterForm () {
-
     return this.querySelector<HTMLFormElement>("#registerForm")!;
-
   }
 
   get #elLogout () {
-
     return this.querySelector<HTMLButtonElement>("#logout")!;
-
   }
 
   get #elErrorMessage () {
-
     return this.querySelector<HTMLSpanElement>("#errorMessage")!;
-
   }
 
   #cookie: Record<string, string> = {};
@@ -74,57 +58,42 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
    * funzione che si occuperà di aggiornare gli elementi del DOM di questo componente basandosi sullo stato del componente
    */
   render () {
-
     if (this.#imRegistered) {
-
       this.#elNotRegistered.classList.add("hidden");
       this.#elRegistered.classList.remove("hidden");
-
     } else {
-
       this.#elNotRegistered.classList.remove("hidden");
       this.#elRegistered.classList.add("hidden");
-
     }
 
     this.#elInput.value = this.#playerInfo.nickname;
     this.#elNickname.innerHTML = this.#playerInfo.nickname;
     this.#elErrorMessage.innerHTML = this.#errorMessages.join("<br />");
-
   }
 
   // #region Component lyfecycle
   constructor () {
-
     super();
     this.innerHTML = template;
     this.style.display = "contents";
     this.#cookie = cookieparser();
     this.#playerInfo.nickname = this.#cookie["player.nickname"] ?? "";
-
   }
 
   connectedCallback () {
-
     this.#attachEvents();
     if (this.#playerInfo.nickname != "") {
-
       this.#loadMe().finally(() => this.render());
-
     }
-
   }
 
   disconnectedCallback () {
-
     this.#detachEvents();
-
   }
   // #endregion
 
   // #region events management
   #attachEvents () {
-
     this.#elRegisterForm.addEventListener(
       "submit",
       this.#submit,
@@ -133,11 +102,9 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
       "click",
       this.#clickLogout,
     );
-
   }
 
   #detachEvents () {
-
     this.#elRegisterForm.removeEventListener(
       "submit",
       this.#submit,
@@ -146,22 +113,17 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
       "click",
       this.#clickLogout,
     );
-
   }
 
   #clickLogout = () => {
-
     this.#deleteMe().finally(() => this.render());
-
   };
 
   #submit = (event: SubmitEvent) => {
-
     event.preventDefault();
     event.stopImmediatePropagation();
 
     this.#registerMe().finally(() => this.render());
-
   };
     // #endregion
 
@@ -173,73 +135,47 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
    * If an error occurs, logs the error to the console.
    */
   async #loadMe () {
-
     this.#errorMessages = [];
     try {
-
       const resp = await MeController.getMe();
       this.#imRegistered = true;
       this.#playerInfo = resp!;
-
     } catch (err) {
-
       if (err instanceof ResponseError && err.status === 404) {
-
         // utente non trovato
         this.#imRegistered = false;
         this.#errorMessages = [err.body.message];
-
       } else {
-
         console.error(err);
-
       }
-
     }
-
   }
 
   async #registerMe () {
-
     const nickName = this.#elInput.value;
     this.#errorMessages = [];
     try {
-
       const resp = await MeController.registerMe(nickName);
       this.#imRegistered = true;
       this.#playerInfo = resp;
-
     } catch (err) {
-
       if (err instanceof ResponseError && err.status === 400) {
-
         // esiste già:
         this.#imRegistered = false;
         this.#errorMessages = [err.body.message];
-
       } else {
-
         console.error(err);
-
       }
-
     }
-
   }
 
   async #deleteMe () {
-
     this.#imRegistered = false;
     try {
-
       await MeController.deleteMe();
-
     } catch (err) {
-
       console.error(err);
-
     }
-
   }
   // #endregion
 

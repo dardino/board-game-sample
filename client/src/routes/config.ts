@@ -9,7 +9,7 @@ export interface RouteConfig {
   children?: Record<string, RouteConfig>;
 }
 
-export const RouteConfig = {
+export const RouteConfigs = {
   "/*": {
     content: BgsMasterComponent,
     auth: false,

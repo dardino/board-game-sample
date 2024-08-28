@@ -1,6 +1,7 @@
 import { BgsComponentTypeStatic } from "../../helpers/components";
-import { RouteConfig } from "../config";
+import { RouteConfig, RouteConfigs } from "../config";
 import { matchPath } from "../navigation";
+import { RouteLink } from "../route-link/route-link.component";
 
 
 export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTMLElement {
@@ -8,18 +9,16 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
   static tagName = "route-outlet" as const;
 
   static register () {
-
     customElements.define(
       RouteOutlet.tagName,
       RouteOutlet,
     );
-
+    RouteLink.register();
   }
 
   #allRoutes: Record<string, RouteConfig> = {};
 
   get activeRoute () {
-
     const allPaths = Object.keys(this.#allRoutes) as (keyof RouteConfig)[];
     const match = allPaths.find((template) => matchPath(
       template,
@@ -28,46 +27,46 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
     return match
       ? this.#allRoutes[match]
       : null;
-
   }
 
   constructor () {
-
     super();
     const parent = this.parentElement!.closest(RouteOutlet.tagName) as RouteOutlet | null;
     this.style.display = "contents";
     console.log(parent);
     if (!parent) {
-
-      this.#allRoutes = RouteConfig;
-
+      this.#allRoutes = RouteConfigs;
     } else {
-
       this.#allRoutes = parent!.activeRoute?.children ?? {};
-
     }
-
-    this.updateRoute();
-
   }
 
+  connectedCallback () {
+    this.updateRoute();
+    document.addEventListener("navigate", this.#handleNavigation);
+  }
+
+  disconnectedCallback () {
+    document.removeEventListener("navigate", this.#handleNavigation);
+  }
+
+  // adoptedCallback () {}
+
+  // attributeChangedCallback () {}
+
+  #handleNavigation = (/* event: NavigateEvent */) => {
+    this.updateRoute();
+  };
+
   updateRoute () {
-
     requestAnimationFrame(() => {
-
       if (this.activeRoute != null) {
-
         if (!customElements.get(this.activeRoute.content.tagName)) {
-
           this.activeRoute.content.register();
-
         }
         this.innerHTML = `<${this.activeRoute.content.tagName}></${this.activeRoute.content.tagName}>`;
-
       }
-
     });
-
   }
 
 };

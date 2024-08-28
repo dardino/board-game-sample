@@ -6,20 +6,16 @@ export const BgsMasterComponent: BgsComponentTypeStatic = class BgsMasterCompone
   public static readonly tagName = "bgs-master";
 
   public static register () {
-
     customElements.define(
       BgsMasterComponent.tagName,
       BgsMasterComponent,
     );
-
   }
 
   constructor () {
-
     super();
     this.innerHTML = template;
     this.style.display = "contents";
-
   }
 
 };

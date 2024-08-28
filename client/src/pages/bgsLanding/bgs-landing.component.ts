@@ -7,20 +7,16 @@ export const BgsLandingComponent: BgsComponentTypeStatic = class BgsLandingCompo
   public static readonly tagName = "bgs-landing";
 
   public static register () {
-
     customElements.define(
       BgsLandingComponent.tagName,
       BgsLandingComponent,
     );
-
   }
 
   constructor () {
-
     super();
     this.innerHTML = template;
     this.classList.add(style.landing);
-
   }
 
 };
