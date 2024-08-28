@@ -1,0 +1,33 @@
+.table {
+  display: grid;
+  grid-template-columns: max-content 1fr max-content max-content;
+  padding: 1rem;
+
+  thead,
+  tbody,
+  tr {
+    display: grid;
+    grid-column-start: 1;
+    grid-column-end: -1;
+    grid-template-columns: subgrid;
+  }
+
+  tbody>tr {
+    border: solid 1px rgb(0, 0, 255);
+    margin-top: 1rem;
+    transform: skewX(-10deg);
+    background-color: rgba(0, 0, 255, 0.2);
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(0, 0, 255, 0.8);
+      transition-duration: 0.2s;
+      transition-timing-function: ease-in;
+    }
+  }
+
+  td {
+    display: block;
+    padding: 1rem;
+  }
+}

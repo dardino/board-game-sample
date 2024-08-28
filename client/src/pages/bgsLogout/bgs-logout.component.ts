@@ -20,7 +20,7 @@ export const BgsLogoutComponent: BgsComponentTypeStatic = class BgsLogoutCompone
   }
 
   connectedCallback () {
-    Registration.instance.Unregister().finally(() => navigate("/"));
+    Registration.Unregister().finally(() => navigate("/"));
   }
 
 

@@ -7,32 +7,30 @@ export class Registration {
   // #region service come SINGLETON
   static #instance: Registration | null;
 
-  static get instance () {
+  private static get instance () {
     if (Registration.#instance == null) Registration.#instance = new Registration();
     return Registration.#instance!;
   }
   // #endregion service come SINGLETON
 
-  #playerInfo: PlayerDto = {
-    id: 0,
-    isPlaying: false,
-    nickname: "",
-  };
-
-  private constructor () {
-    this.#loadMe();
-  }
-
   /**
    * Recupera le informazioni sul giocatore corrente, se non è caricato prova a caricarlo
    * @returns informazioni sul giocatore corrente o null se non è registrato
    */
-  async GetMe () {
-    if (this.#playerInfo.nickname === "") {
-      await this.#loadMe();
+  static async GetMe () {
+    if (Registration.instance.#playerInfo.nickname === "") {
+      await Registration.instance.#loadMe();
     }
-    if (this.#imRegistered) return this.#playerInfo;
+    if (Registration.instance.#imRegistered) return Registration.instance.#playerInfo;
     else return null;
+  }
+
+  static get PlayerId () {
+    return Registration.instance.#playerInfo.id;
+  }
+
+  static get NickName (): string {
+    return Registration.instance.#playerInfo.nickname;
   }
 
   /**
@@ -40,33 +38,49 @@ export class Registration {
    * @param nickName nick name da utilizzare per la registrazione
    * @returns una `Promise` che si risolve con `true` se la registrazione va a buon fine, `false` altrimenti
    */
-  RegisterMe (nickName: string): Promise<boolean> {
-    return this.#registerMe(nickName);
+  static RegisterMe (nickName: string): Promise<boolean> {
+    return Registration.instance.#registerMe(nickName);
   }
 
   /**
    * Prova a de-registrarsi dal gioco, se riesce viene restituito `true`, altrimenti `false`
    * @returns una `Promise` che si risolve con `true` se la cancellazione va a buon fine, `false` altrimenti
    */
-  async Unregister () {
-    return this.#deleteMe();
+  static async Unregister () {
+    return Registration.instance.#deleteMe();
   }
 
-  get Errors (): string[] {
-    return this.#errorMessages;
+  /**
+   * Returns an array of error messages.
+   * @returns An array of error messages.
+   */
+  static get Errors (): string[] {
+    return Registration.instance.#errorMessages;
   }
 
-  get status () {
-    if (this.#errorMessages.length > 0) return "error";
-    if (this.#imRegistered) return "registered";
+  static get status () {
+    if (Registration.instance.#errorMessages.length > 0) return "error";
+    if (Registration.instance.#imRegistered) return "registered";
     return "unregistered";
   }
+
+
+  // #region controller logics
+
+  #playerInfo: PlayerDto = {
+    id: 0,
+    isPlaying: false,
+    nickname: "",
+  };
 
   #imRegistered = false;
 
   #errorMessages: string[] = [];
 
-  // #region controller logics
+  private constructor () {
+    this.#loadMe();
+  }
+
   /**
    * Loads the user's information asynchronously.
    * If the user is found, sets the #imRegistered flag to true and assigns the response to #playerInfo.

@@ -1,0 +1,35 @@
+<template id="rowTemplate">
+  <tr>
+    <td part="id"></td>
+    <td part="description"></td>
+    <td part="players"></td>
+    <td part="joinButton"><button>Join</button></td>
+  </tr>
+</template>
+
+<div>Game List</div>
+<button id="createGameButton">Create Game</button>
+<table>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Description</th>
+      <th>Players</th>
+      <th>Join</th>
+    </tr>
+  </thead>
+  <tbody id="gameList">
+
+  </tbody>
+</table>
+
+<dialog id="createGameDialog">
+  <form id="createGameForm" method="POST" action="#">
+    <input type="text" name="gameName" />
+    <button type="submit">Create</button>
+  </form>
+</dialog>
+
+<dialog id="progressDialog">
+  <progress></progress>
+</dialog>

@@ -1,6 +1,19 @@
+import { GameDto } from "@dto/matchmaking/game.dto";
 import { BaseProxy } from "../baseProxy";
 
 export class MatchMakingProxy extends BaseProxy {
+
+  /**
+   * Joins a game.
+   * @returns
+   */
+  public static joinGame: MatchMakingProxy["joinGame"] = (...args) => new MatchMakingProxy().joinGame(...args);
+
+  /**
+   * Create a game.
+   * @returns
+   */
+  public static createGame: MatchMakingProxy["createGame"] = (...args) => new MatchMakingProxy().createGame(...args);
 
   /**
    * Retrieves the information of the current player.
@@ -20,7 +33,15 @@ export class MatchMakingProxy extends BaseProxy {
 
 
   private async getGames () {
-    return await this.get<Games[] | null, "games">("games");
+    return await this.get<GameDto[], "games">("games");
+  }
+
+  public async joinGame (gameId: number, nickName: string) {
+    return await this.post("join", { gameId, nickName });
+  }
+
+  private async createGame (gameTitle: string, nickName: string) {
+    return await this.post("game", { nickName, gameTitle });
   }
 
 }

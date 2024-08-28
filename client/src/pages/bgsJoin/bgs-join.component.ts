@@ -56,7 +56,7 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
    * funzione che si occuperà di aggiornare gli elementi del DOM di questo componente basandosi sullo stato del componente
    */
   render () {
-    if (Registration.instance.status === "registered") {
+    if (Registration.status === "registered") {
       this.#elNotRegistered.classList.add("hidden");
       this.#elRegistered.classList.remove("hidden");
     } else {
@@ -80,7 +80,7 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
 
   connectedCallback () {
     this.#attachEvents();
-    Registration.instance.GetMe().then((resp) => {
+    Registration.GetMe().then((resp) => {
       if (!resp) return;
       this.#playerInfo = resp;
     });
@@ -115,16 +115,16 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   }
 
   #clickLogout = () => {
-    Registration.instance.Unregister().finally(() => this.render());
+    Registration.Unregister().finally(() => this.render());
   };
 
   #submit = (event: SubmitEvent) => {
     event.preventDefault();
     event.stopImmediatePropagation();
-    Registration.instance.RegisterMe(this.#elInput.value).then(() => {
-      return Registration.instance.GetMe().then((resp) => {
+    Registration.RegisterMe(this.#elInput.value).then(() => {
+      return Registration.GetMe().then((resp) => {
         if (!resp) {
-          this.#errorMessages = Registration.instance.Errors;
+          this.#errorMessages = Registration.Errors;
           this.render();
         } else {
           this.#playerInfo = resp;
