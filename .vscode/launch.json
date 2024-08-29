@@ -16,8 +16,18 @@
       ],
       "cwd": "${workspaceFolder}/server",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true
-    }
+      "internalConsoleOptions": "neverOpen"
+    },
+    {
+      "name": "Attach To Server",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "address": "localhost",
+      "restart": false,
+      "sourceMaps": false,
+      "localRoot": "${workspaceRoot}/server",
+      "remoteRoot": null
+    },
   ]
 }

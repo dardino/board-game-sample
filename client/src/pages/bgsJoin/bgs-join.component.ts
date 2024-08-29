@@ -2,7 +2,6 @@ import { PlayerDto } from "@dto/player.dto/player.dto";
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import { navigate } from "../../routes/navigation";
 import { Registration } from "../../services/registration/registration.service";
-import { cookieparser } from "../../tools/cookieparser";
 import template from "./bgs-join.template.html?raw";
 
 export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent extends HTMLElement {
@@ -44,8 +43,6 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
     return this.querySelector<HTMLSpanElement>("#errorMessage")!;
   }
 
-  #cookie: Record<string, string> = {};
-
   #playerInfo: PlayerDto = { id: 0,
     isPlaying: false,
     nickname: "" };
@@ -74,8 +71,6 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
     super();
     this.innerHTML = template;
     this.style.display = "contents";
-    this.#cookie = cookieparser();
-    this.#playerInfo.nickname = this.#cookie["player.nickname"] ?? "";
   }
 
   connectedCallback () {

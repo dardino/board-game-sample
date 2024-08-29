@@ -7,12 +7,10 @@ import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { GameOneRuleService } from "./rule-manager.service";
 
 describe("GameOneRuleService tests", () => {
-
   let service: GameOneRuleService;
   const addDelayedActionMock = jest.fn().mockImplementation(() => true);
 
   beforeEach(async () => {
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GameOneRuleService,
@@ -26,17 +24,13 @@ describe("GameOneRuleService tests", () => {
     }).compile();
 
     service = module.get<GameOneRuleService>(GameOneRuleService);
-
   });
 
   it("RuleManagerService should be defined", () => {
-
     expect(service).toBeDefined();
-
   });
 
   it("RuleManagerService should start a game", async () => {
-
     addDelayedActionMock.mockClear();
     const player = new PlayerDto(
       1,
@@ -63,7 +57,5 @@ describe("GameOneRuleService tests", () => {
         runAt: game.gameState?.nextTournDeadline,
       },
     );
-
   });
-
 });

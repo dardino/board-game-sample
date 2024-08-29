@@ -6,7 +6,8 @@ type _PathParams<T extends string> = T extends `:${infer P}` ? P : never;
 /**
  * Type helper to recursively extract path parameters from a string.
  */
-type PathParams<T extends string> = T extends `${infer L}/${infer R}` ? _PathParams<L> | PathParams<R> : never;
+type PathParams<T extends string> = T extends `${infer L}/${infer R}` ? _PathParams<L> | PathParams<R> : _PathParams<T>;
+
 
 /**
  * Replaces path parameters in a given path string with corresponding values from an object.
@@ -15,7 +16,7 @@ type PathParams<T extends string> = T extends `${infer L}/${infer R}` ? _PathPar
  * @param pathArgs - An object containing key-value pairs representing the path parameters and their values.
  * @returns The updated path string with replaced path parameters.
  */
-function replacePathParameters<T> (path: string, pathArgs: T): string {
+function replacePathParameters<TPath extends string> (path: TPath, pathArgs?: Record<PathParams<TPath>, string>): string {
   let newPath: string = path;
   (Object.entries(pathArgs ?? {}) as [string, string][]).forEach(([
     key,
@@ -53,7 +54,7 @@ export class BaseProxy {
    * @param pathArgs - The path parameters for the GET request.
    * @returns A promise that resolves to the response data.
    */
-  async get<ReturnType, T extends string> (path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
+  async get<ReturnType, T extends string> (path: T, pathArgs?: Record<PathParams<T>, string>): Promise<ReturnType> {
     const newPath = replacePathParameters(
       path,
       pathArgs,
@@ -71,7 +72,7 @@ export class BaseProxy {
    * @param pathArgs - The path parameters for the POST request.
    * @returns A promise that resolves to the response data.
    */
-  async post<ReturnType, T extends string, TBody> (path: T, bodyArgs: TBody, pathArgs?: PathParams<T>): Promise<ReturnType> {
+  async post<ReturnType, T extends string, TBody> (path: T, bodyArgs: TBody, pathArgs?: Record<PathParams<T>, string>): Promise<ReturnType> {
     const newPath = replacePathParameters(
       path,
       pathArgs,
@@ -89,7 +90,7 @@ export class BaseProxy {
    * @param pathArgs - The path parameters for the DELETE request.
    * @returns A promise that resolves to the response data.
    */
-  async delete<ReturnType, T extends string> (path: T, pathArgs?: PathParams<T>): Promise<ReturnType> {
+  async delete<ReturnType, T extends string> (path: T, pathArgs?: Record<PathParams<T>, string>): Promise<ReturnType> {
     const newPath = replacePathParameters(
       path,
       pathArgs,
@@ -168,6 +169,7 @@ export class ResponseError {
     message: string;
     error?: string;
     statusCode: number;
+    detail?: unknown;
   }) { }
 
 }

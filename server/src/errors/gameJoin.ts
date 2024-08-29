@@ -1,14 +1,7 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
+import { GameJoinExceptionArgs } from "@dto/exceptions/GameJoinExceptionArgs";
+import { BaseHttpException } from "./exceptionBase";
 
-export class GameJoinException extends HttpException {
 
-  constructor (message: string) {
-
-    super(
-      message,
-      HttpStatus.BAD_REQUEST,
-    );
-
-  }
+export class GameJoinException extends BaseHttpException<GameJoinExceptionArgs> {
 
 }

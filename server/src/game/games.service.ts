@@ -24,15 +24,11 @@ export class GamesServices {
   }
 
   async getList (): Promise<GameModel[]> {
-
     return this.#allGames;
-
   }
 
   protected setGames (games: GameModel[]) {
-
     this.#allGames = games;
-
   }
 
   /**
@@ -41,9 +37,7 @@ export class GamesServices {
    * @returns An array of free games.
    */
   async getFreeGames () {
-
     return this.#allGames.filter((game) => game.connectedPlayers.length < game.maxPlayers);
-
   }
 
   /**
@@ -53,15 +47,16 @@ export class GamesServices {
    * @returns An array of games in which the player is connected.
    */
   async getGamesIAmConnectedIn (nickname: string) {
-
     return this.#allGames.filter((game) => game.connectedPlayers.some(hasNickname(nickname)));
-
   }
 
   async gameById (gameId: GameModel["gameId"]) {
-
-    return this.#allGames.find((game) => game.gameId === gameId);
-
+    const game = this.#allGames.find((game) => game.gameId === gameId);
+    if (!game) {
+      throw new GameJoinException({ message: replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", { gameIdString: gameId.toString() }), internalCode: 1001, gameId });
+    } else {
+      return game;
+    }
   }
 
   /**
@@ -73,49 +68,23 @@ export class GamesServices {
    * @throws {GameJoinException} If the game is not found, player is not found, player is already connected to the game, the game is full or already started.
    */
   async joinToGame (nickname: string, gameId: number) {
-
     const player = await this.playersService.getPlayer(nickname);
     const game = this.#allGames.find((game) => game.gameId === gameId);
+    const gameIdString = gameId.toString();
     if (!game) {
-
-      throw new GameJoinException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_NOT_FOUND",
-        {},
-      ));
-
+      throw new GameJoinException({ message: replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", { gameIdString }), internalCode: 1001, gameId });
     }
 
     if (game.startedAt != null) {
-
-      throw new GameJoinException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_ALREDY_STARTED",
-        {},
-      ));
-
+      throw new GameJoinException({ message: replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", { gameIdString }), internalCode: 1002, gameId });
     }
 
     if (game.connectedPlayers.some(hasNickname(nickname))) {
-
-      throw new GameJoinException(replacePlaceholders(
-        GAME_MESSAGES,
-        "PLAYER_ALREDY_IN_GAME",
-        {
-          playername: nickname,
-        },
-      ));
-
+      throw new GameJoinException({ message: replacePlaceholders(GAME_MESSAGES, "PLAYER_ALREDY_IN_GAME", { playername: nickname }), internalCode: 1003, gameId });
     }
 
     if (game.connectedPlayers.length >= game.maxPlayers) {
-
-      throw new GameJoinException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_IS_FULL",
-        {},
-      ));
-
+      throw new GameJoinException({ message: replacePlaceholders(GAME_MESSAGES, "GAME_IS_FULL", {}), internalCode: 1004, gameId });
     }
 
     this.ruleManagerService.addPlayer(
@@ -124,14 +93,7 @@ export class GamesServices {
     );
     player.isPlaying = true;
 
-    return replacePlaceholders(
-      GAME_MESSAGES,
-      "PLAYER_JOINED",
-      {
-        playername: player.nickname,
-      },
-    );
-
+    return replacePlaceholders(GAME_MESSAGES, "PLAYER_JOINED", { playername: player.nickname });
   }
 
   /**
@@ -143,50 +105,25 @@ export class GamesServices {
    * @throws {GameStartException} If the game is not found, player is not found, player is already connected to the game, the game is full or already started.
    */
   async startGame (nickname: string, gameId: number) {
-
     const game = this.#allGames.find((game) => game.gameId === gameId);
+    const gameIdString = gameId.toString();
     if (!game) {
-
-      throw new GameStartException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_NOT_FOUND",
-        {},
-      ));
-
+      throw new GameStartException(replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", { gameIdString }), 2001);
     }
 
     if (game.connectedPlayers.length < game.minPlayersToStart) {
-
-      throw new GameStartException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_IS_NOT_FULL",
-        {},
-      ));
-
+      throw new GameStartException(replacePlaceholders(GAME_MESSAGES, "GAME_IS_NOT_FULL", { }), 2002);
     }
 
     if (game.startedAt != null) {
-
-      throw new GameStartException(replacePlaceholders(
-        GAME_MESSAGES,
-        "GAME_ALREDY_STARTED",
-        {},
-      ));
-
+      throw new GameStartException(replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", { }), 2003);
     }
 
     if (game.connectedPlayers[0].nickname !== nickname) {
-
-      throw new GameStartException(replacePlaceholders(
-        GAME_MESSAGES,
-        "YOU_ARE_NOT_THE_GAME_OWNER",
-        {},
-      ));
-
+      throw new GameStartException(replacePlaceholders(GAME_MESSAGES, "YOU_ARE_NOT_THE_GAME_OWNER", { }), 2004);
     }
 
     this.ruleManagerService.start(game);
-
   }
 
   /**
@@ -196,7 +133,6 @@ export class GamesServices {
    * @returns istanza del gioco creato
    */
   async createNewGame (nickname: string, gameTitle: string) {
-
     const player = await this.playersService.getPlayer(nickname);
     const newGame = await GameModel.createGame(
       gameTitle,
@@ -204,7 +140,6 @@ export class GamesServices {
     );
     this.#allGames.push(newGame);
     return newGame;
-
   }
 
   /**
@@ -219,7 +154,6 @@ export class GamesServices {
     elapesd: number | null;
     title: string;
   } {
-
     return {
       elapesd: game.startedAt
         ? Date.now() - game.startedAt.valueOf()
@@ -229,7 +163,6 @@ export class GamesServices {
       playersMin: 2,
       title: game.gameTitle,
     };
-
   }
 
 }

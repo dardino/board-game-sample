@@ -11,9 +11,7 @@ import { GamesServices } from "./games.service";
 class GamesServicesSubclass extends GamesServices {
 
   prepare (games: GameModel[]) {
-
     this.setGames(games);
-
   }
 
 }
@@ -21,12 +19,10 @@ class GamesServicesSubclass extends GamesServices {
 describe(
   "GamesService",
   () => {
-
     let service: GamesServicesSubclass;
     let playerSvc: PlayersService;
 
     beforeEach(async () => {
-
       const module: TestingModule = await Test.createTestingModule({
         providers: [
           GameOneRuleService,
@@ -38,17 +34,14 @@ describe(
 
       service = module.get<GamesServicesSubclass>(GamesServicesSubclass);
       playerSvc = module.get<PlayersService>(PlayersService);
-
     });
 
     describe(
       "getGamesIAmConnectedIn",
       () => {
-
         it(
           "should return an array of games where the player is connected",
           async () => {
-
             // Arrange
             const nickname = "testPlayer";
             const game1: GameModel = await GameModel.createGame(
@@ -89,14 +82,12 @@ describe(
               game1,
               game2,
             ]);
-
           },
         );
 
         it(
           "should return an empty array if the player is not connected in any game",
           async () => {
-
             // Arrange
             const nickname = "testPlayer";
             const game1: GameModel = await GameModel.createGame(
@@ -125,21 +116,17 @@ describe(
 
             // Assert
             expect(result).toEqual([]);
-
           },
         );
-
       },
     );
 
     describe(
       "joinToGame",
       () => {
-
         it(
           "should throw GameJoinException if game is not found",
           async () => {
-
             // Arrange
             const nickname = "testPlayer";
             const gameId = 1;
@@ -150,14 +137,12 @@ describe(
               nickname,
               gameId,
             )).rejects.toThrow(GAME_MESSAGES.GAME_NOT_FOUND);
-
           },
         );
 
         it(
           "should throw GameJoinException if player is not found",
           async () => {
-
             // Arrange
             const nickname = "nonExistingPlayer";
             const palyerId = 1;
@@ -180,14 +165,12 @@ describe(
               "PLAYER_NOT_FOUND",
               { nickname },
             ));
-
           },
         );
 
         it(
           "should throw GameJoinException if player is already connected to the game",
           async () => {
-
             // Arrange
             const nickname = "testPlayer";
 
@@ -217,14 +200,12 @@ describe(
               nickname,
               game.gameId,
             )).rejects.toThrow(errMessage);
-
           },
         );
 
         it(
           "should throw GameJoinException if the game is full",
           async () => {
-
             // Arrange
             await playerSvc.addPlayer("creator");
             await playerSvc.addPlayer("test 2");
@@ -252,14 +233,12 @@ describe(
               testPlayer2.nickname,
               game.gameId,
             )).rejects.toThrow(errMessage);
-
           },
         );
 
         it(
           "should throw GameJoinException if the game has already started",
           async () => {
-
             // Arrange
             await playerSvc.addPlayer("creator");
             await playerSvc.addPlayer("test 2");
@@ -290,14 +269,12 @@ describe(
               testPlayer2.nickname,
               game.gameId,
             )).rejects.toThrow(errMessage);
-
           },
         );
 
         it(
           "should add the player to the connected players list and return \"Player successfully connected\"",
           async () => {
-
             // Arrange
             await playerSvc.addPlayer("creator");
             await playerSvc.addPlayer("test 2");
@@ -333,21 +310,17 @@ describe(
             // Assert
             expect(result).toBe(successMessage);
             expect(game.connectedPlayers).toContain(testPlayer2);
-
           },
         );
-
       },
     );
 
     describe(
       "createNewGame",
       () => {
-
         it(
           "should correctly create game adding it to freegame list",
           async () => {
-
             // Arrange
             const nickname = "testPlayer";
             await playerSvc.addPlayer(nickname);
@@ -362,12 +335,9 @@ describe(
             const gameList = await service.getFreeGames();
             expect(gameList.length).toBe(1);
             expect(gameList[0]).toBe(game);
-
           },
         );
-
       },
     );
-
   },
 );

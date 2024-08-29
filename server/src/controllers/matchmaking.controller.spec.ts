@@ -8,12 +8,10 @@ import { SystemPlayerService } from "src/system-player/system-player.service";
 import { MatchMakingController } from "./matchmaking.controller";
 
 describe("Match Making controller", () => {
-
   let mmController: MatchMakingController;
   let gameService: GamesServices;
 
   beforeEach(async () => {
-
     const contextId = ContextIdFactory.create();
     jest.
       spyOn(
@@ -50,23 +48,19 @@ describe("Match Making controller", () => {
     playerSvc.addPlayer("player 3");
     playerSvc.addPlayer("player 4");
     playerSvc.addPlayer("player 5");
-
   });
 
   it(
     "Get a list of free games with empty list",
     async () => {
-
       const games = await mmController.getGames();
       expect(games.length).toBe(0);
-
     },
   );
 
   it(
     "Get a list of free games after create one",
     async () => {
-
       const gameId = await mmController.createGame({
         gameTitle: "Test",
         nickName: "player 1",
@@ -80,14 +74,12 @@ describe("Match Making controller", () => {
       expect(games[0].playersMax).toBe(4);
       expect(games[0].playersMin).toBe(2);
       expect(games[0].title).toBe("Test");
-
     },
   );
 
   it(
     "Get a list of free games after create one, join with other 3 players",
     async () => {
-
       const gameId = await mmController.createGame({
         gameTitle: "Test",
         nickName: "player 1",
@@ -103,14 +95,12 @@ describe("Match Making controller", () => {
       ]);
       const games = await mmController.getGames();
       expect(games.length).toBe(0); // the only one game is full then the list should be empty
-
     },
   );
 
   it(
     "Start a game",
     async () => {
-
       const gameId = await mmController.createGame({
         gameTitle: "Test",
         nickName: "player 1",
@@ -128,8 +118,6 @@ describe("Match Making controller", () => {
       await mmController.startGame({ gameId,
         nickName: "player 1" });
       expect(myGames[0].startedAt).not.toBeNull();
-
     },
   );
-
 });

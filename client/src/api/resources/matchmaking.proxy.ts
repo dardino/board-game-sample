@@ -4,6 +4,13 @@ import { BaseProxy } from "../baseProxy";
 export class MatchMakingProxy extends BaseProxy {
 
   /**
+   * returns all game data
+   * @param args
+   * @returns
+   */
+  public static getGame: MatchMakingProxy["getGame"] = (...args) => new MatchMakingProxy().getGame(...args);
+
+  /**
    * Joins a game.
    * @returns
    */
@@ -36,12 +43,16 @@ export class MatchMakingProxy extends BaseProxy {
     return await this.get<GameDto[], "games">("games");
   }
 
+  private async getGame (gameId: number) {
+    return await this.get<GameDto, "game/:gameId">("game/:gameId", { gameId: gameId.toString() });
+  }
+
   public async joinGame (gameId: number, nickName: string) {
-    return await this.post("join", { gameId, nickName });
+    return await this.post<string, "join", { gameId: number; nickName: string }>("join", { gameId, nickName });
   }
 
   private async createGame (gameTitle: string, nickName: string) {
-    return await this.post("game", { nickName, gameTitle });
+    return await this.post<number, "game", { nickName: string; gameTitle: string }>("game", { nickName, gameTitle });
   }
 
 }

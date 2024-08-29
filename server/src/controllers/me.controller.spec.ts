@@ -7,18 +7,11 @@ import { MeController } from "./me.controller";
 describe(
   "MeController",
   () => {
-
     let meController: MeController;
 
     beforeEach(async () => {
-
       const contextId = ContextIdFactory.create();
-      jest.
-        spyOn(
-          ContextIdFactory,
-          "getByRequest",
-        ).
-        mockImplementation(() => contextId);
+      jest.spyOn(ContextIdFactory, "getByRequest").mockImplementation(() => contextId);
 
       const app: TestingModule = await Test.createTestingModule({
         controllers: [MeController],
@@ -42,33 +35,20 @@ describe(
       );
       expect(meController).not.toBe(undefined);
       expect(meController).not.toBe(null);
-
     });
 
-    describe(
-      "getMe",
-      () => {
-
-        it(
-          "should fail if not present",
-          async () => {
-
-            try {
-
-              await meController.getMe();
-              fail("this method should fail");
-
-            } catch (err) {
-
-              expect((err as Error).message).toBe("Non esiste un giocatore con il nickname test");
-
-            }
-
-          },
-        );
-
-      },
-    );
-
+    describe("getMe", () => {
+      it(
+        "should fail if not present",
+        async () => {
+          try {
+            await meController.getMe();
+            fail("this method should fail");
+          } catch (err) {
+            expect((err as Error).message).toBe("Non esiste un giocatore con il nickname test");
+          }
+        },
+      );
+    });
   },
 );

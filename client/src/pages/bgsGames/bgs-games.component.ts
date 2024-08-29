@@ -71,14 +71,17 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
       tr.querySelector("td[part=\"id\"]")!.textContent = row.gameId.toString();
       tr.querySelector("td[part=\"description\"]")!.textContent = row.title.toString();
       tr.querySelector("td[part=\"players\"]")!.textContent = `${row.joinedPlayers}/${row.playersMax}`;
-      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener("click", async () => {
-        await MatchMakingService.joinGame(row.gameId);
-        navigate("/game/:id", { id: row.gameId.toString() });
-      });
+      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener("click", this.#goToGame);
 
       this.#gameList.append(tr);
     });
   }
+
+  #goToGame = (event: Event) => {
+    const gameId = (event.target as HTMLButtonElement)?.closest("tr")?.querySelector("td[part=\"id\"]")?.textContent ?? null;
+    if (!gameId) return;
+    navigate("/game/:id", { id: gameId.toString() });
+  };
 
   #showCreateGameDialog = () => {
     this.#createGameDialog.showModal();

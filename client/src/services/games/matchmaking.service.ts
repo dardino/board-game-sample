@@ -1,7 +1,10 @@
+import { ResponseError } from "../../api/baseProxy";
 import { MatchMakingProxy } from "../../api/resources/matchmaking.proxy";
 import { Registration } from "../registration/registration.service";
 
 export class MatchMakingService {
+
+  static getGame: MatchMakingService["getGame"] = (...args) => new MatchMakingService().getGame(...args);
 
   public static createGame: MatchMakingService["createGame"] = (...args) => new MatchMakingService().createGame(...args);
 
@@ -12,8 +15,12 @@ export class MatchMakingService {
   private async joinGame (gameId: number) {
     try {
       return await MatchMakingProxy.joinGame(gameId, Registration.NickName);
-    } catch {
-      return null;
+    } catch (err) {
+      if (err instanceof ResponseError && err.body.detail) {
+        return err;
+      } else {
+        throw err;
+      }
     }
   }
 
@@ -27,6 +34,10 @@ export class MatchMakingService {
 
   private async createGame (title: string) {
     return await MatchMakingProxy.createGame(title, Registration.NickName);
+  }
+
+  private async getGame (gameId: number) {
+    return await MatchMakingProxy.getGame(gameId);
   }
 
 }

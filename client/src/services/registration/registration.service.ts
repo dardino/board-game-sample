@@ -1,6 +1,7 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
 import { ResponseError } from "../../api/baseProxy";
 import { MeProxy } from "../../api/resources/me.proxy";
+import { cookieparser } from "../../tools/cookieparser";
 
 export class Registration {
 
@@ -75,6 +76,8 @@ export class Registration {
 
   #imRegistered = false;
 
+  #cookie: Record<string, string> = {};
+
   #errorMessages: string[] = [];
 
   private constructor () {
@@ -88,6 +91,8 @@ export class Registration {
    * If an error occurs, logs the error to the console.
    */
   async #loadMe (): Promise<boolean> {
+    this.#cookie = cookieparser();
+    this.#playerInfo.nickname = this.#cookie["player.nickname"] ?? "";
     this.#errorMessages = [];
     try {
       const resp = await MeProxy.getMe();
@@ -96,6 +101,10 @@ export class Registration {
       return true;
     } catch (err) {
       if (err instanceof ResponseError && err.status === 404) {
+        // utente non trovato
+        this.#imRegistered = false;
+        this.#errorMessages = [err.body.message];
+      } else if (err instanceof ResponseError && err.status === 400) {
         // utente non trovato
         this.#imRegistered = false;
         this.#errorMessages = [err.body.message];

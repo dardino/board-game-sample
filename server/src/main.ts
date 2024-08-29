@@ -5,6 +5,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./errors/exceptionsFilter";
 
 async function bootstrap () {
 
@@ -21,6 +22,8 @@ async function bootstrap () {
       },
     },
   );
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   await app.listen(3000);
 
 }
