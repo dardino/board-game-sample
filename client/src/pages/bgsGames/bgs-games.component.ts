@@ -1,5 +1,6 @@
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { BgsComponentTypeStatic } from "../../helpers/components";
+import { navigate } from "../../routes/navigation";
 import { MatchMakingService } from "../../services/games/matchmaking.service";
 import style from "./bgs-games.module.css";
 import template from "./bgs-games.template.html?raw";
@@ -70,8 +71,9 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
       tr.querySelector("td[part=\"id\"]")!.textContent = row.gameId.toString();
       tr.querySelector("td[part=\"description\"]")!.textContent = row.title.toString();
       tr.querySelector("td[part=\"players\"]")!.textContent = `${row.joinedPlayers}/${row.playersMax}`;
-      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener("click", () => {
-        MatchMakingService.joinGame(row.gameId);
+      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener("click", async () => {
+        await MatchMakingService.joinGame(row.gameId);
+        navigate("/game/:id", { id: row.gameId.toString() });
       });
 
       this.#gameList.append(tr);
