@@ -6,6 +6,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { PlayersService } from "./players.service";
 
+import { beforeEach, describe, expect, it } from "vitest";
+
 /**
  * Test suite for the PlayersService class.
  */
@@ -189,7 +191,7 @@ describe("PlayersService", () => {
         await service.removePlayer(nickname);
 
         // Assert
-        expect(service.getPlayer(nickname)).rejects.toThrow(`Non esiste un giocatore con il nickname ${nickname}`);
+        await expect(service.getPlayer(nickname)).rejects.toThrow(`Non esiste un giocatore con il nickname ${nickname}`);
       },
     );
 
@@ -203,7 +205,7 @@ describe("PlayersService", () => {
         const nickname = "nonExistingPlayer";
 
         // Act and Assert
-        expect(service.removePlayer(nickname)).rejects.toThrow(`Non esiste un giocatore con il nickname ${nickname}`);
+        await expect(service.removePlayer(nickname)).rejects.toThrow(`Non esiste un giocatore con il nickname ${nickname}`);
       },
     );
   });

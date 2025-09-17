@@ -5,6 +5,7 @@ import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.servic
 import { MeService } from "src/me/me.service";
 import { PlayersService } from "src/players/players.service";
 import { SystemPlayerService } from "src/system-player/system-player.service";
+import { beforeEach, describe, expect, it, vitest } from "vitest";
 import { MatchMakingController } from "./matchmaking.controller";
 
 describe("Match Making controller", () => {
@@ -13,7 +14,7 @@ describe("Match Making controller", () => {
 
   beforeEach(async () => {
     const contextId = ContextIdFactory.create();
-    jest.
+    vitest.
       spyOn(
         ContextIdFactory,
         "getByRequest",

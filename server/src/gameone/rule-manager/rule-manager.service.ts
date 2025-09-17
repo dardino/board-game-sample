@@ -2,7 +2,7 @@ import { PlayerDto } from "@dto/player.dto/player.dto";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { GamestateModel } from "@models/gamestate.model/gamestate.model";
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { RuleException } from "src/errors/rule";
 import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
@@ -19,7 +19,7 @@ function isGameStarted (game: GameModel): game is StartedGame {
 @Injectable()
 export class GameOneRuleService {
 
-  constructor (private systemPlayer: SystemPlayerService) {
+  constructor (@Inject(SystemPlayerService) private systemPlayer: SystemPlayerService) {
     //
   }
 

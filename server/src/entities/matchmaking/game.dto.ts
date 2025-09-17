@@ -1,15 +1,15 @@
 export class GameDto {
 
-  public gameId: number;
+  public gameId = 0;
 
-  public playersMax: number;
+  public playersMax = 0;
 
-  public playersMin: number;
+  public playersMin = 0;
 
-  public joinedPlayers: number;
+  public joinedPlayers = 0;
 
-  public elapesd: number | null;
+  public elapsed: number | null = null;
 
-  public title: string;
+  public title = "";
 
 }

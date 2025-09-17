@@ -1,11 +1,11 @@
 import { GameDto } from "@dto/matchmaking/game.dto";
-import { Body, Controller, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Post } from "@nestjs/common";
 import { GamesServices } from "src/game/games.service";
 
 @Controller("mm")
 export class MatchMakingController {
 
-  constructor (private readonly gameService: GamesServices) {}
+  constructor (@Inject(GamesServices) private readonly gameService: GamesServices) {}
 
   @Get("games")
   async getGames () {
@@ -20,7 +20,7 @@ export class MatchMakingController {
   async getGame (@Param() params: { id: string }) {
     const gameModel = await this.gameService.gameById(+params.id);
     return {
-      elapesd: gameModel.startedAt
+      elapsed: gameModel.startedAt
         ? Date.now() - gameModel.startedAt.valueOf()
         : null,
       gameId: gameModel.gameId,

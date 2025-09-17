@@ -18,7 +18,7 @@ export class MeService {
    * @param request L'oggetto FastifyRequest utilizzato per ottenere informazioni sulla richiesta.
    */
   constructor (
-    private readonly playersService: PlayersService,
+    @Inject(PlayersService) private readonly playersService: PlayersService,
     @Inject(REQUEST) request: FastifyRequest,
   ) {
 

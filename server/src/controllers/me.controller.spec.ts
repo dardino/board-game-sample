@@ -4,6 +4,8 @@ import { MeService } from "../me/me.service";
 import { PlayersService } from "../players/players.service";
 import { MeController } from "./me.controller";
 
+import { beforeEach, describe, expect, it, vitest } from "vitest";
+
 describe(
   "MeController",
   () => {
@@ -11,7 +13,7 @@ describe(
 
     beforeEach(async () => {
       const contextId = ContextIdFactory.create();
-      jest.spyOn(ContextIdFactory, "getByRequest").mockImplementation(() => contextId);
+      vitest.spyOn(ContextIdFactory, "getByRequest").mockImplementation(() => contextId);
 
       const app: TestingModule = await Test.createTestingModule({
         controllers: [MeController],
@@ -43,7 +45,7 @@ describe(
         async () => {
           try {
             await meController.getMe();
-            fail("this method should fail");
+            expect(true, "previous method should fail").toBe(false);
           } catch (err) {
             expect((err as Error).message).toBe("Non esiste un giocatore con il nickname test");
           }

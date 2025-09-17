@@ -1,5 +1,7 @@
 import { GamestateModel } from "./gamestate.model";
 
+import { describe, expect, it } from "vitest";
+
 describe(
   "GamestateDto",
   () => {

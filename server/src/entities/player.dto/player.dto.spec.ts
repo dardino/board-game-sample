@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { PlayerDto } from "./player.dto";
 
 describe(

@@ -1,6 +1,8 @@
 import { PlayerDto } from "../entities/player.dto/player.dto";
 import { hasNickname } from "./player.dto.utils";
 
+import { describe, expect, it } from "vitest";
+
 /**
  * Tests for the `hasNickname` function.
  */

@@ -1,7 +1,7 @@
 
 import { PlayerDto } from "@dto/player.dto/player.dto";
+import { describe, expect, it } from "vitest";
 import { GameModel } from "./game.model";
-
 describe(
   "GameModel tests",
   () => {

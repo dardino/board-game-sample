@@ -6,9 +6,11 @@ import { SystemPlayerService } from "src/system-player/system-player.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { GameOneRuleService } from "./rule-manager.service";
 
+import { beforeEach, describe, expect, it, vitest } from "vitest";
+
 describe("GameOneRuleService tests", () => {
   let service: GameOneRuleService;
-  const addDelayedActionMock = jest.fn().mockImplementation(() => true);
+  const addDelayedActionMock = vitest.fn().mockImplementation(() => true);
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

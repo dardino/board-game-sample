@@ -1,6 +1,6 @@
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { GameJoinException } from "src/errors/gameJoin";
 import { GameStartException } from "src/errors/gameStart";
 import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
@@ -17,8 +17,8 @@ export class GamesServices {
    *
    */
   constructor (
-    private readonly playersService: PlayersService,
-    private readonly ruleManagerService: GameOneRuleService,
+    @Inject(PlayersService) private readonly playersService: PlayersService,
+    @Inject(GameOneRuleService) private readonly ruleManagerService: GameOneRuleService,
   ) {
     //
   }
