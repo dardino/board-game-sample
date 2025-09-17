@@ -63,9 +63,7 @@ export const Flow = {
     AssignRating: [],
   },
 } satisfies {
-  [key in GamePhases]: {
-    [kind in InferKindsByPhase<key>]: AllPossibleActionKind[];
-  };
+  [key in GamePhases]: Record<InferKindsByPhase<key>, AllPossibleActionKind[]>;
 };
 
 const PlayerActions = Object.keys(Flow.PlayerTurn);

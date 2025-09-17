@@ -43,13 +43,25 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
 
   connectedCallback () {
     this.updateRoute();
-    document.addEventListener("navigate", this.#handleNavigation);
-    window.addEventListener("popstate", this.#handlePopstate);
+    document.addEventListener(
+      "navigate",
+      this.#handleNavigation,
+    );
+    window.addEventListener(
+      "popstate",
+      this.#handlePopstate,
+    );
   }
 
   disconnectedCallback () {
-    document.removeEventListener("navigate", this.#handleNavigation);
-    window.removeEventListener("popstate", this.#handlePopstate);
+    document.removeEventListener(
+      "navigate",
+      this.#handleNavigation,
+    );
+    window.removeEventListener(
+      "popstate",
+      this.#handlePopstate,
+    );
   }
 
   #handlePopstate = () => {

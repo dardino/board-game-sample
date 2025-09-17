@@ -139,7 +139,9 @@ export class Registration {
     try {
       await MeProxy.deleteMe();
       this.#imRegistered = false;
-      this.#playerInfo = { id: 0, isPlaying: false, nickname: "" };
+      this.#playerInfo = { id: 0,
+        isPlaying: false,
+        nickname: "" };
       return true;
     } catch (err) {
       if (err instanceof ResponseError && err.status === 400) {

@@ -7,23 +7,26 @@ export function pooling (
   const timedout = () => performance.now() - now >= timeout;
 
   return new Promise((resolve, reject) => {
-    const timerId = setInterval(async () => {
-      try {
-        const result = await fn(); // Replace with your own request logic
-        if (result) {
+    const timerId = setInterval(
+      async () => {
+        try {
+          const result = await fn(); // Replace with your own request logic
+          if (result) {
+            clearInterval(timerId);
+            resolve(result);
+            return;
+          } else if (timedout()) {
+            clearInterval(timerId);
+            reject(new Error("Timed out"));
+            return;
+          }
+        } catch (error) {
           clearInterval(timerId);
-          resolve(result);
-          return;
-        } else if (timedout()) {
-          clearInterval(timerId);
-          reject(new Error("Timed out"));
+          reject(error);
           return;
         }
-      } catch (error) {
-        clearInterval(timerId);
-        reject(error);
-        return;
-      }
-    }, interval);
+      },
+      interval,
+    );
   });
 }

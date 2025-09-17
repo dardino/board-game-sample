@@ -20,7 +20,9 @@ export class PlayersService {
    * @returns Un array di oggetti PlayerDto rappresentanti i giocatori.
    */
   getAllPlayers (): PlayerDto[] {
+
     return this.#currentPlayers;
+
   }
 
   /**
@@ -30,8 +32,18 @@ export class PlayersService {
    * @throws {Error} Se esiste già un giocatore con il nickname specificato.
    */
   async addPlayer (nickname: string): Promise<PlayerDto> {
+
     if (await this.playerExists(nickname)) {
-      throw new ResourceAlredyExistsException(replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_ARLEDY_EXISTS", { nickname }), 3001);
+
+      throw new ResourceAlredyExistsException(
+        replacePlaceholders(
+          PLAYERS_MESSAGES,
+          "PLAYER_ARLEDY_EXISTS",
+          { nickname },
+        ),
+        3001,
+      );
+
     }
     const newPlayer = new PlayerDto(
       this.#counter++,
@@ -40,6 +52,7 @@ export class PlayersService {
     );
     this.#currentPlayers.push(newPlayer);
     return newPlayer;
+
   }
 
 
@@ -51,8 +64,10 @@ export class PlayersService {
    * @returns Un booleano che indica se il giocatore esiste o no.
    */
   async playerExists (nickname: string): Promise<boolean> {
+
     const cp = this.#currentPlayers;
     return cp.some(hasNickname(nickname));
+
   }
 
 
@@ -61,7 +76,9 @@ export class PlayersService {
    * Questo metodo restituisce la lunghezza dell'array dei giocatori, che rappresenta il numero totale di giocatori.
    */
   async getTotalPlayers (): Promise<number> {
+
     return this.#currentPlayers.length;
+
   }
 
   /**
@@ -73,9 +90,11 @@ export class PlayersService {
    * @throws {Error} Se non esiste un giocatore con il nickname specificato.
    */
   async getPlayer (nickname: string): Promise<PlayerDto> {
+
     const cp = this.#currentPlayers;
     const player = cp.find(hasNickname(nickname));
     if (!player) {
+
       throw new NotFoundException(replacePlaceholders(
         PLAYERS_MESSAGES,
         "PLAYER_NOT_FOUND",
@@ -83,8 +102,10 @@ export class PlayersService {
           nickname,
         },
       ));
+
     }
     return player;
+
   }
 
   /**
@@ -92,7 +113,9 @@ export class PlayersService {
    * @returns Una Promise che si risolve quando l'elenco dei giocatori viene cancellato.
    */
   async clearPlayers (): Promise<void> {
+
     this.#currentPlayers = [];
+
   }
 
   /**
@@ -102,8 +125,10 @@ export class PlayersService {
    * @throws Un errore se non esiste un giocatore con il nickname fornito.
    */
   async removePlayer (nickname: string): Promise<boolean> {
+
     const index = this.#currentPlayers.findIndex(hasNickname(nickname));
     if (index === -1) {
+
       throw new NotFoundException(replacePlaceholders(
         PLAYERS_MESSAGES,
         "PLAYER_NOT_FOUND",
@@ -111,12 +136,14 @@ export class PlayersService {
           nickname,
         },
       ));
+
     }
     this.#currentPlayers.splice(
       index,
       1,
     );
     return true;
+
   }
 
 }

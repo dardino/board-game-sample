@@ -11,10 +11,17 @@ export default defineConfig({
     teardownTimeout: 2_000, // Set a timeout for teardown hooks
     globals: true, // Enable global APIs like Jest
     environment: "node", // Set the test environment
-    exclude: ["**/node_modules/**", "**/dist/**"], // Exclude specific files
+    exclude: [
+      "**/node_modules/**",
+      "**/dist/**",
+    ], // Exclude specific files
     setupFiles: ["./test/setup.ts"], // Setup file to run before tests
     coverage: {
-      reporter: ["text", "json", "html"], // Coverage reporters
+      reporter: [
+        "text",
+        "json",
+        "html",
+      ], // Coverage reporters
     },
     clearMocks: true, // Automatically clear mock calls and instances between every test
   },

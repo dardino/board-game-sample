@@ -14,7 +14,10 @@ export class MatchMakingService {
 
   private async joinGame (gameId: number) {
     try {
-      return await MatchMakingProxy.joinGame(gameId, Registration.NickName);
+      return await MatchMakingProxy.joinGame(
+        gameId,
+        Registration.NickName,
+      );
     } catch (err) {
       if (err instanceof ResponseError && err.body.detail) {
         return err;
@@ -33,7 +36,10 @@ export class MatchMakingService {
   }
 
   private async createGame (title: string) {
-    return await MatchMakingProxy.createGame(title, Registration.NickName);
+    return await MatchMakingProxy.createGame(
+      title,
+      Registration.NickName,
+    );
   }
 
   private async getGame (gameId: number) {

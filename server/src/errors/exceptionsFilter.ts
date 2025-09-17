@@ -6,18 +6,26 @@ import { BaseHttpException } from "./exceptionBase";
 export class HttpExceptionFilter implements ExceptionFilter {
 
   catch (exception: HttpException, host: ArgumentsHost) {
+
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
     const status = exception.getStatus();
-    const serializedError: { statusCode: number; timestamp: string; message?: string; detail?: unknown } = {
+    const serializedError: { statusCode: number;
+      timestamp: string;
+      message?: string;
+      detail?: unknown; } = {
       statusCode: status,
       timestamp: new Date().toISOString(),
     };
 
     if (exception instanceof BaseHttpException) {
+
       serializedError.detail = exception.details;
+
     } else {
+
       serializedError.message = exception.message;
+
     }
 
     response.

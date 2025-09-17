@@ -87,9 +87,9 @@ export function getNeighborhoodCoord (
   tile: ConnectedTile,
   direction: Connections,
 ): {
-    x: number;
-    y: number;
-  } {
+  x: number;
+  y: number;
+} {
 
   const delta = neighborhood[direction];
   return {

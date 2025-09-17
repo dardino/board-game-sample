@@ -6,7 +6,12 @@ export class BaseHttpException<T extends {
 }> extends HttpException {
 
   constructor (public details: T) {
-    super(details.message, HttpStatus.BAD_REQUEST);
+
+    super(
+      details.message,
+      HttpStatus.BAD_REQUEST,
+    );
+
   }
 
 }

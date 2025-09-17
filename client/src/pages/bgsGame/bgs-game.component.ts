@@ -23,7 +23,10 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     this.classList.add(style.game);
     this.render();
 
-    const gameId = parseInt(matchPath("/game/:id", location.pathname)?.params.id ?? "NaN");
+    const gameId = parseInt(matchPath(
+      "/game/:id",
+      location.pathname,
+    )?.params.id ?? "NaN");
     if (isNaN(gameId)) {
       navigate("/games");
     }
@@ -50,14 +53,17 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     this.#joiningDialogPhase.textContent = "Connecting to server...";
     await GameService.ConnectToGame();
     this.#joiningDialogPhase.textContent = "Waiting for other players...";
-    await pooling(async () => {
-      const game = await MatchMakingService.getGame(GameService.GameId);
-      if (!game) {
-        return false;
-      }
-      this.#joiningDialogPhase.textContent = `Waiting for other players... (${game.joinedPlayers}/${game.playersMin}-${game.playersMax})`;
-      return true;
-    }, 1000);
+    await pooling(
+      async () => {
+        const game = await MatchMakingService.getGame(GameService.GameId);
+        if (!game) {
+          return false;
+        }
+        this.#joiningDialogPhase.textContent = `Waiting for other players... (${game.joinedPlayers}/${game.playersMin}-${game.playersMax})`;
+        return true;
+      },
+      1000,
+    );
   }
 
 };

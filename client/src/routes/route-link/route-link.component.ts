@@ -5,7 +5,10 @@ import template from "./route-link.template.html?raw";
 
 export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLElement {
 
-  static observedAttributes = ["to", "params"];
+  static observedAttributes = [
+    "to",
+    "params",
+  ];
 
   static tagName = "route-link" as const;
 
@@ -29,17 +32,26 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
   }
 
   connectedCallback () {
-    this.#shadow.querySelector("a")?.addEventListener("click", this.#navigate);
+    this.#shadow.querySelector("a")?.addEventListener(
+      "click",
+      this.#navigate,
+    );
   }
 
   disconnectedCallback () {
-    this.#shadow.querySelector("a")?.removeEventListener("click", this.#navigate);
+    this.#shadow.querySelector("a")?.removeEventListener(
+      "click",
+      this.#navigate,
+    );
   }
 
   #navigate = (event: MouseEvent) => {
     event.preventDefault();
     event.stopImmediatePropagation();
-    navigate(this.#to, this.#params);
+    navigate(
+      this.#to,
+      this.#params,
+    );
   };
 
   // adoptedCallback () {}

@@ -49,15 +49,27 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
   }
 
   connectedCallback () {
-    this.#createGameButton.addEventListener("click", this.#showCreateGameDialog);
-    this.#createGameForm.addEventListener("submit", this.#submitCreateGameForm);
+    this.#createGameButton.addEventListener(
+      "click",
+      this.#showCreateGameDialog,
+    );
+    this.#createGameForm.addEventListener(
+      "submit",
+      this.#submitCreateGameForm,
+    );
 
     this.#gameList.parentElement?.classList.add(style.table);
   }
 
   disconnectedCallback () {
-    this.#createGameButton.removeEventListener("click", this.#showCreateGameDialog);
-    this.#createGameForm.removeEventListener("submit", this.#submitCreateGameForm);
+    this.#createGameButton.removeEventListener(
+      "click",
+      this.#showCreateGameDialog,
+    );
+    this.#createGameForm.removeEventListener(
+      "submit",
+      this.#submitCreateGameForm,
+    );
   }
 
   async render () {
@@ -67,11 +79,17 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
 
     this.#games.forEach((row) => {
       const tr = this.#rowTemplate.content.querySelector("tr")?.cloneNode(true) as HTMLTableRowElement;
-      tr.setAttribute("type", "dataRow");
+      tr.setAttribute(
+        "type",
+        "dataRow",
+      );
       tr.querySelector("td[part=\"id\"]")!.textContent = row.gameId.toString();
       tr.querySelector("td[part=\"description\"]")!.textContent = row.title.toString();
       tr.querySelector("td[part=\"players\"]")!.textContent = `${row.joinedPlayers}/${row.playersMax}`;
-      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener("click", this.#goToGame);
+      tr.querySelector("td[part=\"joinButton\"]>button")?.addEventListener(
+        "click",
+        this.#goToGame,
+      );
 
       this.#gameList.append(tr);
     });
@@ -80,7 +98,10 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
   #goToGame = (event: Event) => {
     const gameId = (event.target as HTMLButtonElement)?.closest("tr")?.querySelector("td[part=\"id\"]")?.textContent ?? null;
     if (!gameId) return;
-    navigate("/game/:id", { id: gameId.toString() });
+    navigate(
+      "/game/:id",
+      { id: gameId.toString() },
+    );
   };
 
   #showCreateGameDialog = () => {

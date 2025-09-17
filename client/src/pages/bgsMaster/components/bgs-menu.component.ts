@@ -8,7 +8,10 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
   public static readonly tagName = "bgs-menu";
 
   public static register () {
-    customElements.define(BgsMenuComponent.tagName, BgsMenuComponent);
+    customElements.define(
+      BgsMenuComponent.tagName,
+      BgsMenuComponent,
+    );
   }
 
   constructor () {
@@ -25,9 +28,15 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
     [
       this.#linkLogout,
       this.#gameList,
-    ].forEach((el) => el.classList.toggle("hidden", userInfo === null));
+    ].forEach((el) => el.classList.toggle(
+      "hidden",
+      userInfo === null,
+    ));
 
-    [this.#linkJoin].forEach((el) => el.classList.toggle("hidden", userInfo !== null));
+    [this.#linkJoin].forEach((el) => el.classList.toggle(
+      "hidden",
+      userInfo !== null,
+    ));
 
     this.#user.innerHTML = userInfo?.nickname ?? "";
   }

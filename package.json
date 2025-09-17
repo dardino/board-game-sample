@@ -5,6 +5,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "lint": "pnpm eslint",
     "start:client": "cd client && pnpm run dev",
     "start:server": "cd server && pnpm start:dev",
     "start": "pnpm concurrently --kill-others \"pnpm start:server\" \"pnpm start:client\""
@@ -17,7 +18,12 @@
     "client"
   ],
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^9.2.1",
+    "eslint": "^9.9.1",
+    "@eslint/js": "^9.9.1",
+    "@stylistic/eslint-plugin": "^5.3.1",
+    "typescript-eslint": "^8.44.0",
+    "globals": "^16.4.0"
   },
-  "packageManager": "pnpm@10.16.1+sha512.0e155aa2629db8672b49e8475da6226aa4bdea85fdcdfdc15350874946d4f3c91faaf64cbdc4a5d1ab8002f473d5c3fcedcd197989cf0390f9badd3c04678706"
+  "packageManager": "pnpm@10.16.1"
 }

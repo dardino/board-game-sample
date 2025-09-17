@@ -9,9 +9,9 @@ export default defineConfig({
         changeOrigin: true, // modifica l'origin per "simulare" come se la chiamata arrivasse dall'host 3000
         rewrite: (path) => path.replace(
           /^\/api/,
-          ""
-        ) // toglie la parte `api` dall'url: il server non ne ha bisogno
-      }
-    }
-  }
+          "",
+        ), // toglie la parte `api` dall'url: il server non ne ha bisogno
+      },
+    },
+  },
 });

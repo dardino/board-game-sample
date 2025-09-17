@@ -6,7 +6,5 @@
  * @returns The generated HTML string.
  */
 export function html (template: TemplateStringsArray, ...args: unknown[]): string {
-
   return template.map((value, index) => value + (args[index] ?? "")).join("");
-
 }

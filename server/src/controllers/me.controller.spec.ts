@@ -9,11 +9,16 @@ import { beforeEach, describe, expect, it, vitest } from "vitest";
 describe(
   "MeController",
   () => {
+
     let meController: MeController;
 
     beforeEach(async () => {
+
       const contextId = ContextIdFactory.create();
-      vitest.spyOn(ContextIdFactory, "getByRequest").mockImplementation(() => contextId);
+      vitest.spyOn(
+        ContextIdFactory,
+        "getByRequest",
+      ).mockImplementation(() => contextId);
 
       const app: TestingModule = await Test.createTestingModule({
         controllers: [MeController],
@@ -37,20 +42,36 @@ describe(
       );
       expect(meController).not.toBe(undefined);
       expect(meController).not.toBe(null);
+
     });
 
-    describe("getMe", () => {
-      it(
-        "should fail if not present",
-        async () => {
-          try {
-            await meController.getMe();
-            expect(true, "previous method should fail").toBe(false);
-          } catch (err) {
-            expect((err as Error).message).toBe("Non esiste un giocatore con il nickname test");
-          }
-        },
-      );
-    });
+    describe(
+      "getMe",
+      () => {
+
+        it(
+          "should fail if not present",
+          async () => {
+
+            try {
+
+              await meController.getMe();
+              expect(
+                true,
+                "previous method should fail",
+              ).toBe(false);
+
+            } catch (err) {
+
+              expect((err as Error).message).toBe("Non esiste un giocatore con il nickname test");
+
+            }
+
+          },
+        );
+
+      },
+    );
+
   },
 );

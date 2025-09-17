@@ -171,23 +171,23 @@ export type AssignRatingAction = EndGameAction<"AssignRating">;
 
 export type AllPossibleAction =
   // Setup
-  | SetPlayersAction
-  | DrawBossAction
-  | ShuffleTilesAction
-  | PlaceFirstTileAction
-  | SetPlayngOrderAction
-  | CharacterSelectionAction
-  | GoToPlayerTurnAction
+  | SetPlayersAction |
+  DrawBossAction |
+  ShuffleTilesAction |
+  PlaceFirstTileAction |
+  SetPlayngOrderAction |
+  CharacterSelectionAction |
+  GoToPlayerTurnAction |
   // PlayerTurn
-  | MoveAction
-  | PickATileAction
-  | PlaceTileAction
-  | AwakeAction
-  | FightAction
-  | PassAction
+  MoveAction |
+  PickATileAction |
+  PlaceTileAction |
+  AwakeAction |
+  FightAction |
+  PassAction |
   // PhaseFeed
-  | CheckEndGameAction
-  | MoveNextEnemyAction
+  CheckEndGameAction |
+  MoveNextEnemyAction |
   // EndGame
-  | AssignRatingAction;
+  AssignRatingAction;
 export type AllPossibleActionKind = AllPossibleAction["kind"];

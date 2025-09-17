@@ -13,7 +13,9 @@ type StartedGame = Omit<GameModel, "gameState" | "startedAt"> & {
 };
 
 function isGameStarted (game: GameModel): game is StartedGame {
+
   return game.startedAt != null && game.gameState != null;
+
 }
 
 @Injectable()
@@ -24,19 +26,40 @@ export class GameOneRuleService {
   }
 
   async addPlayer (game: GameModel, player: PlayerDto) {
+
     return game.connectedPlayers.push(player);
+
   }
 
   async start (game: GameModel) {
+
     if (isGameStarted(game)) {
-      throw new RuleException(replacePlaceholders(GAME_MESSAGES, "GAME_ALREDY_STARTED", {}), 4001);
+
+      throw new RuleException(
+        replacePlaceholders(
+          GAME_MESSAGES,
+          "GAME_ALREDY_STARTED",
+          {},
+        ),
+        4001,
+      );
+
     }
 
     game.startedAt = new Date();
     game.gameState = GamestateModel.startNewGame(game.connectedPlayers);
 
     if (!isGameStarted(game)) {
-      throw new RuleException(replacePlaceholders(GAME_MESSAGES, "ERROR_STARTING_GAME", {}), 4002);
+
+      throw new RuleException(
+        replacePlaceholders(
+          GAME_MESSAGES,
+          "ERROR_STARTING_GAME",
+          {},
+        ),
+        4002,
+      );
+
     }
 
     this.systemPlayer.addDelayedAction(
@@ -53,6 +76,7 @@ export class GameOneRuleService {
       "GAME_STARTED",
       {},
     );
+
   }
 
 }

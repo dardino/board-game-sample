@@ -20,7 +20,11 @@ export class NavigateEvent extends CustomEvent<{
 }> {
 
   constructor (to: string, params?: Record<string, string>) {
-    super("navigate", { detail: { to, params }});
+    super(
+      "navigate",
+      { detail: { to,
+        params }},
+    );
   }
 
 }
@@ -32,7 +36,14 @@ export function navigate<T extends string> (to: T, params?: ExtractParams<T>) {
   );
   document.dispatchEvent(event);
   if (!event.defaultPrevented) {
-    history.pushState({}, "", replaceParams(to, params));
+    history.pushState(
+      {},
+      "",
+      replaceParams(
+        to,
+        params,
+      ),
+    );
   }
 }
 
@@ -67,7 +78,7 @@ type ExtractKeys<T extends string> =
   T extends `${string}:${infer P1}/${infer M}` ? P1 | ExtractKeys<M>
     : T extends `${string}:${infer P1}` ? P1
       : never;
-type ExtractParams<T extends string> = { [key in ExtractKeys<T>]: string };
+type ExtractParams<T extends string> = Record<ExtractKeys<T>, string>;
 
 export interface Matches<T extends string> {
   params: ExtractParams<T>;

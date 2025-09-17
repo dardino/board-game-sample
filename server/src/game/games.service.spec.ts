@@ -13,318 +13,366 @@ import { beforeEach, describe, expect, it } from "vitest";
 class GamesServicesSubclass extends GamesServices {
 
   prepare (games: GameModel[]) {
+
     this.setGames(games);
+
   }
 
 }
 
-describe("GamesService", () => {
-  let service: GamesServicesSubclass;
-  let playerSvc: PlayersService;
+describe(
+  "GamesService",
+  () => {
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GameOneRuleService,
-        PlayersService,
-        SystemPlayerService,
-        GamesServicesSubclass,
-      ],
-    }).compile();
+    let service: GamesServicesSubclass;
+    let playerSvc: PlayersService;
 
-    service = module.get<GamesServicesSubclass>(GamesServicesSubclass);
-    playerSvc = module.get<PlayersService>(PlayersService);
-  });
+    beforeEach(async () => {
 
-  describe("getGamesIAmConnectedIn", () => {
-    it(
-      "should return an array of games where the player is connected",
-      async () => {
-        // Arrange
-        const nickname = "testPlayer";
-        const game1: GameModel = await GameModel.createGame(
-          "test 1",
-          {
-            id: 1,
-            isPlaying: true,
-            nickname: "testPlayer",
-          },
-        );
-        const game2: GameModel = await GameModel.createGame(
-          "test 2",
-          {
-            id: 2,
-            isPlaying: true,
-            nickname: "testPlayer",
-          },
-        );
-        const game3: GameModel = await GameModel.createGame(
-          "test 3",
-          {
-            id: 3,
-            isPlaying: true,
-            nickname: "anotherPlayer",
-          },
-        );
-        service.prepare([
-          game1,
-          game2,
-          game3,
-        ]);
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          GameOneRuleService,
+          PlayersService,
+          SystemPlayerService,
+          GamesServicesSubclass,
+        ],
+      }).compile();
 
-        // Act
-        const result = await service.getGamesIAmConnectedIn(nickname);
+      service = module.get<GamesServicesSubclass>(GamesServicesSubclass);
+      playerSvc = module.get<PlayersService>(PlayersService);
 
-        // Assert
-        expect(result).toEqual([
-          game1,
-          game2,
-        ]);
-      },
-    );
-
-    it("should return an empty array if the player is not connected in any game", async () => {
-      // Arrange
-      const nickname = "testPlayer";
-      const game1: GameModel = await GameModel.createGame(
-        "test 1",
-        {
-          id: 1,
-          isPlaying: true,
-          nickname: "ciccio",
-        },
-      );
-      const game2: GameModel = await GameModel.createGame(
-        "test 2",
-        {
-          id: 2,
-          isPlaying: true,
-          nickname: "otherPlayer",
-        },
-      );
-      service.prepare([
-        game1,
-        game2,
-      ]);
-
-      // Act
-      const result = await service.getGamesIAmConnectedIn(nickname);
-
-      // Assert
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe("joinToGame", () => {
-    it("should throw GameJoinException if game is not found", async () => {
-      // Arrange
-      const nickname = "testPlayer";
-      const gameId = 1;
-      await playerSvc.addPlayer(nickname);
-
-      // Act & Assert
-      await expect(service.joinToGame(
-        nickname,
-        gameId,
-      )).rejects.toThrow(GAME_MESSAGES.GAME_NOT_FOUND.replace("${gameIdString}", gameId.toString()));
     });
 
-    it(
-      "should throw GameJoinException if player is not found",
-      async () => {
-        // Arrange
-        const nickname = "nonExistingPlayer";
-        const palyerId = 1;
-        const game: GameModel = await GameModel.createGame(
-          "test 1",
-          {
-            id: palyerId,
-            isPlaying: true,
-            nickname: "Gabriele",
-          },
-        );
-        service.prepare([game]);
+    describe(
+      "getGamesIAmConnectedIn",
+      () => {
 
-        // Act & Assert
-        await expect(service.joinToGame(
-          nickname,
-          game.gameId,
-        )).rejects.toThrow(replacePlaceholders(
-          PLAYERS_MESSAGES,
-          "PLAYER_NOT_FOUND",
-          { nickname },
-        ));
-      },
-    );
+        it(
+          "should return an array of games where the player is connected",
+          async () => {
 
-    it(
-      "should throw GameJoinException if player is already connected to the game",
-      async () => {
-        // Arrange
-        const nickname = "testPlayer";
+            // Arrange
+            const nickname = "testPlayer";
+            const game1: GameModel = await GameModel.createGame(
+              "test 1",
+              {
+                id: 1,
+                isPlaying: true,
+                nickname: "testPlayer",
+              },
+            );
+            const game2: GameModel = await GameModel.createGame(
+              "test 2",
+              {
+                id: 2,
+                isPlaying: true,
+                nickname: "testPlayer",
+              },
+            );
+            const game3: GameModel = await GameModel.createGame(
+              "test 3",
+              {
+                id: 3,
+                isPlaying: true,
+                nickname: "anotherPlayer",
+              },
+            );
+            service.prepare([
+              game1,
+              game2,
+              game3,
+            ]);
 
-        await playerSvc.addPlayer(nickname);
-        await playerSvc.addPlayer("creator");
+            // Act
+            const result = await service.getGamesIAmConnectedIn(nickname);
 
-        const creator = await playerSvc.getPlayer("creator");
-        const player2 = await playerSvc.getPlayer(nickname);
+            // Assert
+            expect(result).toEqual([
+              game1,
+              game2,
+            ]);
 
-        const game: GameModel = await GameModel.createGame(
-          "test 1",
-          creator,
-        );
-        service.prepare([game]);
-        game.connectedPlayers.push(player2);
-
-        const errMessage = replacePlaceholders(
-          GAME_MESSAGES,
-          "PLAYER_ALREDY_IN_GAME",
-          {
-            playername: nickname,
           },
         );
 
-        // Act & Assert
-        await expect(service.joinToGame(
-          nickname,
-          game.gameId,
-        )).rejects.toThrow(errMessage);
-      },
-    );
+        it(
+          "should return an empty array if the player is not connected in any game",
+          async () => {
 
-    it(
-      "should throw GameJoinException if the game is full",
-      async () => {
-        // Arrange
-        await playerSvc.addPlayer("creator");
-        await playerSvc.addPlayer("test 2");
-        await playerSvc.addPlayer("test 3");
+            // Arrange
+            const nickname = "testPlayer";
+            const game1: GameModel = await GameModel.createGame(
+              "test 1",
+              {
+                id: 1,
+                isPlaying: true,
+                nickname: "ciccio",
+              },
+            );
+            const game2: GameModel = await GameModel.createGame(
+              "test 2",
+              {
+                id: 2,
+                isPlaying: true,
+                nickname: "otherPlayer",
+              },
+            );
+            service.prepare([
+              game1,
+              game2,
+            ]);
 
-        const creator = await playerSvc.getPlayer("creator");
-        const testPlayer1 = await playerSvc.getPlayer("test 2");
-        const testPlayer2 = await playerSvc.getPlayer("test 3");
+            // Act
+            const result = await service.getGamesIAmConnectedIn(nickname);
 
-        const game: GameModel = await GameModel.createGame(
-          "test 1",
-          creator,
-        );
-        game.maxPlayers = 2;
-        game.connectedPlayers.push(testPlayer1);
-        service.prepare([game]);
+            // Assert
+            expect(result).toEqual([]);
 
-        const errMessage = replacePlaceholders(
-          GAME_MESSAGES,
-          "GAME_IS_FULL",
-          {},
-        );
-        // Act & Assert
-        await expect(service.joinToGame(
-          testPlayer2.nickname,
-          game.gameId,
-        )).rejects.toThrow(errMessage);
-      },
-    );
-
-    it(
-      "should throw GameJoinException if the game has already started",
-      async () => {
-        // Arrange
-        await playerSvc.addPlayer("creator");
-        await playerSvc.addPlayer("test 2");
-        await playerSvc.addPlayer("test 3");
-
-        const creator = await playerSvc.getPlayer("creator");
-        const testPlayer1 = await playerSvc.getPlayer("test 2");
-        const testPlayer2 = await playerSvc.getPlayer("test 3");
-
-        const game: GameModel = await GameModel.createGame(
-          "test 1",
-          creator,
-        );
-        game.maxPlayers = 2;
-        game.connectedPlayers.push(testPlayer1);
-        game.startedAt = new Date();
-
-        service.prepare([game]);
-
-        const errMessage = replacePlaceholders(
-          GAME_MESSAGES,
-          "GAME_ALREDY_STARTED",
-          {},
-        );
-
-        // Act & Assert
-        await expect(service.joinToGame(
-          testPlayer2.nickname,
-          game.gameId,
-        )).rejects.toThrow(errMessage);
-      },
-    );
-
-    it(
-      "should add the player to the connected players list and return \"Player successfully connected\"",
-      async () => {
-        // Arrange
-        await playerSvc.addPlayer("creator");
-        await playerSvc.addPlayer("test 2");
-        await playerSvc.addPlayer("test 3");
-
-        const creator = await playerSvc.getPlayer("creator");
-        const testPlayer1 = await playerSvc.getPlayer("test 2");
-        const testPlayer2 = await playerSvc.getPlayer("test 3");
-
-        const game: GameModel = await GameModel.createGame(
-          "test 1",
-          creator,
-        );
-        game.maxPlayers = 3;
-        game.connectedPlayers.push(testPlayer1);
-
-        service.prepare([game]);
-
-        const successMessage = replacePlaceholders(
-          GAME_MESSAGES,
-          "PLAYER_JOINED",
-          {
-            playername: testPlayer2.nickname,
           },
         );
 
-        // Act
-        const result = await service.joinToGame(
-          testPlayer2.nickname,
-          game.gameId,
-        );
-
-        // Assert
-        expect(result).toBe(successMessage);
-        expect(game.connectedPlayers).toContain(testPlayer2);
       },
     );
-  });
 
-  describe(
-    "createNewGame",
-    () => {
-      it(
-        "should correctly create game adding it to freegame list",
-        async () => {
-          // Arrange
-          const nickname = "testPlayer";
-          await playerSvc.addPlayer(nickname);
+    describe(
+      "joinToGame",
+      () => {
 
-          // Act
-          const game = await service.createNewGame(
-            nickname,
-            "Game 1",
-          );
+        it(
+          "should throw GameJoinException if game is not found",
+          async () => {
 
-          // Assert
-          const gameList = await service.getFreeGames();
-          expect(gameList.length).toBe(1);
-          expect(gameList[0]).toBe(game);
-        },
-      );
-    },
-  );
-});
+            // Arrange
+            const nickname = "testPlayer";
+            const gameId = 1;
+            await playerSvc.addPlayer(nickname);
+
+            // Act & Assert
+            await expect(service.joinToGame(
+              nickname,
+              gameId,
+            )).rejects.toThrow(GAME_MESSAGES.GAME_NOT_FOUND.replace(
+              "${gameIdString}",
+              gameId.toString(),
+            ));
+
+          },
+        );
+
+        it(
+          "should throw GameJoinException if player is not found",
+          async () => {
+
+            // Arrange
+            const nickname = "nonExistingPlayer";
+            const palyerId = 1;
+            const game: GameModel = await GameModel.createGame(
+              "test 1",
+              {
+                id: palyerId,
+                isPlaying: true,
+                nickname: "Gabriele",
+              },
+            );
+            service.prepare([game]);
+
+            // Act & Assert
+            await expect(service.joinToGame(
+              nickname,
+              game.gameId,
+            )).rejects.toThrow(replacePlaceholders(
+              PLAYERS_MESSAGES,
+              "PLAYER_NOT_FOUND",
+              { nickname },
+            ));
+
+          },
+        );
+
+        it(
+          "should throw GameJoinException if player is already connected to the game",
+          async () => {
+
+            // Arrange
+            const nickname = "testPlayer";
+
+            await playerSvc.addPlayer(nickname);
+            await playerSvc.addPlayer("creator");
+
+            const creator = await playerSvc.getPlayer("creator");
+            const player2 = await playerSvc.getPlayer(nickname);
+
+            const game: GameModel = await GameModel.createGame(
+              "test 1",
+              creator,
+            );
+            service.prepare([game]);
+            game.connectedPlayers.push(player2);
+
+            const errMessage = replacePlaceholders(
+              GAME_MESSAGES,
+              "PLAYER_ALREDY_IN_GAME",
+              {
+                playername: nickname,
+              },
+            );
+
+            // Act & Assert
+            await expect(service.joinToGame(
+              nickname,
+              game.gameId,
+            )).rejects.toThrow(errMessage);
+
+          },
+        );
+
+        it(
+          "should throw GameJoinException if the game is full",
+          async () => {
+
+            // Arrange
+            await playerSvc.addPlayer("creator");
+            await playerSvc.addPlayer("test 2");
+            await playerSvc.addPlayer("test 3");
+
+            const creator = await playerSvc.getPlayer("creator");
+            const testPlayer1 = await playerSvc.getPlayer("test 2");
+            const testPlayer2 = await playerSvc.getPlayer("test 3");
+
+            const game: GameModel = await GameModel.createGame(
+              "test 1",
+              creator,
+            );
+            game.maxPlayers = 2;
+            game.connectedPlayers.push(testPlayer1);
+            service.prepare([game]);
+
+            const errMessage = replacePlaceholders(
+              GAME_MESSAGES,
+              "GAME_IS_FULL",
+              {},
+            );
+            // Act & Assert
+            await expect(service.joinToGame(
+              testPlayer2.nickname,
+              game.gameId,
+            )).rejects.toThrow(errMessage);
+
+          },
+        );
+
+        it(
+          "should throw GameJoinException if the game has already started",
+          async () => {
+
+            // Arrange
+            await playerSvc.addPlayer("creator");
+            await playerSvc.addPlayer("test 2");
+            await playerSvc.addPlayer("test 3");
+
+            const creator = await playerSvc.getPlayer("creator");
+            const testPlayer1 = await playerSvc.getPlayer("test 2");
+            const testPlayer2 = await playerSvc.getPlayer("test 3");
+
+            const game: GameModel = await GameModel.createGame(
+              "test 1",
+              creator,
+            );
+            game.maxPlayers = 2;
+            game.connectedPlayers.push(testPlayer1);
+            game.startedAt = new Date();
+
+            service.prepare([game]);
+
+            const errMessage = replacePlaceholders(
+              GAME_MESSAGES,
+              "GAME_ALREDY_STARTED",
+              {},
+            );
+
+            // Act & Assert
+            await expect(service.joinToGame(
+              testPlayer2.nickname,
+              game.gameId,
+            )).rejects.toThrow(errMessage);
+
+          },
+        );
+
+        it(
+          "should add the player to the connected players list and return \"Player successfully connected\"",
+          async () => {
+
+            // Arrange
+            await playerSvc.addPlayer("creator");
+            await playerSvc.addPlayer("test 2");
+            await playerSvc.addPlayer("test 3");
+
+            const creator = await playerSvc.getPlayer("creator");
+            const testPlayer1 = await playerSvc.getPlayer("test 2");
+            const testPlayer2 = await playerSvc.getPlayer("test 3");
+
+            const game: GameModel = await GameModel.createGame(
+              "test 1",
+              creator,
+            );
+            game.maxPlayers = 3;
+            game.connectedPlayers.push(testPlayer1);
+
+            service.prepare([game]);
+
+            const successMessage = replacePlaceholders(
+              GAME_MESSAGES,
+              "PLAYER_JOINED",
+              {
+                playername: testPlayer2.nickname,
+              },
+            );
+
+            // Act
+            const result = await service.joinToGame(
+              testPlayer2.nickname,
+              game.gameId,
+            );
+
+            // Assert
+            expect(result).toBe(successMessage);
+            expect(game.connectedPlayers).toContain(testPlayer2);
+
+          },
+        );
+
+      },
+    );
+
+    describe(
+      "createNewGame",
+      () => {
+
+        it(
+          "should correctly create game adding it to freegame list",
+          async () => {
+
+            // Arrange
+            const nickname = "testPlayer";
+            await playerSvc.addPlayer(nickname);
+
+            // Act
+            const game = await service.createNewGame(
+              nickname,
+              "Game 1",
+            );
+
+            // Assert
+            const gameList = await service.getFreeGames();
+            expect(gameList.length).toBe(1);
+            expect(gameList[0]).toBe(game);
+
+          },
+        );
+
+      },
+    );
+
+  },
+);
