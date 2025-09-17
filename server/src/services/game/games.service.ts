@@ -1,10 +1,11 @@
+import { OkResponse } from "@dto/okResponse";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { Inject, Injectable } from "@nestjs/common";
 import { GameJoinException } from "src/errors/gameJoin";
 import { GameStartException } from "src/errors/gameStart";
 import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
-import { PlayersService } from "src/players/players.service";
+import { PlayersService } from "src/services/players/players.service";
 import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { hasNickname } from "src/utils/player.dto.utils";
 
@@ -146,11 +147,11 @@ export class GamesServices {
     );
     player.isPlaying = true;
 
-    return replacePlaceholders(
+    return new OkResponse(replacePlaceholders(
       GAME_MESSAGES,
       "PLAYER_JOINED",
       { playername: player.nickname },
-    );
+    ));
 
   }
 
@@ -218,8 +219,43 @@ export class GamesServices {
 
     }
 
-    this.ruleManagerService.start(game);
+    return new OkResponse(this.ruleManagerService.start(game));
 
+  }
+
+  /**
+   * Removes a player from a game.
+   * @param nickname the nickname of the player to be removed
+   * @param gameId the ID of the game from which the player should be removed
+   * @returns A string indicating the result of the operation.
+   * @throws {GameJoinException} If the game is not found, player is not found, or player is not connected to the game.
+   */
+  async leaveGame (nickname: string, gameId: number) {
+    const game = this.#allGames.find((game) => game.gameId === gameId);
+    const gameIdString = gameId.toString();
+    if (!game) {
+      throw new GameJoinException({
+        message: replacePlaceholders(GAME_MESSAGES, "GAME_NOT_FOUND", { gameIdString }),
+        internalCode: 1001,
+        gameId,
+      });
+    }
+
+    if (!game.connectedPlayers.some(hasNickname(nickname))) {
+      throw new GameJoinException({
+        message: replacePlaceholders(GAME_MESSAGES, "PLAYER_NOT_IN_GAME", { playername: nickname }),
+        internalCode: 1005,
+        gameId,
+      });
+    }
+
+    game.connectedPlayers = game.connectedPlayers.filter((p) => p.nickname !== nickname);
+
+    return new OkResponse(replacePlaceholders(
+      GAME_MESSAGES,
+      "PLAYER_LEFT",
+      { playername: nickname },
+    ));
   }
 
   /**

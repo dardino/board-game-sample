@@ -33,7 +33,6 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
     super();
     const parent = this.parentElement!.closest(RouteOutlet.tagName) as RouteOutlet | null;
     this.style.display = "contents";
-    console.log(parent);
     if (!parent) {
       this.#allRoutes = RouteConfigs;
     } else {

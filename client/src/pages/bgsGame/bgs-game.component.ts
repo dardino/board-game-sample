@@ -10,6 +10,10 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
 
   public static readonly tagName = "bgs-game";
 
+  get #button () {
+    return this.querySelector("#cancelJoiningButton") as HTMLButtonElement;
+  }
+
   public static register () {
     customElements.define(
       BgsGameComponent.tagName,
@@ -51,7 +55,13 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   async #connect () {
     this.#joiningDialog.showModal();
     this.#joiningDialogPhase.textContent = "Connecting to server...";
-    await GameService.ConnectToGame();
+    try {
+      await GameService.ConnectToGame();
+    } catch (error) {
+      console.error("Error connecting to game:", error);
+      navigate("/games");
+      return;
+    }
     this.#joiningDialogPhase.textContent = "Waiting for other players...";
     await pooling(
       async () => {
@@ -64,6 +74,30 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       },
       1000,
     );
+  }
+
+  connectedCallback () {
+    this.#button.addEventListener(
+      "click",
+      this.#cancelJoining,
+    );
+  }
+
+  disconnectedCallback () {
+    this.#button.removeEventListener(
+      "click",
+      this.#cancelJoining,
+    );
+  }
+
+  async #cancelJoining () {
+    try {
+      await GameService.Disconnect();
+    } catch (e) {
+      console.error("Error disconnecting from game:", e);
+    } finally {
+      navigate("/games");
+    }
   }
 
 };

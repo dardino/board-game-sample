@@ -1,6 +1,6 @@
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { Body, Controller, Get, Inject, Param, Post } from "@nestjs/common";
-import { GamesServices } from "src/game/games.service";
+import { GamesServices } from "src/services/game/games.service";
 
 @Controller("mm")
 export class MatchMakingController {
@@ -54,6 +54,17 @@ export class MatchMakingController {
   ) {
 
     return await this.gameService.joinToGame(
+      dto.nickName,
+      dto.gameId,
+    );
+
+  }
+
+  @Post("leave")
+  async leaveGame (
+    @Body() dto: { nickName: string; gameId: number },
+  ) {
+    return await this.gameService.leaveGame(
       dto.nickName,
       dto.gameId,
     );

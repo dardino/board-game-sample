@@ -10,6 +10,8 @@ export class MatchMakingService {
 
   public static joinGame: MatchMakingService["joinGame"] = (...args) => new MatchMakingService().joinGame(...args);
 
+  public static leaveGame: MatchMakingService["leaveGame"] = (...args) => new MatchMakingService().leaveGame(...args);
+
   public static getGames: MatchMakingService["getGames"] = () => new MatchMakingService().getGames();
 
   private async joinGame (gameId: number) {
@@ -44,6 +46,10 @@ export class MatchMakingService {
 
   private async getGame (gameId: number) {
     return await MatchMakingProxy.getGame(gameId);
+  }
+
+  private async leaveGame (gameId: number) {
+    return await MatchMakingProxy.leaveGame(gameId, Registration.NickName);
   }
 
 }

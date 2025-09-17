@@ -19,7 +19,7 @@ export class Registration {
    * @returns informazioni sul giocatore corrente o null se non è registrato
    */
   static async GetMe () {
-    if (Registration.instance.#playerInfo.nickname === "") {
+    if (!Registration.instance.#imRegistered) {
       await Registration.instance.#loadMe();
     }
     if (Registration.instance.#imRegistered) return Registration.instance.#playerInfo;

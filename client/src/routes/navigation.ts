@@ -1,3 +1,4 @@
+import { RoutePath } from "./config";
 
 export function replaceParams (to: string, params?: Record<string, string>): string {
   return Object.entries(params ?? {}).reduce(
@@ -29,21 +30,14 @@ export class NavigateEvent extends CustomEvent<{
 
 }
 
-export function navigate<T extends string> (to: T, params?: ExtractParams<T>) {
+export function navigate<T extends RoutePath> (to: T, params?: ExtractParams<T>) {
   const event = new NavigateEvent(
     to,
     params,
   );
   document.dispatchEvent(event);
   if (!event.defaultPrevented) {
-    history.pushState(
-      {},
-      "",
-      replaceParams(
-        to,
-        params,
-      ),
-    );
+    history.pushState({}, "", replaceParams(to, params));
   }
 }
 
@@ -67,7 +61,6 @@ export function patternToRegexp (pattern: string): RegExp {
       /\/\*/g,
       ".*",
     );
-  console.log(source);
   return new RegExp(
     `^${source}$`,
     "i",

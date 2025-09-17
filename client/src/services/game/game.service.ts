@@ -17,6 +17,8 @@ export class GameService {
 
   public static ConnectToGame = () => GameService.instance.#connectToGame();
 
+  public static Disconnect = () => GameService.instance.#disconnect();
+
   static get GameId () {
     return GameService.instance.GameId;
   }
@@ -28,6 +30,10 @@ export class GameService {
   async #connectToGame () {
     await MatchMakingService.joinGame(this.GameId);
     return this.GameId;
+  }
+
+  async #disconnect () {
+    await MatchMakingService.leaveGame(this.GameId);
   }
 
 }

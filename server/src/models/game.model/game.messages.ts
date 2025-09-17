@@ -11,4 +11,6 @@ export const GAME_MESSAGES = {
     "Tu non sei il creatore del game e quindi non puoi farlo partire",
   ERROR_STARTING_GAME:
     "Si è verificata una condizione imprevista, pertanto non è stato possibile avviare la partita",
+  PLAYER_NOT_IN_GAME: "Il giocatore ${playername} non è in questa partita",
+  PLAYER_LEFT: "Il giocatore ${playername} ha lasciato la partita",
 } as const;

@@ -2,7 +2,7 @@ import { Inject, Injectable, Scope } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { FastifyRequest } from "fastify";
 import { PlayerDto } from "../entities/player.dto/player.dto";
-import { PlayersService } from "../players/players.service";
+import { PlayersService } from "../services/players/players.service";
 
 @Injectable({ scope: Scope.REQUEST })
 export class MeService {

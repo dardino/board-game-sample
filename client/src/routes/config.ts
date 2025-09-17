@@ -40,3 +40,5 @@ export const RouteConfigs = {
     } as const satisfies Record<string, RouteConfig>,
   },
 } as const satisfies Record<string, RouteConfig>;
+
+export type RoutePath = keyof typeof RouteConfigs | keyof (typeof RouteConfigs)["/*"]["children"];

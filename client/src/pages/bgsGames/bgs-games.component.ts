@@ -2,6 +2,7 @@ import { GameDto } from "@dto/matchmaking/game.dto";
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import { navigate } from "../../routes/navigation";
 import { MatchMakingService } from "../../services/games/matchmaking.service";
+import { Registration } from "../../services/registration/registration.service";
 import style from "./bgs-games.module.css";
 import template from "./bgs-games.template.html?raw";
 
@@ -59,6 +60,12 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
     );
 
     this.#gameList.parentElement?.classList.add(style.table);
+
+    Registration.GetMe().then((userInfo) => {
+      if (userInfo === null) {
+        navigate("/join");
+      }
+    });
   }
 
   disconnectedCallback () {

@@ -66,7 +66,9 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
    * @param {string} newValue - The new value of the attribute.
    */
   attributeChangedCallback (name: string, oldValue: string, newValue: string) {
-    console.log(`Attribute ${name} has changed from ${oldValue} to ${newValue}.`);
+    if (oldValue === newValue) { // No change
+      return;
+    }
     switch (name) {
 
       case "to":

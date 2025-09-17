@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { RegisterCodes, RegisterException } from "src/errors/register";
-import { PlayerDto } from "../entities/player.dto/player.dto";
-import { replacePlaceholders } from "../tools/replacePlaceholders";
-import { hasNickname } from "../utils/player.dto.utils";
+import { PlayerDto } from "../../entities/player.dto/player.dto";
+import { replacePlaceholders } from "../../tools/replacePlaceholders";
+import { hasNickname } from "../../utils/player.dto.utils";
 import { PLAYERS_MESSAGES } from "./players.messages";
 
 class PlayerWithClientId extends PlayerDto {

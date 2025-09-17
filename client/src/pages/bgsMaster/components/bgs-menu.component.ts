@@ -24,7 +24,6 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
 
   async render () {
     const userInfo = await Registration.GetMe();
-
     [
       this.#linkLogout,
       this.#gameList,
