@@ -145,7 +145,7 @@ describe(
             // Arrange
             const nickname = "testPlayer";
             const gameId = 1;
-            await playerSvc.addPlayer(nickname);
+            await playerSvc.addPlayer(nickname, "ClientId1");
 
             // Act & Assert
             await expect(service.joinToGame(
@@ -196,8 +196,8 @@ describe(
             // Arrange
             const nickname = "testPlayer";
 
-            await playerSvc.addPlayer(nickname);
-            await playerSvc.addPlayer("creator");
+            await playerSvc.addPlayer(nickname, "ClientId1");
+            await playerSvc.addPlayer("creator", "ClientId2");
 
             const creator = await playerSvc.getPlayer("creator");
             const player2 = await playerSvc.getPlayer(nickname);
@@ -231,9 +231,9 @@ describe(
           async () => {
 
             // Arrange
-            await playerSvc.addPlayer("creator");
-            await playerSvc.addPlayer("test 2");
-            await playerSvc.addPlayer("test 3");
+            await playerSvc.addPlayer("creator", "ClientId1");
+            await playerSvc.addPlayer("test 2", "ClientId2");
+            await playerSvc.addPlayer("test 3", "ClientId3");
 
             const creator = await playerSvc.getPlayer("creator");
             const testPlayer1 = await playerSvc.getPlayer("test 2");
@@ -266,9 +266,9 @@ describe(
           async () => {
 
             // Arrange
-            await playerSvc.addPlayer("creator");
-            await playerSvc.addPlayer("test 2");
-            await playerSvc.addPlayer("test 3");
+            await playerSvc.addPlayer("creator", "ClientId1");
+            await playerSvc.addPlayer("test 2", "ClientId2");
+            await playerSvc.addPlayer("test 3", "ClientId3");
 
             const creator = await playerSvc.getPlayer("creator");
             const testPlayer1 = await playerSvc.getPlayer("test 2");
@@ -304,9 +304,9 @@ describe(
           async () => {
 
             // Arrange
-            await playerSvc.addPlayer("creator");
-            await playerSvc.addPlayer("test 2");
-            await playerSvc.addPlayer("test 3");
+            await playerSvc.addPlayer("creator", "ClientId1");
+            await playerSvc.addPlayer("test 2", "ClientId2");
+            await playerSvc.addPlayer("test 3", "ClientId3");
 
             const creator = await playerSvc.getPlayer("creator");
             const testPlayer1 = await playerSvc.getPlayer("test 2");
@@ -355,7 +355,7 @@ describe(
 
             // Arrange
             const nickname = "testPlayer";
-            await playerSvc.addPlayer(nickname);
+            await playerSvc.addPlayer(nickname, "ClientId1");
 
             // Act
             const game = await service.createNewGame(

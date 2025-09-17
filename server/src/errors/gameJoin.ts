@@ -1,4 +1,4 @@
-import { GameJoinExceptionArgs } from "@dto/exceptions/GameJoinExceptionArgs";
+import { GameJoinExceptionArgs } from "src/errors/exceptionsArgs/GameJoinExceptionArgs";
 import { BaseHttpException } from "./exceptionBase";
 
 

@@ -79,7 +79,7 @@ describe(
           "should add a player and return it",
           async () => {
 
-            const result = await service.addPlayer("testPlayer");
+            const result = await service.addPlayer("testPlayer", "ClientId1");
             expect(result.id).toBe(0);
 
           },
@@ -94,9 +94,18 @@ describe(
           "should throw an error if a player with the same nickname already exists",
           async () => {
 
-            await service.addPlayer("testPlayer");
-            await expect(service.addPlayer("testPlayer")).rejects.toThrow();
+            await service.addPlayer("testPlayer", "ClientId1");
+            await expect(service.addPlayer("testPlayer", "ClientId2")).rejects.toThrow();
 
+          },
+        );
+
+        it(
+          "should return the same player if the same nickname and clientId are used",
+          async () => {
+            const player1 = await service.addPlayer("testPlayer", "ClientId1");
+            const player2 = await service.addPlayer("testPlayer", "ClientId1");
+            expect(player1).toEqual(player2);
           },
         );
 
@@ -110,7 +119,7 @@ describe(
           "should verify that the newly added player is in the list, has the correct nickname, and is not playing",
           async () => {
 
-            await service.addPlayer("testPlayer");
+            await service.addPlayer("testPlayer", "ClientId1");
             const player = await service.getPlayer("testPlayer");
             expect(player.nickname).toBe("testPlayer");
             expect(player.isPlaying).toBe(false);
@@ -129,7 +138,7 @@ describe(
           async () => {
 
             const initialPlayerCount = await service.getTotalPlayers();
-            await service.addPlayer("testPlayer");
+            await service.addPlayer("testPlayer", "ClientId1");
             const finalPlayerCount = await service.getTotalPlayers();
             expect(finalPlayerCount).toBe(initialPlayerCount + 1);
 
@@ -155,7 +164,7 @@ describe(
 
             // Arrange
             const nickname = "testPlayer";
-            const player = await service.addPlayer(nickname);
+            const player = await service.addPlayer(nickname, "ClientId1");
 
             // Act
             const result = await service.getPlayer(nickname);
@@ -203,7 +212,7 @@ describe(
           "should verify that the player list is properly cleared by the \"clearPlayers\" method",
           async () => {
 
-            await service.addPlayer("testPlayer");
+            await service.addPlayer("testPlayer", "ClientId1");
             service.clearPlayers();
             const totalPlayers = await service.getTotalPlayers();
             expect(totalPlayers).toBe(0);
@@ -230,7 +239,7 @@ describe(
 
             // Arrange
             const nickname = "testPlayer";
-            await service.addPlayer(nickname);
+            await service.addPlayer(nickname, "ClientId1");
 
             // Act
             await service.removePlayer(nickname);

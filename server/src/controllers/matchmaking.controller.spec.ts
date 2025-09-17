@@ -48,11 +48,11 @@ describe(
       expect(mmController).not.toBe(null);
       const playerSvc = app.get<PlayersService>(PlayersService);
       gameService = app.get<GamesServices>(GamesServices);
-      playerSvc.addPlayer("player 1");
-      playerSvc.addPlayer("player 2");
-      playerSvc.addPlayer("player 3");
-      playerSvc.addPlayer("player 4");
-      playerSvc.addPlayer("player 5");
+      playerSvc.addPlayer("player 1", "ClientId1");
+      playerSvc.addPlayer("player 2", "ClientId2");
+      playerSvc.addPlayer("player 3", "ClientId3");
+      playerSvc.addPlayer("player 4", "ClientId4");
+      playerSvc.addPlayer("player 5", "ClientId5");
 
     });
 

@@ -9,7 +9,19 @@ export class MeService {
 
   public static COOKIE_NICK = "player.nickname" as const;
 
+  public static COOKIE_CLIENT_ID = "player.clientId" as const;
+
   #myNickName: string;
+
+  #myClientId: string = crypto.randomUUID();
+
+  get myNickName () {
+    return this.#myNickName;
+  }
+
+  get myClientId () {
+    return this.#myClientId;
+  }
 
   /**
    * Costruisce una nuova istanza del servizio MeService.
@@ -23,7 +35,7 @@ export class MeService {
   ) {
 
     this.#myNickName = request.cookies[MeService.COOKIE_NICK] ?? "";
-
+    this.#myClientId = request.cookies[MeService.COOKIE_CLIENT_ID] ?? this.#myClientId;
   }
 
   /**
@@ -33,7 +45,7 @@ export class MeService {
    */
   async registerMe (nickName: string) {
 
-    return await this.playersService.addPlayer(nickName);
+    return await this.playersService.addPlayer(nickName, this.#myClientId);
 
   }
 
