@@ -1,9 +1,9 @@
 import {
-  ADVANCED_ENEMIES,
-  BASE_ENEMIES,
-  Enemy,
-} from "src/gameone/gameone-contents";
-import { shuffleArray } from "src/tools/arrays";
+    ADVANCED_ENEMIES,
+    BASE_ENEMIES,
+    Enemy,
+} from "@/gameone/gameone-contents";
+import { shuffleArray } from "@/tools/arrays";
 import { Flow } from "../gameone.flow";
 import { getPlayer } from "../gameone.rule.helpers";
 import { getOppositeConnection, prepareTile } from "../gameone.tile.helpers";

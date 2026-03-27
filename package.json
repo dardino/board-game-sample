@@ -6,9 +6,11 @@
   "main": "index.js",
   "scripts": {
     "lint": "pnpm eslint",
-    "start:client": "cd client && pnpm run dev",
-    "start:server": "cd server && pnpm start:dev",
-    "start": "pnpm concurrently --kill-others \"pnpm start:server\" \"pnpm start:client\""
+    "start:client": "pnpm --filter client dev",
+    "start:server": "pnpm --filter server dev",
+    "start": "pnpm turbo run dev",
+    "test": "pnpm turbo run test",
+    "build": "pnpm turbo run build"
   },
   "keywords": [],
   "author": "",
@@ -18,12 +20,13 @@
     "client"
   ],
   "devDependencies": {
-    "concurrently": "^9.2.1",
-    "eslint": "^9.9.1",
-    "@eslint/js": "^9.9.1",
-    "@stylistic/eslint-plugin": "^5.3.1",
-    "typescript-eslint": "^8.44.0",
-    "globals": "^16.4.0"
+    "@eslint/js": "^10.0.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "turbo": "^2.8.20",
+    "typescript": "6.0.2",
+    "typescript-eslint": "^8.57.2"
   },
   "packageManager": "pnpm@10.16.1"
 }

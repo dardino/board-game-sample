@@ -1,11 +1,11 @@
+import { RuleException } from "@/errors/rule";
+import { SystemPlayerService } from "@/services/system-player/system-player.service";
+import { replacePlaceholders } from "@/tools/replacePlaceholders";
 import { PlayerDto } from "@dto/player.dto/player.dto";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { GamestateModel } from "@models/gamestate.model/gamestate.model";
 import { Inject, Injectable } from "@nestjs/common";
-import { RuleException } from "src/errors/rule";
-import { SystemPlayerService } from "src/services/system-player/system-player.service";
-import { replacePlaceholders } from "src/tools/replacePlaceholders";
 
 type StartedGame = Omit<GameModel, "gameState" | "startedAt"> & {
   gameState: GamestateModel;

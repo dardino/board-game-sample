@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "moduleResolution": "nodenext",
+    "module": "nodenext",
+    "types": [
+      "vite/client",
+      "node",
+      "vitest"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    "test",
+    "dist"
+  ]
+}

@@ -1,5 +1,5 @@
-import { BOSS_ENEMIES } from "src/gameone/gameone-contents";
-import { shuffleArray } from "src/tools/arrays";
+import { BOSS_ENEMIES } from "@/gameone/gameone-contents";
+import { shuffleArray } from "@/tools/arrays";
 import { Flow } from "../gameone.flow";
 import { DrawBossAction, StateReducer } from "../state.types";
 

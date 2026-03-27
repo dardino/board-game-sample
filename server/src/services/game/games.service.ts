@@ -1,13 +1,13 @@
+import { GameJoinException } from "@/errors/gameJoin";
+import { GameStartException } from "@/errors/gameStart";
+import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { PlayersService } from "@/services/players/players.service";
+import { replacePlaceholders } from "@/tools/replacePlaceholders";
+import { hasNickname } from "@/utils/player.dto.utils";
 import { OkResponse } from "@dto/okResponse";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { Inject, Injectable } from "@nestjs/common";
-import { GameJoinException } from "src/errors/gameJoin";
-import { GameStartException } from "src/errors/gameStart";
-import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
-import { PlayersService } from "src/services/players/players.service";
-import { replacePlaceholders } from "src/tools/replacePlaceholders";
-import { hasNickname } from "src/utils/player.dto.utils";
 
 @Injectable()
 export class GamesServices {

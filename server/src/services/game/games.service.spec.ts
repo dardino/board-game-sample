@@ -1,11 +1,11 @@
+import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { PLAYERS_MESSAGES } from "@/services/players/players.messages";
+import { PlayersService } from "@/services/players/players.service";
+import { SystemPlayerService } from "@/services/system-player/system-player.service";
+import { replacePlaceholders } from "@/tools/replacePlaceholders";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { Test, TestingModule } from "@nestjs/testing";
-import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
-import { PLAYERS_MESSAGES } from "src/services/players/players.messages";
-import { PlayersService } from "src/services/players/players.service";
-import { SystemPlayerService } from "src/services/system-player/system-player.service";
-import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { GamesServices } from "./games.service";
 
 import { beforeEach, describe, expect, it } from "vitest";

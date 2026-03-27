@@ -1,10 +1,10 @@
+import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { MeService } from "@/me/me.service";
+import { GamesServices } from "@/services/game/games.service";
+import { PlayersService } from "@/services/players/players.service";
+import { SystemPlayerService } from "@/services/system-player/system-player.service";
 import { ContextIdFactory, REQUEST } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
-import { GameOneRuleService } from "src/gameone/rule-manager/rule-manager.service";
-import { MeService } from "src/me/me.service";
-import { GamesServices } from "src/services/game/games.service";
-import { PlayersService } from "src/services/players/players.service";
-import { SystemPlayerService } from "src/services/system-player/system-player.service";
 import { beforeEach, describe, expect, it, vitest } from "vitest";
 import { MatchMakingController } from "./matchmaking.controller";
 

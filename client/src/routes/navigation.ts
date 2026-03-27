@@ -23,14 +23,18 @@ export class NavigateEvent extends CustomEvent<{
   constructor (to: string, params?: Record<string, string>) {
     super(
       "navigate",
-      { detail: { to,
-        params }},
+      { 
+        detail: { 
+          to,
+          params
+        }
+      },
     );
   }
 
 }
 
-export function navigate<T extends RoutePath> (to: T, params?: ExtractParams<T>) {
+export function navigate<T extends RoutePath> (to: T, params?: RouteParameters<T>) {
   const event = new NavigateEvent(
     to,
     params,
@@ -71,17 +75,18 @@ type ExtractKeys<T extends string> =
   T extends `${string}:${infer P1}/${infer M}` ? P1 | ExtractKeys<M>
     : T extends `${string}:${infer P1}` ? P1
       : never;
-type ExtractParams<T extends string> = Record<ExtractKeys<T>, string>;
+
+export type RouteParameters<T extends string> = Record<ExtractKeys<T>, string>;
 
 export interface Matches<T extends string> {
-  params: ExtractParams<T>;
+  params: RouteParameters<T>;
 }
 
 export function matchPath<T extends string> (pattern: T, pathname: string): Matches<T> | null {
   const matches = patternToRegexp(pattern).exec(pathname);
   if (!matches) return null;
   return {
-    params: matches.groups! as ExtractParams<T>,
+    params: matches.groups! as RouteParameters<T>,
   };
 }
 

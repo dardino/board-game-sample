@@ -1,5 +1,6 @@
 import { BgsComponentTypeStatic } from "../../helpers/components";
-import { navigate } from "../navigation";
+import { RoutePath } from "../config";
+import { navigate, RouteParameters } from "../navigation";
 import template from "./route-link.template.html?raw";
 
 
@@ -18,10 +19,10 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
       RouteLink,
     );
   }
+  
+  #to: RoutePath = "/";
 
-  #to = "/";
-
-  #params: Record<string, string> = {};
+  #params: Partial<RouteParameters<RoutePath>> = {};
 
   #shadow: ShadowRoot;
 
@@ -50,7 +51,7 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
     event.stopImmediatePropagation();
     navigate(
       this.#to,
-      this.#params,
+      this.#params as RouteParameters<RoutePath>,
     );
   };
 
@@ -65,7 +66,7 @@ export const RouteLink: BgsComponentTypeStatic = class RouteLink extends HTMLEle
    * @param {string} oldValue - The old value of the attribute.
    * @param {string} newValue - The new value of the attribute.
    */
-  attributeChangedCallback (name: string, oldValue: string, newValue: string) {
+  attributeChangedCallback (name: string, oldValue: string, newValue: RoutePath) {
     if (oldValue === newValue) { // No change
       return;
     }

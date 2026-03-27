@@ -1,6 +1,6 @@
+import { GamesServices } from "@/services/game/games.service";
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { Body, Controller, Get, Inject, Param, Post } from "@nestjs/common";
-import { GamesServices } from "src/services/game/games.service";
 
 @Controller("mm")
 export class MatchMakingController {

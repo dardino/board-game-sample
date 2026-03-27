@@ -1,9 +1,9 @@
+import { SystemPlayerService } from "@/services/system-player/system-player.service";
+import { replacePlaceholders } from "@/tools/replacePlaceholders";
 import { PlayerDto } from "@dto/player.dto/player.dto";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { Test, TestingModule } from "@nestjs/testing";
-import { SystemPlayerService } from "src/services/system-player/system-player.service";
-import { replacePlaceholders } from "src/tools/replacePlaceholders";
 import { GameOneRuleService } from "./rule-manager.service";
 
 import { beforeEach, describe, expect, it, vitest } from "vitest";

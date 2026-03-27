@@ -1,9 +1,9 @@
-import { shuffleArray } from "src/tools/arrays";
+import { shuffleArray } from "@/tools/arrays";
 import { Flow } from "../gameone.flow";
 import {
-  GameoneState,
-  SetPlayngOrderAction,
-  StateReducer,
+    GameoneState,
+    SetPlayngOrderAction,
+    StateReducer,
 } from "../state.types";
 
 // #region SetPlayngOrder

@@ -1,4 +1,4 @@
-import { GameOneMatchManager } from "src/gameone/gameone-rules";
+import { GameOneMatchManager } from "@/gameone/gameone-rules";
 import { getInitialState } from "../state.types";
 import { MoveReducer } from "./move.reducer";
 const characters = [

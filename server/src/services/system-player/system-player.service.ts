@@ -1,5 +1,5 @@
+import { RuleActionBase } from "@/rule-service-types/game-rule-types";
 import { Injectable, Scope } from "@nestjs/common";
-import { RuleActionBase } from "src/rule-service-types/game-rule-types";
 
 
 interface DelayedAction {

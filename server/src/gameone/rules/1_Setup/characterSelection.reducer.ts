@@ -1,9 +1,9 @@
-import { CHARACTERS } from "src/gameone/gameone-contents";
+import { CHARACTERS } from "@/gameone/gameone-contents";
 import { Flow } from "../gameone.flow";
 import {
-  CharacterSelectionAction,
-  GameoneState,
-  StateReducer,
+    CharacterSelectionAction,
+    GameoneState,
+    StateReducer,
 } from "../state.types";
 
 function buildCharacters ({

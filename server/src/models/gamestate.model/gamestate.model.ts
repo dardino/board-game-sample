@@ -1,5 +1,5 @@
+import { getTimeStampFromNow, toMilliseconds } from "@/tools/timingHelpers";
 import { PlayerDto } from "@dto/player.dto/player.dto";
-import { getTimeStampFromNow, toMilliseconds } from "src/tools/timingHelpers";
 
 export class GamestateModel {
 
