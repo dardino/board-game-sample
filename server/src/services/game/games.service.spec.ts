@@ -336,7 +336,7 @@ describe(
             );
 
             // Assert
-            expect(result).toBe(successMessage);
+            expect(result.data).toBe(successMessage);
             expect(game.connectedPlayers).toContain(testPlayer2);
 
           },

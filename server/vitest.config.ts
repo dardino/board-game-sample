@@ -1,8 +1,27 @@
+import swc from "unplugin-swc";
 import tsConfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  plugins: [tsConfigPaths()],
+  plugins: [
+    tsConfigPaths({ projects: ['./tsconfig.spec.json'] }),
+    swc.vite({
+      jsc: {
+        parser: {
+          syntax: "typescript",
+          decorators: true,
+        },
+        transform: {
+          legacyDecorator: true,
+          decoratorMetadata: true,
+        },
+        target: "es2022",
+      },
+      module: {
+        type: "es6",
+      },
+    }),
+  ],
   test: {
     testTimeout: 2_000, // Set a timeout for tests
     hookTimeout: 2_000, // Set a timeout for hooks like beforeEach

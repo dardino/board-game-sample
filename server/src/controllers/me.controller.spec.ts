@@ -35,9 +35,8 @@ describe(
         }).
         compile();
 
-      meController = app.get<MeController>(MeController);
-      meController = await app.resolve(
-        MeService,
+      meController = await app.resolve<MeController>(
+        MeController,
         contextId,
       );
       expect(meController).not.toBe(undefined);
