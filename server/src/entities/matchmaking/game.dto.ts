@@ -8,6 +8,8 @@ export class GameDto {
 
   public joinedPlayers = 0;
 
+  public players: string[] = [];
+
   public elapsed: number | null = null;
 
   public title = "";

@@ -5,9 +5,7 @@ const mocks = vi.hoisted(() => ({
     Initialize: vi.fn(),
     ConnectToGame: vi.fn(),
     Disconnect: vi.fn(),
-  },
-  matchmakingService: {
-    getGame: vi.fn(),
+    GameId: 42,
   },
   navigate: vi.fn(),
   matchPath: vi.fn(() => ({
@@ -19,9 +17,6 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("../../services/game/game.service", () => ({
   GameService: mocks.gameService,
-}));
-vi.mock("../../services/games/matchmaking.service", () => ({
-  MatchMakingService: mocks.matchmakingService,
 }));
 vi.mock("../../routes/navigation", () => ({
   matchPath: mocks.matchPath,
@@ -52,6 +47,10 @@ class MockHTMLElement {
 
   static button: MockButton;
 
+  static phase: { textContent: string };
+
+  static playerList: { replaceChildren: ReturnType<typeof vi.fn> };
+
   innerHTML = "";
 
   classList = { add: vi.fn() };
@@ -62,15 +61,40 @@ class MockHTMLElement {
 
   #phase = { textContent: "" };
 
+  #playerList = { replaceChildren: vi.fn() };
+
   constructor () {
     MockHTMLElement.button = this.#button;
+    MockHTMLElement.phase = this.#phase;
+    MockHTMLElement.playerList = this.#playerList;
   }
 
   querySelector (selector: string) {
     if (selector === "#cancelJoiningButton") return this.#button;
     if (selector === "#joining") return this.#dialog;
     if (selector === "#joiningDialogPhase") return this.#phase;
+    if (selector === "#joinedPlayersList") return this.#playerList;
     return null;
+  }
+
+}
+
+class MockEventSource {
+
+  static instances: MockEventSource[] = [];
+
+  onmessage: ((event: MessageEvent<string>) => void) | null = null;
+
+  onerror: ((event: Event) => void) | null = null;
+
+  close = vi.fn();
+
+  constructor (public readonly url: string) {
+    MockEventSource.instances.push(this);
+  }
+
+  emit (data: unknown) {
+    this.onmessage?.({ data: JSON.stringify(data) } as MessageEvent<string>);
   }
 
 }
@@ -85,20 +109,18 @@ describe("BgsGameComponent", () => {
       removeEventListener: vi.fn(),
     });
     vi.stubGlobal("location", { pathname: "/game/42" });
+    vi.stubGlobal("EventSource", MockEventSource);
+    vi.stubGlobal("document", {
+      createElement: vi.fn(() => ({ textContent: "" })),
+    });
     ({ BgsGameComponent } = await import("./bgs-game.component"));
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
+    MockEventSource.instances = [];
     mocks.gameService.ConnectToGame.mockResolvedValue(42);
     mocks.gameService.Disconnect.mockResolvedValue(undefined);
-    mocks.matchmakingService.getGame.mockResolvedValue({
-      gameId: 42,
-      joinedPlayers: 1,
-      playersMin: 2,
-      playersMax: 4,
-      title: "Test game",
-    });
   });
 
   it("leaves the game and navigates to the list when cancel is clicked", async () => {
@@ -110,6 +132,31 @@ describe("BgsGameComponent", () => {
     await vi.waitFor(() => {
       expect(mocks.gameService.Disconnect).toHaveBeenCalledWith(false);
       expect(mocks.navigate).toHaveBeenCalledWith("/games");
+    });
+  });
+
+  it("updates the waiting modal when the server reports a lobby change", async () => {
+    const component = new BgsGameComponent();
+    component.connectedCallback?.();
+
+    await vi.waitFor(() => expect(MockEventSource.instances).toHaveLength(1));
+    MockEventSource.instances[0].emit({
+      type: "game-updated",
+      game: {
+        gameId: 42,
+        playersMax: 4,
+        playersMin: 2,
+        joinedPlayers: 2,
+        players: ["creator", "guest"],
+        elapsed: null,
+        title: "Test game",
+      },
+    });
+
+    expect(MockHTMLElement.phase.textContent).toBe("Waiting for other players... (2/2-4)");
+    expect(MockHTMLElement.playerList.replaceChildren).toHaveBeenCalledTimes(1);
+    expect(MockHTMLElement.playerList.replaceChildren.mock.calls[0][0]).toMatchObject({
+      textContent: "creator",
     });
   });
 });

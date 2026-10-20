@@ -1,13 +1,19 @@
 import { GameJoinException } from "@/errors/gameJoin";
 import { GameStartException } from "@/errors/gameStart";
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { GameDto } from "@dto/matchmaking/game.dto";
 import { PlayersService } from "@/services/players/players.service";
+import { LobbyEventsService } from "@/services/game/lobby-events.service";
 import { replacePlaceholders } from "@/tools/replacePlaceholders";
 import { hasNickname } from "@/utils/player.dto.utils";
 import { OkResponse } from "@dto/okResponse";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
 import { Inject, Injectable } from "@nestjs/common";
+
+function isAvailableGame (game: GameModel): boolean {
+  return game.startedAt == null && game.connectedPlayers.length < game.maxPlayers;
+}
 
 @Injectable()
 export class GamesServices {
@@ -20,6 +26,7 @@ export class GamesServices {
   constructor (
     @Inject(PlayersService) private readonly playersService: PlayersService,
     @Inject(GameOneRuleService) private readonly ruleManagerService: GameOneRuleService,
+    @Inject(LobbyEventsService) private readonly lobbyEvents: LobbyEventsService,
   ) {
     //
   }
@@ -43,7 +50,7 @@ export class GamesServices {
    */
   async getFreeGames () {
 
-    return this.#allGames.filter((game) => game.connectedPlayers.length < game.maxPlayers);
+    return this.#allGames.filter(isAvailableGame);
 
   }
 
@@ -77,7 +84,26 @@ export class GamesServices {
       return game;
 
     }
+  }
 
+  getGameStatsById (gameId: GameModel["gameId"]): GameDto {
+    const game = this.#allGames.find((currentGame) => currentGame.gameId === gameId);
+    if (!game) {
+      throw new GameJoinException({
+        message: replacePlaceholders(
+          GAME_MESSAGES,
+          "GAME_NOT_FOUND",
+          { gameIdString: gameId.toString() },
+        ),
+        internalCode: 1001,
+        gameId,
+      });
+    }
+    return this.getGameStats(game);
+  }
+
+  getAvailableGameStats (): GameDto[] {
+    return this.#allGames.filter(isAvailableGame).map((game) => this.getGameStats(game));
   }
 
   /**
@@ -144,6 +170,7 @@ export class GamesServices {
       player,
     );
     player.isPlaying = true;
+    this.#publishGameUpdate(game);
 
     return new OkResponse(replacePlaceholders(
       GAME_MESSAGES,
@@ -217,7 +244,9 @@ export class GamesServices {
 
     }
 
-    return new OkResponse(this.ruleManagerService.start(game));
+    const started = await this.ruleManagerService.start(game);
+    this.#publishGameUpdate(game);
+    return new OkResponse(started);
 
   }
 
@@ -252,9 +281,18 @@ export class GamesServices {
     if (game.createdBy === nickname) {
       if (game.connectedPlayers.length === 0) {
         this.#allGames = this.#allGames.filter((currentGame) => currentGame.gameId !== gameId);
+        this.lobbyEvents.publish({
+          type: "game-removed",
+          gameId,
+        });
       } else {
         game.createdBy = game.connectedPlayers[0].nickname;
       }
+    }
+    if (this.#allGames.includes(game)) {
+      this.#publishGameUpdate(game);
+    } else {
+      this.#publishLobbyUpdate();
     }
 
     return new OkResponse(replacePlaceholders(
@@ -278,6 +316,7 @@ export class GamesServices {
       player,
     );
     this.#allGames.push(newGame);
+    this.#publishGameUpdate(newGame);
     return newGame;
 
   }
@@ -287,24 +326,35 @@ export class GamesServices {
    * @param gameId identificativo della partita
    * @returns un oggetto con le informazioni sulla partita
    */
-  getGameStats (game: GameModel): {
-    playersMax: number;
-    playersMin: number;
-    joinedPlayers: number;
-    elapesd: number | null;
-    title: string;
-  } {
+  getGameStats (game: GameModel): GameDto {
 
     return {
-      elapesd: game.startedAt
+      elapsed: game.startedAt
         ? Date.now() - game.startedAt.valueOf()
         : null,
+      gameId: game.gameId,
       joinedPlayers: game.connectedPlayers.length,
       playersMax: game.maxPlayers,
-      playersMin: 2,
+      playersMin: game.minPlayersToStart,
+      players: game.connectedPlayers.map((player) => player.nickname),
       title: game.gameTitle,
     };
 
+  }
+
+  #publishGameUpdate (game: GameModel) {
+    this.lobbyEvents.publish({
+      type: "game-updated",
+      game: this.getGameStats(game),
+    });
+    this.#publishLobbyUpdate();
+  }
+
+  #publishLobbyUpdate () {
+    this.lobbyEvents.publish({
+      type: "lobbies-updated",
+      games: this.getAvailableGameStats(),
+    });
   }
 
 }

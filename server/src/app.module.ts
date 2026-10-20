@@ -5,6 +5,7 @@ import { MeController } from "./controllers/me.controller";
 import { GameOneRuleService } from "./gameone/rule-manager/rule-manager.service";
 import { MeService } from "./me/me.service";
 import { GamesServices } from "./services/game/games.service";
+import { LobbyEventsService } from "./services/game/lobby-events.service";
 import { PlayersService } from "./services/players/players.service";
 import { SystemPlayerService } from "./services/system-player/system-player.service";
 
@@ -19,6 +20,7 @@ import { SystemPlayerService } from "./services/system-player/system-player.serv
     MeService,
     PlayersService,
     GamesServices,
+    LobbyEventsService,
     GameOneRuleService,
     SystemPlayerService,
   ],

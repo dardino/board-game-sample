@@ -1,6 +1,7 @@
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
 import { MeService } from "@/me/me.service";
 import { GamesServices } from "@/services/game/games.service";
+import { LobbyEventsService } from "@/services/game/lobby-events.service";
 import { PlayersService } from "@/services/players/players.service";
 import { SystemPlayerService } from "@/services/system-player/system-player.service";
 import { ContextIdFactory, REQUEST } from "@nestjs/core";
@@ -29,6 +30,7 @@ describe(
         controllers: [MatchMakingController],
         providers: [
           GameOneRuleService,
+          LobbyEventsService,
           PlayersService,
           SystemPlayerService,
           MeService,
@@ -77,13 +79,82 @@ describe(
         expect(gameId).toBeGreaterThanOrEqual(0);
         const games = await mmController.getGames();
         expect(games.length).toBe(1);
-        expect(games[0].elapesd).toBe(null);
+        expect(games[0].elapsed).toBe(null);
         expect(games[0].gameId).toBe(0);
         expect(games[0].joinedPlayers).toBe(1);
         expect(games[0].playersMax).toBe(4);
         expect(games[0].playersMin).toBe(2);
         expect(games[0].title).toBe("Test");
+        expect(games[0].players).toEqual(["player 1"]);
 
+      },
+    );
+
+    it(
+      "streams a game snapshot and real-time player updates",
+      async () => {
+        const gameId = await mmController.createGame({
+          gameTitle: "Live game",
+          nickName: "player 1",
+        });
+        const received: unknown[] = [];
+        const subscription = mmController.getEvents(gameId.toString()).
+          subscribe((event) => received.push(event.data));
+
+        await mmController.joinGame({
+          nickName: "player 2",
+          gameId,
+        });
+
+        expect(received).toHaveLength(2);
+        expect(received[0]).toMatchObject({
+          type: "game-updated",
+          game: {
+            joinedPlayers: 1,
+            players: ["player 1"],
+          },
+        });
+        expect(received[1]).toMatchObject({
+          type: "game-updated",
+          game: {
+            joinedPlayers: 2,
+            players: [
+              "player 1",
+              "player 2",
+            ],
+          },
+        });
+        subscription.unsubscribe();
+      },
+    );
+
+    it(
+      "streams updated lobby lists",
+      async () => {
+        const received: unknown[] = [];
+        const subscription = mmController.getEvents().
+          subscribe((event) => received.push(event.data));
+
+        await mmController.createGame({
+          gameTitle: "Live game",
+          nickName: "player 1",
+        });
+
+        expect(received).toHaveLength(2);
+        expect(received[0]).toMatchObject({
+          type: "lobbies-updated",
+          games: [],
+        });
+        expect(received[1]).toMatchObject({
+          type: "lobbies-updated",
+          games: [
+            {
+              title: "Live game",
+              joinedPlayers: 1,
+            },
+          ],
+        });
+        subscription.unsubscribe();
       },
     );
 

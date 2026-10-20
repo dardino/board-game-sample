@@ -1,4 +1,5 @@
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { LobbyEventsService } from "./lobby-events.service";
 import { PLAYERS_MESSAGES } from "@/services/players/players.messages";
 import { PlayersService } from "@/services/players/players.service";
 import { SystemPlayerService } from "@/services/system-player/system-player.service";
@@ -32,6 +33,7 @@ describe(
       const module: TestingModule = await Test.createTestingModule({
         providers: [
           GameOneRuleService,
+          LobbyEventsService,
           PlayersService,
           SystemPlayerService,
           GamesServicesSubclass,

@@ -1,8 +1,8 @@
+import { GameDto } from "@dto/matchmaking/game.dto";
+import { GameEvent } from "@dto/matchmaking/game-event.dto";
 import { BgsComponentTypeStatic } from "../../helpers/components";
-import { pooling } from "../../helpers/pooling";
 import { matchPath, navigate } from "../../routes/navigation";
 import { GameService } from "../../services/game/game.service";
-import { MatchMakingService } from "../../services/games/matchmaking.service";
 import style from "./bgs-game.module.css";
 import template from "./bgs-game.template.html?raw";
 
@@ -15,6 +15,8 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   #leavePromise: Promise<void> | null = null;
 
   #isJoined = false;
+
+  #eventSource: EventSource | null = null;
 
   get #button () {
     return this.querySelector("#cancelJoiningButton") as HTMLButtonElement;
@@ -51,6 +53,10 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     return this.querySelector("#joiningDialogPhase") as HTMLParagraphElement;
   }
 
+  get #joinedPlayersList () {
+    return this.querySelector("#joinedPlayersList") as HTMLUListElement;
+  }
+
 
   async render () {
     //
@@ -70,18 +76,9 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       navigate("/games");
       return;
     }
-    this.#joiningDialogPhase.textContent = "Waiting for other players...";
-    await pooling(
-      async () => {
-        const game = await MatchMakingService.getGame(GameService.GameId);
-        if (!game) {
-          return false;
-        }
-        this.#joiningDialogPhase.textContent = `Waiting for other players... (${game.joinedPlayers}/${game.playersMin}-${game.playersMax})`;
-        return true;
-      },
-      1000,
-    );
+    this.#eventSource = new EventSource(`/api/mm/events?gameId=${encodeURIComponent(GameService.GameId)}`);
+    this.#eventSource.onmessage = this.#handleGameEvent;
+    this.#eventSource.onerror = this.#handleEventError;
   }
 
   connectedCallback () {
@@ -101,6 +98,7 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     );
     window.removeEventListener("beforeunload", this.#handleBeforeUnload);
     window.removeEventListener("pagehide", this.#handlePageHide);
+    this.#closeEvents();
     void this.#leaveGame();
   }
 
@@ -111,8 +109,44 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   };
 
   #handlePageHide = () => {
+    this.#closeEvents();
     void this.#leaveGame(true);
   };
+
+  #handleGameEvent = (message: MessageEvent<string>) => {
+    try {
+      const event = JSON.parse(message.data) as GameEvent;
+      if (event.type === "game-updated" && event.game.gameId === GameService.GameId) {
+        this.#renderGameState(event.game);
+      } else if (event.type === "game-removed" && event.gameId === GameService.GameId) {
+        this.#isJoined = false;
+        this.#closeEvents();
+        navigate("/games");
+      }
+    } catch (error) {
+      console.error("Unable to process game event:", error);
+    }
+  };
+
+  #handleEventError = () => {
+    this.#joiningDialogPhase.textContent = "Connection lost. Reconnecting to live updates...";
+  };
+
+  #renderGameState (game: GameDto) {
+    this.#joiningDialogPhase.textContent = game.elapsed === null
+      ? `Waiting for other players... (${game.joinedPlayers}/${game.playersMin}-${game.playersMax})`
+      : "The game has started.";
+    this.#joinedPlayersList.replaceChildren(...game.players.map((nickname) => {
+      const player = document.createElement("li");
+      player.textContent = nickname;
+      return player;
+    }));
+  }
+
+  #closeEvents () {
+    this.#eventSource?.close();
+    this.#eventSource = null;
+  }
 
   #leaveGame (keepalive = false): Promise<void> {
     if (!this.#leavePromise) {

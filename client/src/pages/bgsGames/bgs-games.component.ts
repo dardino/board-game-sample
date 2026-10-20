@@ -1,4 +1,5 @@
 import { GameDto } from "@dto/matchmaking/game.dto";
+import { GameEvent } from "@dto/matchmaking/game-event.dto";
 import { ResponseError } from "../../api/baseProxy";
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import { navigate } from "../../routes/navigation";
@@ -39,6 +40,8 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
   #rowTemplate: HTMLTemplateElement;
 
   #games: GameDto[] = [];
+
+  #eventSource: EventSource | null = null;
 
   get #gameList () {
     return this.querySelector("#gameList") as HTMLTableElement;
@@ -81,6 +84,7 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
       "submit",
       this.#submitCreateGameForm,
     );
+    this.#connectToLobbyEvents();
 
     this.#gameList.parentElement?.classList.add(style.table);
 
@@ -100,10 +104,12 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
       "submit",
       this.#submitCreateGameForm,
     );
+    this.#eventSource?.close();
+    this.#eventSource = null;
   }
 
-  async render () {
-    const games = await MatchMakingService.getGames();
+  async render (updatedGames?: GameDto[]) {
+    const games = updatedGames ?? await MatchMakingService.getGames();
     this.#games = games ?? [];
     this.#gameList.innerHTML = "";
 
@@ -132,6 +138,22 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
       "/game/:id",
       { id: gameId.toString() },
     );
+  };
+
+  #connectToLobbyEvents () {
+    this.#eventSource = new EventSource("/api/mm/events");
+    this.#eventSource.onmessage = this.#handleLobbyEvent;
+  }
+
+  #handleLobbyEvent = (message: MessageEvent<string>) => {
+    try {
+      const event = JSON.parse(message.data) as GameEvent;
+      if (event.type === "lobbies-updated") {
+        void this.render(event.games);
+      }
+    } catch (error) {
+      console.error("Unable to process lobby event:", error);
+    }
   };
 
   #showCreateGameDialog = () => {
