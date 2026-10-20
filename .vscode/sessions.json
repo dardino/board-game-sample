@@ -1,0 +1,22 @@
+{
+  "$schema": "terminal-organizer-vscode-schema:/v11/terminal-organizer-vscode.json",
+  "theme": "tribe",
+  "active": "default",
+  "activateOnStartup": true,
+  "keepExistingTerminals": false,
+  "variable": {},
+  "environments": {},
+  "activeEnvironment": "",
+  "sessions": {
+    "default": [
+      {
+        "name": "default",
+        "commands": [
+          "pnpm install"
+        ],
+        "autoExecuteCommands": true,
+        "focus": true
+      }
+    ]
+  }
+}
