@@ -4,6 +4,10 @@
 
 Il gioco che vogliamo costruire è un gioco da tavolo in cui i giocatori collaborano per esplorare un luogo che non conoscono alla ricerca di un MacGuffin
 
+## Regole del gioco
+
+Consulta [REGOLE.md](./REGOLE.md) per l'ambientazione, le regole previste e lo stato delle meccaniche implementate.
+
 ### Prerequisiti per lo sviluppo e l'esecuzione
 
 Installare globalmente questi pacchetti:

@@ -777,4 +777,127 @@ export const BOSS_ENEMIES: Enemy[] = [
     charm: [],
     life: 15,
   },
+  {
+    name: "Re Goblin",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 2,
+      phisic: 3,
+    },
+    attacks: [WEAPONS.SWORD],
+    charm: [],
+    life: 16,
+  },
+  {
+    name: "Regina Spettrale",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 4,
+      phisic: 1,
+    },
+    attacks: [
+      WEAPONS.AXE,
+      WEAPONS.FIREBALL,
+    ],
+    charm: [],
+    life: 14,
+  },
+  {
+    name: "Drago di Pietra",
+    enemyClass: "Boss",
+    movementSpeed: 1,
+    armor: {
+      magic: 2,
+      phisic: 5,
+    },
+    attacks: [WEAPONS.AXE],
+    charm: [],
+    life: 20,
+  },
+  {
+    name: "Oracolo delle Ceneri",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 5,
+      phisic: 1,
+    },
+    attacks: [WEAPONS.FIREBALL],
+    charm: [],
+    life: 13,
+  },
+  {
+    name: "Minotauro delle Rovine",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 1,
+      phisic: 4,
+    },
+    attacks: [
+      WEAPONS.AXE,
+      WEAPONS.SWORD,
+    ],
+    charm: [],
+    life: 18,
+  },
+  {
+    name: "Custode Abissale",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 4,
+      phisic: 3,
+    },
+    attacks: [
+      WEAPONS.FIREBALL,
+      WEAPONS.SWORD,
+    ],
+    charm: [],
+    life: 17,
+  },
+  {
+    name: "Idra delle Catacombe",
+    enemyClass: "Boss",
+    movementSpeed: 3,
+    armor: {
+      magic: 3,
+      phisic: 2,
+    },
+    attacks: [
+      WEAPONS.AXE,
+      WEAPONS.AXE,
+    ],
+    charm: [],
+    life: 16,
+  },
+  {
+    name: "Cavaliere Senza Volto",
+    enemyClass: "Boss",
+    movementSpeed: 2,
+    armor: {
+      magic: 2,
+      phisic: 5,
+    },
+    attacks: [WEAPONS.SWORD],
+    charm: [],
+    life: 17,
+  },
+  {
+    name: "Ent Antico",
+    enemyClass: "Boss",
+    movementSpeed: 1,
+    armor: {
+      magic: 4,
+      phisic: 3,
+    },
+    attacks: [
+      WEAPONS.AXE,
+      WEAPONS.FIREBALL,
+    ],
+    charm: [],
+    life: 19,
+  },
 ];
