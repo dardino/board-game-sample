@@ -1,10 +1,29 @@
 import { GameDto } from "@dto/matchmaking/game.dto";
+import { ResponseError } from "../../api/baseProxy";
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import { navigate } from "../../routes/navigation";
 import { MatchMakingService } from "../../services/games/matchmaking.service";
 import { Registration } from "../../services/registration/registration.service";
 import style from "./bgs-games.module.css";
 import template from "./bgs-games.template.html?raw";
+
+function getErrorMessage (error: unknown): string {
+  if (error instanceof ResponseError) {
+    const detail = error.body.detail;
+    if (
+      detail &&
+      typeof detail === "object" &&
+      "message" in detail &&
+      typeof detail.message === "string"
+    ) {
+      return detail.message;
+    }
+    return error.body.message ?? error.statusText;
+  }
+  return error instanceof Error
+    ? error.message
+    : "Impossibile creare la partita.";
+}
 
 export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent extends HTMLElement {
 
@@ -31,6 +50,10 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
 
   get #progressDialog () {
     return this.querySelector("#progressDialog") as HTMLDialogElement;
+  }
+
+  get #createGameError () {
+    return this.querySelector("#createGameError") as HTMLParagraphElement;
   }
 
   get #createGameButton () {
@@ -118,10 +141,21 @@ export const BgsGamesComponent: BgsComponentTypeStatic = class BgsGamesComponent
   #submitCreateGameForm = async (event: SubmitEvent) => {
     event.preventDefault();
     this.#createGameDialog.close();
+    this.#createGameError.textContent = "";
     this.#progressDialog.showModal();
-    await MatchMakingService.createGame((this.#createGameForm["gameName"] as HTMLInputElement).value);
-    await this.render();
-    this.#progressDialog.close();
+    try {
+      const gameId = await MatchMakingService.createGame((this.#createGameForm["gameName"] as HTMLInputElement).value);
+      this.#progressDialog.close();
+      navigate(
+        "/game/:id",
+        { id: gameId.toString() },
+      );
+    } catch (error) {
+      console.error("Error creating game:", error);
+      this.#progressDialog.close();
+      this.#createGameError.textContent = getErrorMessage(error);
+      this.#createGameDialog.showModal();
+    }
   };
 
 };

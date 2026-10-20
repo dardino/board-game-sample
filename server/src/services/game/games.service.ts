@@ -86,7 +86,7 @@ export class GamesServices {
    * @param nickname - The nickname of the player.
    * @param gameId - The ID of the game.
    * @returns A string indicating the result of the operation.
-   * @throws {GameJoinException} If the game is not found, player is not found, player is already connected to the game, the game is full or already started.
+   * @throws {GameJoinException} If the game is not found, player is not found, the game is full or already started.
    */
   async joinToGame (nickname: string, gameId: number) {
 
@@ -119,13 +119,11 @@ export class GamesServices {
 
     if (game.connectedPlayers.some(hasNickname(nickname))) {
 
-      throw new GameJoinException({ message: replacePlaceholders(
+      return new OkResponse(replacePlaceholders(
         GAME_MESSAGES,
-        "PLAYER_ALREDY_IN_GAME",
+        "PLAYER_JOINED",
         { playername: nickname },
-      ),
-      internalCode: 1003,
-      gameId });
+      ));
 
     }
 
@@ -250,6 +248,14 @@ export class GamesServices {
     }
 
     game.connectedPlayers = game.connectedPlayers.filter((p) => p.nickname !== nickname);
+
+    if (game.createdBy === nickname) {
+      if (game.connectedPlayers.length === 0) {
+        this.#allGames = this.#allGames.filter((currentGame) => currentGame.gameId !== gameId);
+      } else {
+        game.createdBy = game.connectedPlayers[0].nickname;
+      }
+    }
 
     return new OkResponse(replacePlaceholders(
       GAME_MESSAGES,

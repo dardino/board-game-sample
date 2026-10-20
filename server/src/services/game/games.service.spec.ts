@@ -190,7 +190,7 @@ describe(
         );
 
         it(
-          "should throw GameJoinException if player is already connected to the game",
+          "should accept a player who is already connected to the game",
           async () => {
 
             // Arrange
@@ -209,19 +209,23 @@ describe(
             service.prepare([game]);
             game.connectedPlayers.push(player2);
 
-            const errMessage = replacePlaceholders(
+            const successMessage = replacePlaceholders(
               GAME_MESSAGES,
-              "PLAYER_ALREDY_IN_GAME",
+              "PLAYER_JOINED",
               {
                 playername: nickname,
               },
             );
 
-            // Act & Assert
-            await expect(service.joinToGame(
+            // Act
+            const result = await service.joinToGame(
               nickname,
               game.gameId,
-            )).rejects.toThrow(errMessage);
+            );
+
+            // Assert
+            expect(result.data).toBe(successMessage);
+            expect(game.connectedPlayers).toHaveLength(2);
 
           },
         );
@@ -367,6 +371,47 @@ describe(
             const gameList = await service.getFreeGames();
             expect(gameList.length).toBe(1);
             expect(gameList[0]).toBe(game);
+            expect(game.connectedPlayers.map((player) => player.nickname)).toContain(nickname);
+
+          },
+        );
+
+        describe(
+          "leaveGame",
+          () => {
+
+            it(
+              "should delete the game when its creator leaves alone",
+              async () => {
+                await playerSvc.addPlayer("creator", "ClientId1");
+                const creator = await playerSvc.getPlayer("creator");
+                const game = await GameModel.createGame("test game", creator);
+                service.prepare([game]);
+
+                await service.leaveGame("creator", game.gameId);
+
+                expect(await service.getList()).not.toContain(game);
+              },
+            );
+
+            it(
+              "should keep the game when its creator leaves while other players remain",
+              async () => {
+                await playerSvc.addPlayer("creator", "ClientId1");
+                await playerSvc.addPlayer("player2", "ClientId2");
+                const creator = await playerSvc.getPlayer("creator");
+                const player2 = await playerSvc.getPlayer("player2");
+                const game = await GameModel.createGame("test game", creator);
+                game.connectedPlayers.push(player2);
+                service.prepare([game]);
+
+                await service.leaveGame("creator", game.gameId);
+
+                expect(await service.getList()).toContain(game);
+                expect(game.connectedPlayers).toEqual([player2]);
+                expect(game.createdBy).toBe(player2.nickname);
+              },
+            );
 
           },
         );
