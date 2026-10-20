@@ -1,5 +1,4 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
-import { GamestateModel } from "../gamestate.model/gamestate.model";
 
 let gameCounter = 0;
 
@@ -9,6 +8,8 @@ let gameCounter = 0;
 export class GameModel {
 
   public gameId: number;
+
+  public gameType: string;
 
   public gameTitle: string;
 
@@ -24,7 +25,7 @@ export class GameModel {
 
   public startedAt: Date | null;
 
-  public gameState: GamestateModel | null;
+  public ruleState: unknown | null;
 
   /**
    * Creates a new game instance with the specified title and creator.
@@ -33,14 +34,15 @@ export class GameModel {
    * @param creator - The creator of the game.
    * @returns A new instance of the GameModel class.
    */
-  static async createGame (title: string, creator: PlayerDto) {
+  static async createGame (title: string, creator: PlayerDto, gameType: string) {
 
     const newGame = new GameModel();
     newGame.gameTitle = title;
     newGame.gameId = gameCounter++;
+    newGame.gameType = gameType;
     newGame.minPlayersToStart = 2;
     newGame.maxPlayers = 4;
-    newGame.gameState = null;
+    newGame.ruleState = null;
     newGame.connectedPlayers = [creator];
     newGame.createdBy = creator.nickname;
     newGame.createdAt = new Date();

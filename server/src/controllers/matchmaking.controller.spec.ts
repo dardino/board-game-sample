@@ -3,7 +3,6 @@ import { MeService } from "@/me/me.service";
 import { GamesServices } from "@/services/game/games.service";
 import { LobbyEventsService } from "@/services/game/lobby-events.service";
 import { PlayersService } from "@/services/players/players.service";
-import { SystemPlayerService } from "@/services/system-player/system-player.service";
 import { ContextIdFactory, REQUEST } from "@nestjs/core";
 import { Test, TestingModule } from "@nestjs/testing";
 import { beforeEach, describe, expect, it, vitest } from "vitest";
@@ -32,7 +31,6 @@ describe(
           GameOneRuleService,
           LobbyEventsService,
           PlayersService,
-          SystemPlayerService,
           MeService,
           GamesServices,
         ],
@@ -204,6 +202,7 @@ describe(
         await mmController.startGame({ gameId,
           nickName: "player 1" });
         expect(myGames[0].startedAt).not.toBeNull();
+        expect(myGames[0].ruleState).not.toBeNull();
 
       },
     );

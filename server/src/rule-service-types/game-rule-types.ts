@@ -1,10 +1,18 @@
-export interface RuleActionBase<ActionKind extends string> {
-  playerId: number;
-  runAt: string;
-  action: ActionKind;
+export interface GameRuleTransition<State, Event = never> {
+  state: State;
+  events: readonly Event[];
 }
 
-export interface GameRuleService<ActionKind extends string> {
-  queuePlayerAction<Kind extends ActionKind>(gameId: number, action: RuleActionBase<Kind>): Promise<boolean>;
-  executePlayerAction<Kind extends ActionKind>(gameId: number, action: RuleActionBase<Kind>): Promise<boolean>;
+export interface GameRuleService<Context, State, Action, Snapshot, Event = never> {
+  readonly gameType: string;
+
+  initialize (context: Context): GameRuleTransition<State, Event>;
+
+  applyAction (
+    state: State,
+    action: Action,
+    context: Context,
+  ): GameRuleTransition<State, Event>;
+
+  getSnapshot (state: State, context: Context): Snapshot;
 }

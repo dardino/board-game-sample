@@ -1,82 +1,84 @@
-import { RuleException } from "@/errors/rule";
-import { SystemPlayerService } from "@/services/system-player/system-player.service";
-import { replacePlaceholders } from "@/tools/replacePlaceholders";
+import { GameOneMatchManager } from "@/gameone/gameone-rules";
+import { Connections } from "@/gameone/gameone-contents";
+import { ConnectedTile, GameoneState, AllPossibleAction, getInitialState } from "@/gameone/rules/state.types";
 import { PlayerDto } from "@dto/player.dto/player.dto";
-import { GAME_MESSAGES } from "@models/game.model/game.messages";
-import { GameModel } from "@models/game.model/game.model";
-import { GamestateModel } from "@models/gamestate.model/gamestate.model";
-import { Inject, Injectable } from "@nestjs/common";
+import { GameRuleService, GameRuleTransition } from "@/rule-service-types/game-rule-types";
+import { Injectable } from "@nestjs/common";
 
-type StartedGame = Omit<GameModel, "gameState" | "startedAt"> & {
-  gameState: GamestateModel;
-  startedAt: Date;
-};
-
-function isGameStarted (game: GameModel): game is StartedGame {
-
-  return game.startedAt != null && game.gameState != null;
-
+export interface GameOneRuleContext {
+  gameId: number;
+  players: readonly Pick<PlayerDto, "id">[];
 }
 
+type GameOneSnapshotTile = Omit<ConnectedTile, "nodes"> & {
+  nodes: Partial<Record<Connections, { x: number;
+    y: number; } | null>>;
+};
+
+export type GameOneSnapshot = Omit<GameoneState, "onboardTiles"> & {
+  onboardTiles: GameOneSnapshotTile[];
+};
+
 @Injectable()
-export class GameOneRuleService {
+export class GameOneRuleService implements GameRuleService<
+  GameOneRuleContext,
+  GameoneState,
+  AllPossibleAction,
+  GameOneSnapshot
+> {
 
-  constructor (@Inject(SystemPlayerService) private systemPlayer: SystemPlayerService) {
-    //
+  readonly gameType = "eldorasia";
+
+  initialize (context: GameOneRuleContext): GameRuleTransition<GameoneState> {
+    const state = GameOneMatchManager(getInitialState(), {
+      phase: "Setup",
+      kind: "SetPlayers",
+      players: context.players.map((player) => player.id),
+    });
+    return {
+      state,
+      events: [],
+    };
   }
 
-  async addPlayer (game: GameModel, player: PlayerDto) {
+  applyAction (
+    state: GameoneState,
+    action: AllPossibleAction,
+    context: GameOneRuleContext,
+  ): GameRuleTransition<GameoneState> {
+    if (
+      "playerId" in action &&
+      !context.players.some((player) => player.id === action.playerId)
+    ) {
+      throw new Error("Il giocatore non appartiene a questa partita.");
+    }
 
-    return game.connectedPlayers.push(player);
-
+    return {
+      state: GameOneMatchManager(state, action),
+      events: [],
+    };
   }
 
-  async start (game: GameModel) {
-
-    if (isGameStarted(game)) {
-
-      throw new RuleException(
-        replacePlaceholders(
-          GAME_MESSAGES,
-          "GAME_ALREDY_STARTED",
-          {},
-        ),
-        4001,
-      );
-
-    }
-
-    game.startedAt = new Date();
-    game.gameState = GamestateModel.startNewGame(game.connectedPlayers);
-
-    if (!isGameStarted(game)) {
-
-      throw new RuleException(
-        replacePlaceholders(
-          GAME_MESSAGES,
-          "ERROR_STARTING_GAME",
-          {},
-        ),
-        4002,
-      );
-
-    }
-
-    this.systemPlayer.addDelayedAction(
-      game.gameId,
-      {
-        action: "PlayerTurn_End",
-        playerId: -1,
-        runAt: game.gameState!.nextTournDeadline,
-      },
-    );
-
-    return replacePlaceholders(
-      GAME_MESSAGES,
-      "GAME_STARTED",
-      {},
-    );
-
+  getSnapshot (state: GameoneState): GameOneSnapshot {
+    return {
+      ...state,
+      onboardTiles: state.onboardTiles.map((tile) => {
+        const nodes: GameOneSnapshotTile["nodes"] = {};
+        for (const direction of Connections) {
+          const node = tile.nodes[direction];
+          if (node !== undefined) {
+            nodes[direction] = node === null
+              ? null
+              : { x: node.x,
+                y: node.y };
+          }
+        }
+        return {
+          ...tile,
+          nodes,
+        };
+      }),
+    };
   }
 
 }

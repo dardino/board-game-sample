@@ -18,6 +18,7 @@ describe(
         expect(GameModel.createGame(
           "",
           player,
+          "eldorasia",
         )).toBeDefined();
         expect(player.isPlaying).toBeTruthy();
 

@@ -1,80 +1,81 @@
-import { SystemPlayerService } from "@/services/system-player/system-player.service";
-import { replacePlaceholders } from "@/tools/replacePlaceholders";
-import { PlayerDto } from "@dto/player.dto/player.dto";
-import { GAME_MESSAGES } from "@models/game.model/game.messages";
-import { GameModel } from "@models/game.model/game.model";
-import { Test, TestingModule } from "@nestjs/testing";
-import { GameOneRuleService } from "./rule-manager.service";
+import { describe, expect, it } from "vitest";
+import { GameOneRuleContext, GameOneRuleService } from "./rule-manager.service";
 
-import { beforeEach, describe, expect, it, vitest } from "vitest";
+describe("GameOneRuleService", () => {
+  const service = new GameOneRuleService();
+  const context: GameOneRuleContext = {
+    gameId: 42,
+    players: [
+      { id: 1 },
+      { id: 2 },
+    ],
+  };
 
-describe(
-  "GameOneRuleService tests",
-  () => {
+  it("initializes the game and stops for character selection", () => {
+    const transition = service.initialize(context);
 
-    let service: GameOneRuleService;
-    const addDelayedActionMock = vitest.fn().mockImplementation(() => true);
+    expect(service.gameType).toBe("eldorasia");
+    expect(transition.state.previousAction).toBe("SetPlayngOrder");
+    expect(transition.state.allowedNextActions).toEqual(["CharacterSelection"]);
+    expect(transition.state.onboardTiles).toHaveLength(1);
+    expect(transition.events).toEqual([]);
+  });
 
-    beforeEach(async () => {
-
-      const module: TestingModule = await Test.createTestingModule({
-        providers: [
-          GameOneRuleService,
+  it("applies character selection and advances to the first player turn", () => {
+    const initialized = service.initialize(context);
+    const transition = service.applyAction(
+      initialized.state,
+      {
+        phase: "Setup",
+        kind: "CharacterSelection",
+        selectedCharacters: [
           {
-            provide: SystemPlayerService,
-            useValue: {
-              addDelayedAction: addDelayedActionMock,
-            },
+            playerId: 1,
+            characterId: 1,
+            characterName: "Chierico",
+          },
+          {
+            playerId: 2,
+            characterId: 2,
+            characterName: "Barbaro",
           },
         ],
-      }).compile();
+      },
+      context,
+    );
 
-      service = module.get<GameOneRuleService>(GameOneRuleService);
+    expect(transition.state.phase).toBe("PlayerTurn");
+    expect(transition.state.previousAction).toBe("Awake");
+    expect(transition.state.allowedNextActions).toEqual(["Move", "Fight", "Pass"]);
+  });
 
+  it("rejects actions from players outside the game", () => {
+    const initialized = service.initialize(context);
+
+    expect(() => service.applyAction(
+      initialized.state,
+      {
+        phase: "PlayerTurn",
+        kind: "Move",
+        playerId: 99,
+        direction: "TL",
+      },
+      context,
+    )).toThrow("Il giocatore non appartiene a questa partita.");
+  });
+
+  it("returns a snapshot without circular tile links", () => {
+    const initialized = service.initialize(context);
+    const snapshot = service.getSnapshot(initialized.state, context);
+
+    expect(() => JSON.stringify(snapshot)).not.toThrow();
+    expect(snapshot.onboardTiles[0].nodes).toEqual({
+      TL: null,
+      TR: null,
+      R: null,
+      BR: null,
+      BL: null,
+      L: null,
     });
-
-    it(
-      "RuleManagerService should be defined",
-      () => {
-
-        expect(service).toBeDefined();
-
-      },
-    );
-
-    it(
-      "RuleManagerService should start a game",
-      async () => {
-
-        addDelayedActionMock.mockClear();
-        const player = new PlayerDto(
-          1,
-          "Prova",
-          false,
-        );
-        const game = await GameModel.createGame(
-          "Test Game",
-          player,
-        );
-        expect(game.startedAt).toBe(null);
-        const result = await service.start(game);
-        expect(result).toBe(replacePlaceholders(
-          GAME_MESSAGES,
-          "GAME_STARTED",
-          {},
-        ));
-        expect(game.startedAt).toBeInstanceOf(Date);
-        expect(addDelayedActionMock).toHaveBeenCalledWith(
-          game.gameId,
-          {
-            action: "PlayerTurn_End",
-            playerId: -1,
-            runAt: game.gameState?.nextTournDeadline,
-          },
-        );
-
-      },
-    );
-
-  },
-);
+  });
+});

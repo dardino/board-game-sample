@@ -7,7 +7,6 @@ import { MeService } from "./me/me.service";
 import { GamesServices } from "./services/game/games.service";
 import { LobbyEventsService } from "./services/game/lobby-events.service";
 import { PlayersService } from "./services/players/players.service";
-import { SystemPlayerService } from "./services/system-player/system-player.service";
 
 
 @Module({
@@ -22,7 +21,6 @@ import { SystemPlayerService } from "./services/system-player/system-player.serv
     GamesServices,
     LobbyEventsService,
     GameOneRuleService,
-    SystemPlayerService,
   ],
 })
 export class AppModule { }

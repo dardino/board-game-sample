@@ -165,10 +165,7 @@ export class GamesServices {
 
     }
 
-    this.ruleManagerService.addPlayer(
-      game,
-      player,
-    );
+    game.connectedPlayers.push(player);
     player.isPlaying = true;
     this.#publishGameUpdate(game);
 
@@ -244,9 +241,18 @@ export class GamesServices {
 
     }
 
-    const started = await this.ruleManagerService.start(game);
+    const transition = this.ruleManagerService.initialize({
+      gameId: game.gameId,
+      players: game.connectedPlayers,
+    });
+    game.ruleState = transition.state;
+    game.startedAt = new Date();
     this.#publishGameUpdate(game);
-    return new OkResponse(started);
+    return new OkResponse(replacePlaceholders(
+      GAME_MESSAGES,
+      "GAME_STARTED",
+      {},
+    ));
 
   }
 
@@ -314,6 +320,7 @@ export class GamesServices {
     const newGame = await GameModel.createGame(
       gameTitle,
       player,
+      this.ruleManagerService.gameType,
     );
     this.#allGames.push(newGame);
     this.#publishGameUpdate(newGame);

@@ -2,7 +2,6 @@ import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service"
 import { LobbyEventsService } from "./lobby-events.service";
 import { PLAYERS_MESSAGES } from "@/services/players/players.messages";
 import { PlayersService } from "@/services/players/players.service";
-import { SystemPlayerService } from "@/services/system-player/system-player.service";
 import { replacePlaceholders } from "@/tools/replacePlaceholders";
 import { GAME_MESSAGES } from "@models/game.model/game.messages";
 import { GameModel } from "@models/game.model/game.model";
@@ -35,7 +34,6 @@ describe(
           GameOneRuleService,
           LobbyEventsService,
           PlayersService,
-          SystemPlayerService,
           GamesServicesSubclass,
         ],
       }).compile();
@@ -62,6 +60,7 @@ describe(
                 isPlaying: true,
                 nickname: "testPlayer",
               },
+              "eldorasia",
             );
             const game2: GameModel = await GameModel.createGame(
               "test 2",
@@ -70,6 +69,7 @@ describe(
                 isPlaying: true,
                 nickname: "testPlayer",
               },
+              "eldorasia",
             );
             const game3: GameModel = await GameModel.createGame(
               "test 3",
@@ -78,6 +78,7 @@ describe(
                 isPlaying: true,
                 nickname: "anotherPlayer",
               },
+              "eldorasia",
             );
             service.prepare([
               game1,
@@ -110,6 +111,7 @@ describe(
                 isPlaying: true,
                 nickname: "ciccio",
               },
+              "eldorasia",
             );
             const game2: GameModel = await GameModel.createGame(
               "test 2",
@@ -118,6 +120,7 @@ describe(
                 isPlaying: true,
                 nickname: "otherPlayer",
               },
+              "eldorasia",
             );
             service.prepare([
               game1,
@@ -175,6 +178,7 @@ describe(
                 isPlaying: true,
                 nickname: "Gabriele",
               },
+              "eldorasia",
             );
             service.prepare([game]);
 
@@ -207,6 +211,7 @@ describe(
             const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
+              "eldorasia",
             );
             service.prepare([game]);
             game.connectedPlayers.push(player2);
@@ -248,6 +253,7 @@ describe(
             const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
+              "eldorasia",
             );
             game.maxPlayers = 2;
             game.connectedPlayers.push(testPlayer1);
@@ -283,6 +289,7 @@ describe(
             const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
+              "eldorasia",
             );
             game.maxPlayers = 2;
             game.connectedPlayers.push(testPlayer1);
@@ -321,6 +328,7 @@ describe(
             const game: GameModel = await GameModel.createGame(
               "test 1",
               creator,
+              "eldorasia",
             );
             game.maxPlayers = 3;
             game.connectedPlayers.push(testPlayer1);
@@ -387,7 +395,7 @@ describe(
               async () => {
                 await playerSvc.addPlayer("creator", "ClientId1");
                 const creator = await playerSvc.getPlayer("creator");
-                const game = await GameModel.createGame("test game", creator);
+                const game = await GameModel.createGame("test game", creator, "eldorasia");
                 service.prepare([game]);
 
                 await service.leaveGame("creator", game.gameId);
@@ -403,7 +411,7 @@ describe(
                 await playerSvc.addPlayer("player2", "ClientId2");
                 const creator = await playerSvc.getPlayer("creator");
                 const player2 = await playerSvc.getPlayer("player2");
-                const game = await GameModel.createGame("test game", creator);
+                const game = await GameModel.createGame("test game", creator, "eldorasia");
                 game.connectedPlayers.push(player2);
                 service.prepare([game]);
 
