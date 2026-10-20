@@ -1,6 +1,6 @@
 import { RegisterCodes, RegisterException } from "@/errors/register";
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { PlayerDto } from "../../entities/player.dto/player.dto";
+import { PLAYER_NICKNAME_MAX_LENGTH, PlayerDto } from "../../entities/player.dto/player.dto";
 import { replacePlaceholders } from "../../tools/replacePlaceholders";
 import { hasNickname } from "../../utils/player.dto.utils";
 import { PLAYERS_MESSAGES } from "./players.messages";
@@ -54,16 +54,29 @@ export class PlayersService {
       );
     }
 
-    // Controlla se esiste già un giocatore con lo stesso nickname e clientId
-    if (await this.playerExistsWithClientId(nickname, clientId)) {
-      // se esiste, restituisco quello perché significa che è lo stesso utente che si sta riconnettendo
-      return this.#currentPlayers.find(hasNickname(nickname))!;
+    const normalizedNickname = typeof nickname === "string"
+      ? nickname.trim()
+      : "";
+    if (
+      normalizedNickname.length === 0 ||
+      Array.from(normalizedNickname).length > PLAYER_NICKNAME_MAX_LENGTH
+    ) {
+      throw new RegisterException(
+        replacePlaceholders(PLAYERS_MESSAGES, "INVALID_NICKNAME", {}),
+        RegisterCodes.INVALID_NICKNAME,
+      );
     }
 
-    if (await this.playerExists(nickname)) {
+    // Controlla se esiste già un giocatore con lo stesso nickname e clientId
+    if (await this.playerExistsWithClientId(normalizedNickname, clientId)) {
+      // se esiste, restituisco quello perché significa che è lo stesso utente che si sta riconnettendo
+      return this.#currentPlayers.find(hasNickname(normalizedNickname))!;
+    }
+
+    if (await this.playerExists(normalizedNickname)) {
       // se esiste un giocatore con lo stesso nickname ma clientId diverso, lancio l'eccezione
       throw new RegisterException(
-        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_ALREADY_EXISTS", { nickname }),
+        replacePlaceholders(PLAYERS_MESSAGES, "PLAYER_ALREADY_EXISTS", { nickname: normalizedNickname }),
         RegisterCodes.NICKNAME_ALREADY_EXISTS,
       );
 
@@ -72,7 +85,7 @@ export class PlayersService {
     // Crea un nuovo giocatore e aggiungilo alla lista
     const newPlayer = new PlayerWithClientId(
       this.#counter++,
-      nickname,
+      normalizedNickname,
       false,
       clientId,
     );
@@ -144,6 +157,21 @@ export class PlayersService {
 
   }
 
+  async getPlayerForClient (nickname: string, clientId: string): Promise<PlayerDto> {
+
+    const matchesClient = (currentPlayer: PlayerWithClientId) => hasNickname(nickname)(currentPlayer) && currentPlayer.clientId === clientId;
+    const player = this.#currentPlayers.find(matchesClient);
+    if (!player) {
+      throw new NotFoundException(replacePlaceholders(
+        PLAYERS_MESSAGES,
+        "PLAYER_NOT_FOUND",
+        { nickname },
+      ));
+    }
+    return player;
+
+  }
+
   /**
    * Cancella l'elenco dei giocatori attuali.
    * @returns Una Promise che si risolve quando l'elenco dei giocatori viene cancellato.
@@ -178,6 +206,22 @@ export class PlayersService {
       index,
       1,
     );
+    return true;
+
+  }
+
+  async removePlayerForClient (nickname: string, clientId: string): Promise<boolean> {
+
+    const matchesClient = (player: PlayerWithClientId) => hasNickname(nickname)(player) && player.clientId === clientId;
+    const index = this.#currentPlayers.findIndex(matchesClient);
+    if (index === -1) {
+      throw new NotFoundException(replacePlaceholders(
+        PLAYERS_MESSAGES,
+        "PLAYER_NOT_FOUND",
+        { nickname },
+      ));
+    }
+    this.#currentPlayers.splice(index, 1);
     return true;
 
   }

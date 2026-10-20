@@ -56,7 +56,10 @@ export class MeService {
    */
   async deleteMe () {
 
-    return await this.playersService.removePlayer(this.#myNickName);
+    return await this.playersService.removePlayerForClient(
+      this.#myNickName,
+      this.#myClientId,
+    );
 
   }
 
@@ -66,7 +69,10 @@ export class MeService {
    */
   async getMe (): Promise<PlayerDto> {
 
-    const player = await this.playersService.getPlayer(this.#myNickName);
+    const player = await this.playersService.getPlayerForClient(
+      this.#myNickName,
+      this.#myClientId,
+    );
     return player;
 
   }

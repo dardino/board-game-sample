@@ -4,4 +4,5 @@ export const PLAYERS_MESSAGES = {
   PLAYER_ADDED: "Giocatore ${nickname} aggiunto con successo",
   PLAYER_REMOVED: "Giocatore ${nickname} rimosso con successo",
   CLIENT_ID_REQUIRED: "Impossibile registrare il giocatore senza clientId",
+  INVALID_NICKNAME: "Il nickname deve contenere da 1 a 32 caratteri",
 } as const;

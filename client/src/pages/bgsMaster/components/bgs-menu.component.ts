@@ -37,7 +37,7 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
       userInfo !== null,
     ));
 
-    this.#user.innerHTML = userInfo?.nickname ?? "";
+    this.#user.textContent = userInfo?.nickname ?? "";
   }
 
 

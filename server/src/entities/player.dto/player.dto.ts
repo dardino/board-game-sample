@@ -1,6 +1,8 @@
 /**
  * Rappresenta un oggetto di trasferimento dati (DTO) per un giocatore.
  */
+export const PLAYER_NICKNAME_MAX_LENGTH = 32;
+
 export class PlayerDto {
 
 

@@ -1,7 +1,7 @@
 <div id="notRegistered">
   Non risulti registrato, inserisci qui il tuo nick name:
   <form id="registerForm" method="POST" action="#">
-    <input type="text" name="nickname" />
+    <input type="text" name="nickname" required minlength="1" maxlength="32" autocomplete="nickname" />
     <button type="submit">Registrati</button>
   </form>
 </div>

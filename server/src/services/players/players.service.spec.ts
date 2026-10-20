@@ -109,6 +109,45 @@ describe(
           },
         );
 
+        it(
+          "should trim the nickname before storing it",
+          async () => {
+            const player = await service.addPlayer("  testPlayer  ", "ClientId1");
+            expect(player.nickname).toBe("testPlayer");
+          },
+        );
+
+        it(
+          "should allow the registered client to retrieve its player",
+          async () => {
+            const player = await service.addPlayer("testPlayer", "ClientId1");
+            await expect(service.getPlayerForClient("testPlayer", "ClientId1")).resolves.toEqual(player);
+          },
+        );
+
+        it(
+          "should not allow a different client to retrieve the player",
+          async () => {
+            await service.addPlayer("testPlayer", "ClientId1");
+            await expect(service.getPlayerForClient("testPlayer", "ClientId2")).rejects.toThrow(
+              "Non esiste un giocatore con il nickname testPlayer",
+            );
+          },
+        );
+
+        it.each([
+          "",
+          "   ",
+          "a".repeat(33),
+        ])(
+          "should reject invalid nickname %j",
+          async (nickname) => {
+            await expect(service.addPlayer(nickname, "ClientId1")).rejects.toThrow(
+              "Il nickname deve contenere da 1 a 32 caratteri",
+            );
+          },
+        );
+
         /**
          * Test case: should verify that the newly added player is actually in the list, has the correct nickname, and is not playing.
          * The addPlayer method is called with 'testPlayer' as an argument.

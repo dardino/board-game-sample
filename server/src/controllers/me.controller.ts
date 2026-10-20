@@ -17,7 +17,12 @@ export class MeController {
    */
   async getMe () {
 
-    return await this.meService.getMe();
+    const player = await this.meService.getMe();
+    return {
+      id: player.id,
+      isPlaying: player.isPlaying,
+      nickname: player.nickname,
+    };
 
   }
 
@@ -27,9 +32,14 @@ export class MeController {
    * Cancella l'utente corrente.
    * @returns Una promise che si risolve quando l'utente viene cancellato.
    */
-  async deleteMe () {
+  async deleteMe (@Res({ passthrough: true }) response: FastifyReply) {
 
-    return await this.meService.deleteMe();
+    try {
+      return await this.meService.deleteMe();
+    } finally {
+      response.clearCookie(MeService.COOKIE_NICK, { path: "/" });
+      response.clearCookie(MeService.COOKIE_CLIENT_ID, { path: "/" });
+    }
 
   }
 
@@ -47,12 +57,28 @@ export class MeController {
     @Res({ passthrough: true }) response: FastifyReply,
   ) {
 
-    const success = await this.meService.registerMe(newPlayer.nickname);
+    const success = await this.meService.registerMe(newPlayer?.nickname ?? "");
+    const cookieOptions = {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+    };
     response.setCookie(
       MeService.COOKIE_NICK,
       success.nickname,
+      cookieOptions,
     );
-    return success;
+    response.setCookie(
+      MeService.COOKIE_CLIENT_ID,
+      this.meService.myClientId,
+      cookieOptions,
+    );
+    return {
+      id: success.id,
+      isPlaying: success.isPlaying,
+      nickname: success.nickname,
+    };
 
   }
 

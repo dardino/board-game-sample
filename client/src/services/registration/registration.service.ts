@@ -1,7 +1,19 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
 import { ResponseError } from "../../api/baseProxy";
 import { MeProxy } from "../../api/resources/me.proxy";
-import { cookieparser } from "../../tools/cookieparser";
+
+function getErrorMessage (error: ResponseError): string {
+  const detail = error.body.detail;
+  if (
+    detail &&
+    typeof detail === "object" &&
+    "message" in detail &&
+    typeof detail.message === "string"
+  ) {
+    return detail.message;
+  }
+  return error.body.message ?? error.statusText;
+}
 
 export class Registration {
 
@@ -19,7 +31,7 @@ export class Registration {
    * @returns informazioni sul giocatore corrente o null se non è registrato
    */
   static async GetMe () {
-    if (!Registration.instance.#imRegistered) {
+    if (!Registration.instance.#hasLoaded) {
       await Registration.instance.#loadMe();
     }
     if (Registration.instance.#imRegistered) return Registration.instance.#playerInfo;
@@ -76,12 +88,14 @@ export class Registration {
 
   #imRegistered = false;
 
-  #cookie: Record<string, string> = {};
+  #hasLoaded: boolean;
+
+  #loadPromise: Promise<boolean> | null = null;
 
   #errorMessages: string[] = [];
 
   private constructor () {
-    this.#loadMe();
+    this.#hasLoaded = false;
   }
 
   /**
@@ -91,63 +105,87 @@ export class Registration {
    * If an error occurs, logs the error to the console.
    */
   async #loadMe (): Promise<boolean> {
-    this.#cookie = cookieparser();
-    this.#playerInfo.nickname = this.#cookie["player.nickname"] ?? "";
+    if (this.#loadPromise) return this.#loadPromise;
+    this.#loadPromise = this.#fetchMe();
+    try {
+      return await this.#loadPromise;
+    } finally {
+      this.#loadPromise = null;
+    }
+  }
+
+  async #fetchMe (): Promise<boolean> {
     this.#errorMessages = [];
     try {
       const resp = await MeProxy.getMe();
       this.#imRegistered = true;
+      this.#hasLoaded = true;
       this.#playerInfo = resp!;
       return true;
     } catch (err) {
       if (err instanceof ResponseError && err.status === 404) {
-        // utente non trovato
         this.#imRegistered = false;
-        this.#errorMessages = [err.body.message];
-      } else if (err instanceof ResponseError && err.status === 400) {
-        // utente non trovato
+        this.#hasLoaded = true;
+        this.#errorMessages = [];
+      } else if (err instanceof ResponseError) {
         this.#imRegistered = false;
-        this.#errorMessages = [err.body.message];
+        this.#hasLoaded = false;
+        this.#errorMessages = [getErrorMessage(err)];
       } else {
         console.error(err);
+        this.#hasLoaded = false;
+        this.#errorMessages = ["Impossibile verificare la registrazione."];
       }
       return false;
     }
   }
 
   async #registerMe (nickName: string): Promise<boolean> {
+    if (this.#loadPromise) await this.#loadPromise;
     this.#errorMessages = [];
     try {
-      const resp = await MeProxy.registerMe(nickName);
+      const resp = await MeProxy.registerMe(nickName.trim());
       this.#imRegistered = true;
+      this.#hasLoaded = true;
       this.#playerInfo = resp;
       return true;
     } catch (err) {
       if (err instanceof ResponseError && err.status === 400) {
-        // esiste già:
         this.#imRegistered = false;
-        this.#errorMessages = [err.body.message];
+        this.#hasLoaded = false;
+        this.#errorMessages = [getErrorMessage(err)];
       } else {
         console.error(err);
+        this.#errorMessages = ["Impossibile completare la registrazione."];
       }
       return false;
     }
   }
 
   async #deleteMe () {
-    this.#imRegistered = false;
     try {
       await MeProxy.deleteMe();
       this.#imRegistered = false;
+      this.#hasLoaded = true;
+      this.#errorMessages = [];
       this.#playerInfo = { id: 0,
         isPlaying: false,
         nickname: "" };
       return true;
     } catch (err) {
-      if (err instanceof ResponseError && err.status === 400) {
-        this.#errorMessages = [err.body.message];
+      if (err instanceof ResponseError && err.status === 404) {
+        this.#imRegistered = false;
+        this.#hasLoaded = true;
+        this.#errorMessages = [];
+        this.#playerInfo = { id: 0,
+          isPlaying: false,
+          nickname: "" };
+        return true;
+      } else if (err instanceof ResponseError) {
+        this.#errorMessages = [getErrorMessage(err)];
       } else {
         console.error(err);
+        this.#errorMessages = ["Impossibile completare la disconnessione."];
       }
       return false;
     }

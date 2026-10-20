@@ -62,8 +62,8 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
     }
 
     this.#elInput.value = this.#playerInfo.nickname;
-    this.#elNickname.innerHTML = this.#playerInfo.nickname;
-    this.#elErrorMessage.innerHTML = this.#errorMessages.join("<br />");
+    this.#elNickname.textContent = this.#playerInfo.nickname;
+    this.#elErrorMessage.textContent = this.#errorMessages.join("\n");
   }
 
   // #region Component lyfecycle
@@ -76,8 +76,9 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   connectedCallback () {
     this.#attachEvents();
     Registration.GetMe().then((resp) => {
-      if (!resp) return;
-      this.#playerInfo = resp;
+      if (resp) this.#playerInfo = resp;
+      this.#errorMessages = Registration.Errors;
+      this.render();
     });
   }
 
@@ -109,24 +110,35 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
     );
   }
 
-  #clickLogout = () => {
-    Registration.Unregister().finally(() => this.render());
+  #clickLogout = async () => {
+    const unregistered = await Registration.Unregister();
+    this.#errorMessages = Registration.Errors;
+    if (unregistered) {
+      this.#playerInfo = { id: 0,
+        isPlaying: false,
+        nickname: "" };
+    }
+    this.render();
   };
 
-  #submit = (event: SubmitEvent) => {
+  #submit = async (event: SubmitEvent) => {
     event.preventDefault();
     event.stopImmediatePropagation();
-    Registration.RegisterMe(this.#elInput.value).then(() => {
-      return Registration.GetMe().then((resp) => {
-        if (!resp) {
-          this.#errorMessages = Registration.Errors;
-          this.render();
-        } else {
-          this.#playerInfo = resp;
-          navigate("/");
-        }
-      });
-    });
+    const registered = await Registration.RegisterMe(this.#elInput.value);
+    if (!registered) {
+      this.#errorMessages = Registration.Errors;
+      this.render();
+      return;
+    }
+
+    const player = await Registration.GetMe();
+    if (!player) {
+      this.#errorMessages = Registration.Errors;
+      this.render();
+      return;
+    }
+    this.#playerInfo = player;
+    navigate("/");
   };
 
   // #endregion
