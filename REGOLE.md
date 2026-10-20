@@ -78,7 +78,7 @@ Le tessere possono contenere nemici **Base**, **Advanced** o **Boss**. Le schede
 I boss condividono la tessera e le regole di base, ma hanno statistiche e attacchi diversi. I valori sono quelli configurati nel prototipo:
 
 | Boss | Vita | Movimento | Armatura fisica / magica | Attacchi configurati |
-|---|---:|---:|---:|---|
+| ---- | ---- | --------- | ------------------------ | -------------------- |
 | BigBoss | 15 | 3 | 4 / 4 | Spada, Fireball |
 | Re Goblin | 16 | 2 | 3 / 2 | Spada |
 | Regina Spettrale | 14 | 2 | 1 / 4 | Ascia, Fireball |
