@@ -10,6 +10,12 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
 
   public static readonly tagName = "bgs-game";
 
+  #joinPromise: Promise<number> | null = null;
+
+  #leavePromise: Promise<void> | null = null;
+
+  #isJoined = false;
+
   get #button () {
     return this.querySelector("#cancelJoiningButton") as HTMLButtonElement;
   }
@@ -34,9 +40,7 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     if (isNaN(gameId)) {
       navigate("/games");
     }
-
     GameService.Initialize(gameId);
-    this.#connect();
   }
 
   get #joiningDialog () {
@@ -55,8 +59,12 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   async #connect () {
     this.#joiningDialog.showModal();
     this.#joiningDialogPhase.textContent = "Connecting to server...";
+    this.#joinPromise = GameService.ConnectToGame().then((joinedGameId) => {
+      this.#isJoined = true;
+      return joinedGameId;
+    });
     try {
-      await GameService.ConnectToGame();
+      await this.#joinPromise;
     } catch (error) {
       console.error("Error connecting to game:", error);
       navigate("/games");
@@ -81,6 +89,9 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       "click",
       this.#cancelJoining,
     );
+    window.addEventListener("beforeunload", this.#handleBeforeUnload);
+    window.addEventListener("pagehide", this.#handlePageHide);
+    this.#connect();
   }
 
   disconnectedCallback () {
@@ -88,16 +99,49 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       "click",
       this.#cancelJoining,
     );
+    window.removeEventListener("beforeunload", this.#handleBeforeUnload);
+    window.removeEventListener("pagehide", this.#handlePageHide);
+    void this.#leaveGame();
   }
 
-  async #cancelJoining () {
+  #handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    if (!this.#isJoined) return;
+    event.preventDefault();
+    event.returnValue = "";
+  };
+
+  #handlePageHide = () => {
+    void this.#leaveGame(true);
+  };
+
+  #leaveGame (keepalive = false): Promise<void> {
+    if (!this.#leavePromise) {
+      this.#leavePromise = this.#leaveAfterConnect(keepalive);
+    }
+    return this.#leavePromise;
+  }
+
+  async #leaveAfterConnect (keepalive: boolean) {
+    if (this.#joinPromise) {
+      try {
+        await this.#joinPromise;
+      } catch {
+        return;
+      }
+    }
+    if (!this.#isJoined) return;
+
     try {
-      await GameService.Disconnect();
-    } catch (e) {
-      console.error("Error disconnecting from game:", e);
-    } finally {
-      navigate("/games");
+      await GameService.Disconnect(keepalive);
+      this.#isJoined = false;
+    } catch (error) {
+      console.error("Error disconnecting from game:", error);
     }
   }
+
+  #cancelJoining = async () => {
+    await this.#leaveGame();
+    navigate("/games");
+  };
 
 };

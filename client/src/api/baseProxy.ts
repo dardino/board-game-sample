@@ -72,7 +72,7 @@ export class BaseProxy {
    * @param pathArgs - The path parameters for the POST request.
    * @returns A promise that resolves to the response data.
    */
-  async post<ReturnType, T extends string, TBody> (path: T, bodyArgs: TBody, pathArgs?: Record<PathParams<T>, string>): Promise<ReturnType> {
+  async post<ReturnType, T extends string, TBody> (path: T, bodyArgs: TBody, pathArgs?: Record<PathParams<T>, string>, requestOptions?: Pick<RequestInit, "keepalive">): Promise<ReturnType> {
     const newPath = replacePathParameters(
       path,
       pathArgs,
@@ -81,6 +81,7 @@ export class BaseProxy {
       newPath,
       "POST",
       bodyArgs,
+      requestOptions,
     );
   }
 
@@ -112,6 +113,7 @@ export class BaseProxy {
     path: string,
     method: "GET" | "POST" | "PUT" | "DELETE",
     data?: unknown,
+    requestOptions?: Pick<RequestInit, "keepalive">,
   ): Promise<TResp> {
     const headers = data
       ? {
@@ -127,6 +129,7 @@ export class BaseProxy {
         method,
         body: JSON.stringify(data), // body data type must match "Content-Type" header
         headers,
+        ...requestOptions,
       },
     );
     return processResponse<TResp>(result);

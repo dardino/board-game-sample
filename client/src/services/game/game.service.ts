@@ -17,7 +17,7 @@ export class GameService {
 
   public static ConnectToGame = () => GameService.instance.#connectToGame();
 
-  public static Disconnect = () => GameService.instance.#disconnect();
+  public static Disconnect = (keepalive = false) => GameService.instance.#disconnect(keepalive);
 
   static get GameId () {
     return GameService.instance.GameId;
@@ -32,8 +32,8 @@ export class GameService {
     return this.GameId;
   }
 
-  async #disconnect () {
-    await MatchMakingService.leaveGame(this.GameId);
+  async #disconnect (keepalive: boolean) {
+    await MatchMakingService.leaveGame(this.GameId, keepalive);
   }
 
 }

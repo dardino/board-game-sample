@@ -74,12 +74,14 @@ export class MatchMakingProxy extends BaseProxy {
     );
   }
 
-  private async leaveGame (gameId: number, nickName: string) {
+  private async leaveGame (gameId: number, nickName: string, keepalive = false) {
     return await this.post<string, "leave", { gameId: number;
       nickName: string; }>(
       "leave",
       { gameId,
         nickName },
+      undefined,
+      { keepalive },
     );
   }
 

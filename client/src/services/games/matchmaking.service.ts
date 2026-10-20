@@ -1,4 +1,3 @@
-import { ResponseError } from "../../api/baseProxy";
 import { MatchMakingProxy } from "../../api/resources/matchmaking.proxy";
 import { Registration } from "../registration/registration.service";
 
@@ -15,18 +14,10 @@ export class MatchMakingService {
   public static getGames: MatchMakingService["getGames"] = () => new MatchMakingService().getGames();
 
   private async joinGame (gameId: number) {
-    try {
-      return await MatchMakingProxy.joinGame(
-        gameId,
-        Registration.NickName,
-      );
-    } catch (err) {
-      if (err instanceof ResponseError && err.body.detail) {
-        return err;
-      } else {
-        throw err;
-      }
-    }
+    return await MatchMakingProxy.joinGame(
+      gameId,
+      Registration.NickName,
+    );
   }
 
   private async getGames () {
@@ -48,8 +39,8 @@ export class MatchMakingService {
     return await MatchMakingProxy.getGame(gameId);
   }
 
-  private async leaveGame (gameId: number) {
-    return await MatchMakingProxy.leaveGame(gameId, Registration.NickName);
+  private async leaveGame (gameId: number, keepalive = false) {
+    return await MatchMakingProxy.leaveGame(gameId, Registration.NickName, keepalive);
   }
 
 }
