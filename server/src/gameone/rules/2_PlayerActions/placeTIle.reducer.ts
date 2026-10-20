@@ -1,7 +1,7 @@
 import {
-    ADVANCED_ENEMIES,
-    BASE_ENEMIES,
-    Enemy,
+  ADVANCED_ENEMIES,
+  BASE_ENEMIES,
+  Enemy,
 } from "@/gameone/gameone-contents";
 import { shuffleArray } from "@/tools/arrays";
 import { Flow } from "../gameone.flow";
