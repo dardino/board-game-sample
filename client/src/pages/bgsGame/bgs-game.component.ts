@@ -17,6 +17,8 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
 
   #isJoined = false;
 
+  #navigatingToGame = false;
+
   #eventSource: EventSource | null = null;
 
   #gameState: GameDto | null = null;
@@ -108,7 +110,7 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     window.removeEventListener("beforeunload", this.#handleBeforeUnload);
     window.removeEventListener("pagehide", this.#handlePageHide);
     this.#closeEvents();
-    void this.#leaveGame();
+    if (!this.#navigatingToGame) void this.#leaveGame();
   }
 
   #handleBeforeUnload = (event: BeforeUnloadEvent) => {
@@ -126,7 +128,16 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
     try {
       const event = JSON.parse(message.data) as GameEvent;
       if (event.type === "game-updated" && event.game.gameId === GameService.GameId) {
-        this.#renderGameState(event.game);
+        if (event.game.elapsed !== null) {
+          this.#navigatingToGame = true;
+          this.#closeEvents();
+          navigate(
+            "/game/:id/in-progress",
+            { id: event.game.gameId.toString() },
+          );
+        } else {
+          this.#renderGameState(event.game);
+        }
       } else if (event.type === "game-removed" && event.gameId === GameService.GameId) {
         this.#isJoined = false;
         this.#closeEvents();

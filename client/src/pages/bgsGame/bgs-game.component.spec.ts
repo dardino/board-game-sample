@@ -232,4 +232,31 @@ describe("BgsGameComponent", () => {
     expect(MockHTMLElement.startButton.hidden).toBe(true);
     expect(MockHTMLElement.startButton.disabled).toBe(false);
   });
+
+  it("navigates to the in-progress page when the server starts the game", async () => {
+    const component = new BgsGameComponent();
+    component.connectedCallback?.();
+    await vi.waitFor(() => expect(MockEventSource.instances).toHaveLength(1));
+
+    MockEventSource.instances[0].emit({
+      type: "game-updated",
+      game: {
+        gameId: 42,
+        createdBy: "creator",
+        playersMax: 4,
+        playersMin: 2,
+        joinedPlayers: 2,
+        players: ["creator", "guest"],
+        elapsed: 1,
+        title: "Test game",
+      },
+    });
+
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/game/:id/in-progress",
+      { id: "42" },
+    );
+    component.disconnectedCallback?.();
+    expect(mocks.gameService.Disconnect).not.toHaveBeenCalled();
+  });
 });
