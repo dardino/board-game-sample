@@ -86,6 +86,7 @@ describe(
         expect(games[0].playersMin).toBe(2);
         expect(games[0].title).toBe("Test");
         expect(games[0].players).toEqual(["player 1"]);
+        expect(games[0].createdBy).toBe("player 1");
 
       },
     );
@@ -110,6 +111,7 @@ describe(
         expect(received[0]).toMatchObject({
           type: "game-updated",
           game: {
+            createdBy: "player 1",
             joinedPlayers: 1,
             players: ["player 1"],
           },

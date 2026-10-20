@@ -3,6 +3,7 @@ import { GameEvent } from "@dto/matchmaking/game-event.dto";
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import { matchPath, navigate } from "../../routes/navigation";
 import { GameService } from "../../services/game/game.service";
+import { Registration } from "../../services/registration/registration.service";
 import style from "./bgs-game.module.css";
 import template from "./bgs-game.template.html?raw";
 
@@ -18,8 +19,14 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
 
   #eventSource: EventSource | null = null;
 
+  #gameState: GameDto | null = null;
+
   get #button () {
     return this.querySelector("#cancelJoiningButton") as HTMLButtonElement;
+  }
+
+  get #startButton () {
+    return this.querySelector("#startGameButton") as HTMLButtonElement;
   }
 
   public static register () {
@@ -86,6 +93,7 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       "click",
       this.#cancelJoining,
     );
+    this.#startButton.addEventListener("click", this.#startGame);
     window.addEventListener("beforeunload", this.#handleBeforeUnload);
     window.addEventListener("pagehide", this.#handlePageHide);
     this.#connect();
@@ -96,6 +104,7 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
       "click",
       this.#cancelJoining,
     );
+    this.#startButton.removeEventListener("click", this.#startGame);
     window.removeEventListener("beforeunload", this.#handleBeforeUnload);
     window.removeEventListener("pagehide", this.#handlePageHide);
     this.#closeEvents();
@@ -133,9 +142,13 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   };
 
   #renderGameState (game: GameDto) {
+    this.#gameState = game;
     this.#joiningDialogPhase.textContent = game.elapsed === null
       ? `Waiting for other players... (${game.joinedPlayers}/${game.playersMin}-${game.playersMax})`
       : "The game has started.";
+    const isStarted = game.elapsed !== null;
+    this.#startButton.hidden = game.createdBy !== Registration.NickName || isStarted;
+    this.#startButton.disabled = isStarted || game.joinedPlayers < game.playersMin;
     this.#joinedPlayersList.replaceChildren(...game.players.map((nickname) => {
       const player = document.createElement("li");
       player.textContent = nickname;
@@ -176,6 +189,23 @@ export const BgsGameComponent: BgsComponentTypeStatic = class BgsGameComponent e
   #cancelJoining = async () => {
     await this.#leaveGame();
     navigate("/games");
+  };
+
+  #startGame = async () => {
+    if (
+      !this.#gameState ||
+      this.#gameState.createdBy !== Registration.NickName ||
+      this.#gameState.elapsed !== null ||
+      this.#gameState.joinedPlayers < this.#gameState.playersMin
+    ) return;
+
+    this.#startButton.disabled = true;
+    try {
+      await GameService.StartGame();
+    } catch (error) {
+      console.error("Error starting game:", error);
+      this.#startButton.disabled = false;
+    }
   };
 
 };

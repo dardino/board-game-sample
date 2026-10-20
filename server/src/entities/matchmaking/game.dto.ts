@@ -10,6 +10,8 @@ export class GameDto {
 
   public players: string[] = [];
 
+  public createdBy = "";
+
   public elapsed: number | null = null;
 
   public title = "";

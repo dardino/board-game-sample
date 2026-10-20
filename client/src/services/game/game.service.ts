@@ -19,6 +19,8 @@ export class GameService {
 
   public static Disconnect = (keepalive = false) => GameService.instance.#disconnect(keepalive);
 
+  public static StartGame = () => GameService.instance.#startGame();
+
   static get GameId () {
     return GameService.instance.GameId;
   }
@@ -34,6 +36,10 @@ export class GameService {
 
   async #disconnect (keepalive: boolean) {
     await MatchMakingService.leaveGame(this.GameId, keepalive);
+  }
+
+  async #startGame () {
+    await MatchMakingService.startGame(this.GameId);
   }
 
 }

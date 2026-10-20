@@ -5,7 +5,11 @@ const mocks = vi.hoisted(() => ({
     Initialize: vi.fn(),
     ConnectToGame: vi.fn(),
     Disconnect: vi.fn(),
+    StartGame: vi.fn(),
     GameId: 42,
+  },
+  registration: {
+    NickName: "creator",
   },
   navigate: vi.fn(),
   matchPath: vi.fn(() => ({
@@ -22,8 +26,15 @@ vi.mock("../../routes/navigation", () => ({
   matchPath: mocks.matchPath,
   navigate: mocks.navigate,
 }));
+vi.mock("../../services/registration/registration.service", () => ({
+  Registration: mocks.registration,
+}));
 
 class MockButton {
+
+  disabled = false;
+
+  hidden = false;
 
   #clickHandler: EventListener | null = null;
 
@@ -47,6 +58,8 @@ class MockHTMLElement {
 
   static button: MockButton;
 
+  static startButton: MockButton;
+
   static phase: { textContent: string };
 
   static playerList: { replaceChildren: ReturnType<typeof vi.fn> };
@@ -57,6 +70,8 @@ class MockHTMLElement {
 
   #button = new MockButton();
 
+  #startButton = new MockButton();
+
   #dialog = { showModal: vi.fn() };
 
   #phase = { textContent: "" };
@@ -65,12 +80,14 @@ class MockHTMLElement {
 
   constructor () {
     MockHTMLElement.button = this.#button;
+    MockHTMLElement.startButton = this.#startButton;
     MockHTMLElement.phase = this.#phase;
     MockHTMLElement.playerList = this.#playerList;
   }
 
   querySelector (selector: string) {
     if (selector === "#cancelJoiningButton") return this.#button;
+    if (selector === "#startGameButton") return this.#startButton;
     if (selector === "#joining") return this.#dialog;
     if (selector === "#joiningDialogPhase") return this.#phase;
     if (selector === "#joinedPlayersList") return this.#playerList;
@@ -121,6 +138,8 @@ describe("BgsGameComponent", () => {
     MockEventSource.instances = [];
     mocks.gameService.ConnectToGame.mockResolvedValue(42);
     mocks.gameService.Disconnect.mockResolvedValue(undefined);
+    mocks.gameService.StartGame.mockResolvedValue(undefined);
+    mocks.registration.NickName = "creator";
   });
 
   it("leaves the game and navigates to the list when cancel is clicked", async () => {
@@ -144,6 +163,7 @@ describe("BgsGameComponent", () => {
       type: "game-updated",
       game: {
         gameId: 42,
+        createdBy: "creator",
         playersMax: 4,
         playersMin: 2,
         joinedPlayers: 2,
@@ -158,5 +178,58 @@ describe("BgsGameComponent", () => {
     expect(MockHTMLElement.playerList.replaceChildren.mock.calls[0][0]).toMatchObject({
       textContent: "creator",
     });
+    expect(MockHTMLElement.startButton.hidden).toBe(false);
+    expect(MockHTMLElement.startButton.disabled).toBe(false);
+    MockHTMLElement.startButton.click();
+    await vi.waitFor(() => {
+      expect(mocks.gameService.StartGame).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("keeps the start button disabled until the minimum players join", async () => {
+    const component = new BgsGameComponent();
+    component.connectedCallback?.();
+    await vi.waitFor(() => expect(MockEventSource.instances).toHaveLength(1));
+
+    MockEventSource.instances[0].emit({
+      type: "game-updated",
+      game: {
+        gameId: 42,
+        createdBy: "creator",
+        playersMax: 4,
+        playersMin: 2,
+        joinedPlayers: 1,
+        players: ["creator"],
+        elapsed: null,
+        title: "Test game",
+      },
+    });
+
+    expect(MockHTMLElement.startButton.hidden).toBe(false);
+    expect(MockHTMLElement.startButton.disabled).toBe(true);
+  });
+
+  it("does not show the start button to a non-owner", async () => {
+    mocks.registration.NickName = "guest";
+    const component = new BgsGameComponent();
+    component.connectedCallback?.();
+    await vi.waitFor(() => expect(MockEventSource.instances).toHaveLength(1));
+
+    MockEventSource.instances[0].emit({
+      type: "game-updated",
+      game: {
+        gameId: 42,
+        createdBy: "creator",
+        playersMax: 4,
+        playersMin: 2,
+        joinedPlayers: 2,
+        players: ["creator", "guest"],
+        elapsed: null,
+        title: "Test game",
+      },
+    });
+
+    expect(MockHTMLElement.startButton.hidden).toBe(true);
+    expect(MockHTMLElement.startButton.disabled).toBe(false);
   });
 });

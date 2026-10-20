@@ -11,6 +11,8 @@ export class MatchMakingService {
 
   public static leaveGame: MatchMakingService["leaveGame"] = (...args) => new MatchMakingService().leaveGame(...args);
 
+  public static startGame: MatchMakingService["startGame"] = (...args) => new MatchMakingService().startGame(...args);
+
   public static getGames: MatchMakingService["getGames"] = () => new MatchMakingService().getGames();
 
   private async joinGame (gameId: number) {
@@ -41,6 +43,10 @@ export class MatchMakingService {
 
   private async leaveGame (gameId: number, keepalive = false) {
     return await MatchMakingProxy.leaveGame(gameId, Registration.NickName, keepalive);
+  }
+
+  private async startGame (gameId: number) {
+    return await MatchMakingProxy.startGame(gameId, Registration.NickName);
   }
 
 }

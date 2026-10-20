@@ -35,6 +35,12 @@ export class MatchMakingProxy extends BaseProxy {
   public static leaveGame: MatchMakingProxy["leaveGame"] = (...args) => new MatchMakingProxy().leaveGame(...args);
 
   /**
+   * Starts a game.
+   * @returns
+   */
+  public static startGame: MatchMakingProxy["startGame"] = (...args) => new MatchMakingProxy().startGame(...args);
+
+  /**
    * Creates an instance of MatchMakingProxy.
    *
    * Calls the constructor of the base class (BaseProxy) with the path "mm".
@@ -82,6 +88,15 @@ export class MatchMakingProxy extends BaseProxy {
         nickName },
       undefined,
       { keepalive },
+    );
+  }
+
+  private async startGame (gameId: number, nickName: string) {
+    return await this.post<{ ok: boolean; data: string }, "start", { gameId: number;
+      nickName: string; }>(
+      "start",
+      { gameId,
+        nickName },
     );
   }
 

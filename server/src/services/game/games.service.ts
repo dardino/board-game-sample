@@ -337,6 +337,7 @@ export class GamesServices {
       playersMax: game.maxPlayers,
       playersMin: game.minPlayersToStart,
       players: game.connectedPlayers.map((player) => player.nickname),
+      createdBy: game.createdBy,
       title: game.gameTitle,
     };
 
