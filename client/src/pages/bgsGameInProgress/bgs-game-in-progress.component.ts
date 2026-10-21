@@ -7,7 +7,7 @@ import {
 import { matchPath, navigate } from "../../routes/navigation";
 import { Registration } from "../../services/registration/registration.service";
 import style from "./bgs-game-in-progress.module.css";
-import template from "./bgs-game-in-progress.template.html?raw";
+import template from "./bgs-game-in-progress.template.html?css-module";
 
 function isGameStateEvent (message: unknown): message is GameStateEvent {
   return typeof message === "object" &&
