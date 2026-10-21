@@ -86,15 +86,22 @@ describe("Complete game flow", () => {
 
     const events: unknown[] = [];
     const subscription = lobbyEvents.events$.subscribe((event) => events.push(event));
-    const selection = gamesService.applyGameAction(game.gameId, {
-      phase: "Setup",
-      kind: "CharacterSelection",
-      selectedCharacters: game.connectedPlayers.map((player, index) => ({
-        playerId: player.id,
-        characterId: CHARACTERS[index].characterId,
-        characterName: CHARACTERS[index].characterClass,
-      })),
-    });
+    socket.receive(JSON.stringify({
+      type: "game-action",
+      requestId: "character-selection-1",
+      gameId: game.gameId,
+      actorPlayerId: game.connectedPlayers[0].id,
+      action: {
+        phase: "Setup",
+        kind: "CharacterSelection",
+        selectedCharacters: game.connectedPlayers.map((player, index) => ({
+          playerId: player.id,
+          characterId: CHARACTERS[index].characterId,
+          characterName: CHARACTERS[index].characterClass,
+        })),
+      },
+    }));
+    const selection = gamesService.getGameState(game.gameId);
 
     expect(selection.phase).toBe("PlayerTurn");
     expect(selection.state).toMatchObject({
@@ -106,12 +113,36 @@ describe("Complete game flow", () => {
       }))),
     });
     expect(events).toHaveLength(2);
-    expect(socket.messages).toHaveLength(2);
+    expect(socket.messages).toHaveLength(3);
     expect(JSON.parse(socket.messages[1])).toMatchObject({
       type: "game-state",
       gameId: game.gameId,
       phase: "PlayerTurn",
       allowedActions: ["Move", "Fight", "Pass"],
+    });
+    expect(JSON.parse(socket.messages[2])).toMatchObject({
+      type: "game-action-result",
+      requestId: "character-selection-1",
+      status: "accepted",
+    });
+    socket.receive(JSON.stringify({
+      type: "game-action",
+      requestId: "wrong-player-1",
+      gameId: game.gameId,
+      actorPlayerId: game.connectedPlayers[0].id,
+      action: {
+        phase: "PlayerTurn",
+        kind: "Pass",
+        playerId: game.connectedPlayers[1].id,
+      },
+    }));
+    expect(JSON.parse(socket.messages[3])).toMatchObject({
+      type: "game-action-result",
+      requestId: "wrong-player-1",
+      status: "rejected",
+      error: {
+        code: "ACTION_REJECTED",
+      },
     });
     gateway.handleDisconnect(socket);
     subscription.unsubscribe();

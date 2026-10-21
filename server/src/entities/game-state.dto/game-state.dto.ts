@@ -19,3 +19,22 @@ export interface GameStateSubscription {
   type: "subscribe";
   gameId: number;
 }
+
+export interface GameActionRequest {
+  type: "game-action";
+  requestId: string;
+  gameId: number;
+  actorPlayerId: number;
+  action: unknown;
+}
+
+export interface GameActionResultEvent {
+  type: "game-action-result";
+  requestId: string;
+  gameId: number;
+  status: "accepted" | "rejected";
+  error?: {
+    code: string;
+    message: string;
+  };
+}

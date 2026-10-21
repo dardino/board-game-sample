@@ -1,6 +1,11 @@
 import { BgsComponentTypeStatic } from "../../helpers/components";
-import { GameStateErrorEvent, GameStateEvent } from "@dto/game-state.dto/game-state.dto";
+import {
+  GameActionResultEvent,
+  GameStateErrorEvent,
+  GameStateEvent,
+} from "@dto/game-state.dto/game-state.dto";
 import { matchPath, navigate } from "../../routes/navigation";
+import { Registration } from "../../services/registration/registration.service";
 import style from "./bgs-game-in-progress.module.css";
 import template from "./bgs-game-in-progress.template.html?raw";
 
@@ -27,11 +32,43 @@ function isGameStateErrorEvent (message: unknown): message is GameStateErrorEven
     typeof message.message === "string";
 }
 
+function isGameActionResultEvent (message: unknown): message is GameActionResultEvent {
+  if (
+    typeof message !== "object" ||
+    message === null ||
+    !("type" in message) ||
+    message.type !== "game-action-result" ||
+    !("requestId" in message) ||
+    typeof message.requestId !== "string" ||
+    !("gameId" in message) ||
+    typeof message.gameId !== "number" ||
+    !("status" in message) ||
+    message.status !== "accepted" && message.status !== "rejected"
+  ) {
+    return false;
+  }
+  return message.status === "accepted" ||
+    "error" in message &&
+    typeof message.error === "object" &&
+    message.error !== null &&
+    "code" in message.error &&
+    typeof message.error.code === "string" &&
+    "message" in message.error &&
+    typeof message.error.message === "string";
+}
+
 export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameInProgressComponent extends HTMLElement {
 
   public static readonly tagName = "bgs-game-in-progress";
 
   #socket: WebSocket | null = null;
+
+  #gameId: number | null = null;
+
+  #pendingActions = new Map<string, {
+    resolve: (result: GameActionResultEvent) => void;
+    timeoutId: number;
+  }>();
 
   constructor () {
     super();
@@ -55,6 +92,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       navigate("/games");
       return;
     }
+    this.#gameId = gameId;
 
     this.#setConnectionStatus("Connecting...");
     const url = new URL("/ws", location.href);
@@ -71,7 +109,49 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     });
     this.#socket.addEventListener("message", this.#handleMessage);
     this.#socket.addEventListener("error", () => this.#setConnectionStatus("Connection error"));
-    this.#socket.addEventListener("close", () => this.#setConnectionStatus("Disconnected"));
+    this.#socket.addEventListener("close", this.#handleSocketClose);
+  }
+
+  sendGameAction (action: unknown): Promise<GameActionResultEvent> {
+    const socket = this.#socket;
+    const gameId = this.#gameId;
+    if (!socket || socket.readyState !== WebSocket.OPEN || gameId === null) {
+      return Promise.reject(new Error("The game connection is not open."));
+    }
+
+    const requestId = crypto.randomUUID();
+    return new Promise((resolve, reject) => {
+      const timeoutId = window.setTimeout(() => {
+        this.#pendingActions.delete(requestId);
+        resolve({
+          type: "game-action-result",
+          requestId,
+          gameId,
+          status: "rejected",
+          error: {
+            code: "TIMEOUT",
+            message: "The server did not respond to the game action.",
+          },
+        });
+      }, 15000);
+      this.#pendingActions.set(requestId, {
+        resolve,
+        timeoutId,
+      });
+      try {
+        socket.send(JSON.stringify({
+          type: "game-action",
+          requestId,
+          gameId,
+          actorPlayerId: Registration.PlayerId,
+          action,
+        }));
+      } catch (error) {
+        window.clearTimeout(timeoutId);
+        this.#pendingActions.delete(requestId);
+        reject(error);
+      }
+    });
   }
 
   disconnectedCallback () {
@@ -93,7 +173,36 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       this.#renderGameState(message);
     } else if (isGameStateErrorEvent(message)) {
       this.#setConnectionStatus(message.message);
+    } else if (isGameActionResultEvent(message)) {
+      const pendingAction = this.#pendingActions.get(message.requestId);
+      if (pendingAction) {
+        window.clearTimeout(pendingAction.timeoutId);
+        this.#pendingActions.delete(message.requestId);
+        pendingAction.resolve(message);
+      }
+      this.dispatchEvent(new CustomEvent("game-action-result", {
+        detail: message,
+        bubbles: true,
+      }));
     }
+  };
+
+  #handleSocketClose = () => {
+    this.#setConnectionStatus("Disconnected");
+    for (const [requestId, pendingAction] of this.#pendingActions) {
+      window.clearTimeout(pendingAction.timeoutId);
+      pendingAction.resolve({
+        type: "game-action-result",
+        requestId,
+        gameId: this.#gameId ?? -1,
+        status: "rejected",
+        error: {
+          code: "CONNECTION_CLOSED",
+          message: "The game connection was closed before the action completed.",
+        },
+      });
+    }
+    this.#pendingActions.clear();
   };
 
   #renderGameState (state: GameStateEvent) {

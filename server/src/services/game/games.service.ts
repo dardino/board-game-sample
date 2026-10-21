@@ -139,8 +139,27 @@ export class GamesServices {
     };
   }
 
-  applyGameAction (gameId: number, action: AllPossibleAction): GameStateEvent {
+  applyGameAction (gameId: number, actorPlayerId: number, action: AllPossibleAction): GameStateEvent {
     const { game, state } = this.#getStartedGame(gameId);
+    if (!game.connectedPlayers.some((player) => player.id === actorPlayerId)) {
+      throw new Error("Il giocatore non appartiene a questa partita.");
+    }
+    if ("playerId" in action && action.playerId !== actorPlayerId) {
+      throw new Error("L'azione non corrisponde al giocatore mittente.");
+    }
+    if (action.kind === "CharacterSelection") {
+      const selectedPlayerIds = action.selectedCharacters.map((selection) => selection.playerId);
+      const selectedCharacterIds = action.selectedCharacters.map((selection) => selection.characterId);
+      const gamePlayerIds = game.connectedPlayers.map((player) => player.id);
+      if (
+        selectedPlayerIds.length !== gamePlayerIds.length ||
+        new Set(selectedPlayerIds).size !== gamePlayerIds.length ||
+          gamePlayerIds.some((playerId) => !selectedPlayerIds.includes(playerId)) ||
+          new Set(selectedCharacterIds).size !== selectedCharacterIds.length
+      ) {
+        throw new Error("Ogni giocatore deve scegliere un personaggio diverso.");
+      }
+    }
     const transition = this.ruleManagerService.applyAction(
       state,
       action,

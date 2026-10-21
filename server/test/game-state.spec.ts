@@ -32,11 +32,13 @@ describe("Game state WebSocket (e2e)", () => {
 
   it("sends the game snapshot when a client subscribes", async () => {
     const nicknames = ["socket-owner", "socket-player"];
+    const playerIds: number[] = [];
     for (const nickname of nicknames) {
-      await request(app.getHttpServer()).
+      const response = await request(app.getHttpServer()).
         post("/me").
         send({ nickname }).
         expect(201);
+      playerIds.push(Number(response.body.id));
     }
 
     const gameResponse = await request(app.getHttpServer()).
@@ -80,6 +82,42 @@ describe("Game state WebSocket (e2e)", () => {
         phase: "Setup",
         turnPhase: "CharacterSelection",
         allowedActions: ["CharacterSelection"],
+      });
+
+      const actionResult = new Promise<unknown>((resolve) => {
+        const handleMessage = (event: MessageEvent) => {
+          const message: unknown = JSON.parse(String(event.data));
+          if (
+            typeof message === "object" &&
+            message !== null &&
+            "type" in message &&
+            message.type === "game-action-result"
+          ) {
+            socket.removeEventListener("message", handleMessage);
+            resolve(message);
+          }
+        };
+        socket.addEventListener("message", handleMessage);
+      });
+      socket.send(JSON.stringify({
+        type: "game-action",
+        requestId: "select-characters",
+        gameId,
+        actorPlayerId: playerIds[0],
+        action: {
+          phase: "Setup",
+          kind: "CharacterSelection",
+          selectedCharacters: playerIds.map((playerId, index) => ({
+            playerId,
+            characterId: index + 1,
+            characterName: nicknames[index],
+          })),
+        },
+      }));
+      await expect(actionResult).resolves.toMatchObject({
+        type: "game-action-result",
+        requestId: "select-characters",
+        status: "accepted",
       });
     } finally {
       socket.close();

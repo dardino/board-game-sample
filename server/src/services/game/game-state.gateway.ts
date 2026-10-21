@@ -1,10 +1,14 @@
 import {
+  GameActionRequest,
+  GameActionResultEvent,
   GameStateErrorEvent,
   GameStateEvent,
   GameStateSubscription,
 } from "@dto/game-state.dto/game-state.dto";
 import { WebSocketGateway } from "@nestjs/websockets";
 import { GameEvent } from "@dto/matchmaking/game-event.dto";
+import { Connections } from "@/gameone/gameone-contents";
+import { AllPossibleAction } from "@/gameone/rules/state.types";
 import { GamesServices } from "./games.service";
 import { LobbyEventsService } from "./lobby-events.service";
 
@@ -16,13 +20,78 @@ export interface GameWebSocket {
 }
 
 function isSubscription (message: unknown): message is GameStateSubscription {
-  if (typeof message !== "object" || message === null || !("type" in message) || !("gameId" in message)) {
+  if (!isRecord(message) || !("type" in message) || !("gameId" in message)) {
     return false;
   }
   return message.type === "subscribe" &&
     typeof message.gameId === "number" &&
     Number.isSafeInteger(message.gameId) &&
     message.gameId >= 0;
+}
+
+function isRecord (value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isConnection (value: unknown): value is typeof Connections[number] {
+  return Connections.some((connection) => connection === value);
+}
+
+function isGameActionRequest (message: unknown): message is GameActionRequest {
+  return isRecord(message) &&
+    message.type === "game-action" &&
+    typeof message.requestId === "string" &&
+    message.requestId.length > 0 &&
+    message.requestId.length <= 100 &&
+    typeof message.gameId === "number" &&
+    Number.isSafeInteger(message.gameId) &&
+    message.gameId >= 0 &&
+    typeof message.actorPlayerId === "number" &&
+    Number.isSafeInteger(message.actorPlayerId) &&
+    "action" in message;
+}
+
+function isClientGameAction (action: unknown): action is AllPossibleAction {
+  if (!isRecord(action)) return false;
+  if (action.kind === "CharacterSelection") {
+    return action.phase === "Setup" &&
+      Array.isArray(action.selectedCharacters) &&
+      action.selectedCharacters.every((selection) => isRecord(selection) &&
+        typeof selection.playerId === "number" &&
+        Number.isSafeInteger(selection.playerId) &&
+        typeof selection.characterId === "number" &&
+        Number.isSafeInteger(selection.characterId) &&
+        typeof selection.characterName === "string" &&
+        selection.characterName.trim().length > 0);
+  }
+  if (action.phase !== "PlayerTurn" ||
+    typeof action.playerId !== "number" ||
+    !Number.isSafeInteger(action.playerId)) {
+    return false;
+  }
+  switch (action.kind) {
+
+    case "Move":
+      return isConnection(action.direction);
+    case "PickATile":
+      return isConnection(action.position);
+    case "PlaceTile":
+      return typeof action.rotation === "number" &&
+        [0, 1, 2, 3, 4, 5].includes(action.rotation);
+    case "Fight":
+      return isRecord(action.tile) &&
+        typeof action.tile.x === "number" &&
+        Number.isFinite(action.tile.x) &&
+        typeof action.tile.y === "number" &&
+        Number.isFinite(action.tile.y) &&
+        isRecord(action.attack) &&
+        action.attack.type === "";
+    case "Pass":
+      return true;
+    default:
+      return false;
+
+  }
 }
 
 @WebSocketGateway({ path: "/ws" })
@@ -58,10 +127,14 @@ export class GameStateGateway {
     }
 
     if (!isSubscription(message)) {
-      this.#send(client, {
-        type: "game-error",
-        message: "Expected a game subscription with a valid game ID.",
-      });
+      if (isGameActionRequest(message)) {
+        this.#handleAction(client, message);
+      } else {
+        this.#send(client, {
+          type: "game-error",
+          message: "Expected a game subscription or a valid game action.",
+        });
+      }
       return;
     }
 
@@ -72,6 +145,58 @@ export class GameStateGateway {
     } catch (error) {
       this.#sendError(client, message.gameId, error);
     }
+  }
+
+  #handleAction (client: GameWebSocket, request: GameActionRequest) {
+    if (this.#subscriptions.get(client) !== request.gameId) {
+      this.#sendActionResult(client, request, {
+        code: "NOT_SUBSCRIBED",
+        message: "Subscribe to this game before sending actions.",
+      });
+      return;
+    }
+    if (!isClientGameAction(request.action)) {
+      this.#sendActionResult(client, request, {
+        code: "INVALID_ACTION",
+        message: "The action payload is invalid or is not a player action.",
+      });
+      return;
+    }
+
+    try {
+      this.gamesService.applyGameAction(
+        request.gameId,
+        request.actorPlayerId,
+        request.action,
+      );
+      this.#send(client, {
+        type: "game-action-result",
+        requestId: request.requestId,
+        gameId: request.gameId,
+        status: "accepted",
+      });
+    } catch (error) {
+      this.#sendActionResult(client, request, {
+        code: "ACTION_REJECTED",
+        message: error instanceof Error
+          ? error.message
+          : "The action was rejected.",
+      });
+    }
+  }
+
+  #sendActionResult (
+    client: GameWebSocket,
+    request: GameActionRequest,
+    error: NonNullable<GameActionResultEvent["error"]>,
+  ) {
+    this.#send(client, {
+      type: "game-action-result",
+      requestId: request.requestId,
+      gameId: request.gameId,
+      status: "rejected",
+      error,
+    });
   }
 
   #handleGameEvent (event: GameEvent) {
@@ -112,7 +237,10 @@ export class GameStateGateway {
     });
   }
 
-  #send (client: GameWebSocket, message: GameStateEvent | GameStateErrorEvent) {
+  #send (
+    client: GameWebSocket,
+    message: GameStateEvent | GameStateErrorEvent | GameActionResultEvent,
+  ) {
     if (client.readyState === 1) {
       client.send(JSON.stringify(message));
     }
