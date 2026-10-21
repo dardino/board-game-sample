@@ -38,6 +38,11 @@ export class Registration {
     else return null;
   }
 
+  static SubscribeToChanges (listener: () => void) {
+    Registration.instance.#changeListeners.add(listener);
+    return () => Registration.instance.#changeListeners.delete(listener);
+  }
+
   static get PlayerId () {
     return Registration.instance.#playerInfo.id;
   }
@@ -51,8 +56,10 @@ export class Registration {
    * @param nickName nick name da utilizzare per la registrazione
    * @returns una `Promise` che si risolve con `true` se la registrazione va a buon fine, `false` altrimenti
    */
-  static RegisterMe (nickName: string): Promise<boolean> {
-    return Registration.instance.#registerMe(nickName);
+  static async RegisterMe (nickName: string): Promise<boolean> {
+    const registered = await Registration.instance.#registerMe(nickName);
+    if (registered) Registration.instance.#notifyStateChanged();
+    return registered;
   }
 
   /**
@@ -60,7 +67,9 @@ export class Registration {
    * @returns una `Promise` che si risolve con `true` se la cancellazione va a buon fine, `false` altrimenti
    */
   static async Unregister () {
-    return Registration.instance.#deleteMe();
+    const unregistered = await Registration.instance.#deleteMe();
+    if (unregistered) Registration.instance.#notifyStateChanged();
+    return unregistered;
   }
 
   /**
@@ -93,6 +102,8 @@ export class Registration {
   #loadPromise: Promise<boolean> | null = null;
 
   #errorMessages: string[] = [];
+
+  #changeListeners = new Set<() => void>();
 
   private constructor () {
     this.#hasLoaded = false;
@@ -190,6 +201,11 @@ export class Registration {
       return false;
     }
   }
+
+  #notifyStateChanged () {
+    for (const listener of this.#changeListeners) listener();
+  }
+
   // #endregion
 
 }

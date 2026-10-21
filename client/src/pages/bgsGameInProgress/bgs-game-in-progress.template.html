@@ -1,22 +1,6 @@
 <div id="gameLayout" class="gameLayout">
   <main class="gameBoard" aria-label="Game in progress">
-  <section id="characterSelection" class="characterPanel" aria-labelledby="characterSelectionTitle" hidden>
-    <header class="selectionHeading">
-      <p class="eyebrow">Character selection</p>
-      <h1 id="characterSelectionTitle">Choose your hero</h1>
-      <p id="selectionInstructions">Choose your character before the timer runs out.</p>
-    </header>
-    <p id="selectionTimer" class="selectionTimer" role="timer" aria-live="off"></p>
-    <p id="selectionFeedback" class="selectionFeedback" role="status" aria-live="polite"></p>
-    <div id="characterGrid" class="characterGrid"></div>
-    <div class="selectionActions">
-      <button id="selectionReady" class="readyButton" type="button">Ready</button>
-    </div>
-    <section class="selectedRoster" aria-labelledby="selectedRosterTitle">
-      <h2 id="selectedRosterTitle">Chosen by the party</h2>
-      <ul id="selectedCharacters"></ul>
-    </section>
-  </section>
+    <route-outlet id="characterSelectionRoute"></route-outlet>
   </main>
   <bgs-game-sidebar id="gameSidebar" class="gameSidebar" hidden>
     <bgs-game-chat id="gameChat"></bgs-game-chat>

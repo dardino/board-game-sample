@@ -1,5 +1,6 @@
 import { BgsComponentTypeStatic } from "../helpers/components";
 import { BgsGameComponent } from "../pages/bgsGame/bgs-game.component";
+import { BgsCharacterSelectionComponent } from "../pages/bgsCharacterSelection/bgs-character-selection.component";
 import { BgsGameInProgressComponent } from "../pages/bgsGameInProgress/bgs-game-in-progress.component";
 import { BgsGamesComponent } from "../pages/bgsGames/bgs-games.component";
 import { BgsJoinComponent } from "../pages/bgsJoin/bgs-join.component";
@@ -17,6 +18,12 @@ export const RouteConfigs = {
   "/game/:id/in-progress": {
     content: BgsGameInProgressComponent,
     auth: "always",
+    children: {
+      "/game/:id/in-progress/character-selection": {
+        content: BgsCharacterSelectionComponent,
+        auth: "always",
+      },
+    },
   },
   "/game/:id": { // non voglio la master page che distrae dal gioco
     content: BgsGameComponent,
@@ -46,4 +53,6 @@ export const RouteConfigs = {
   },
 } as const satisfies Record<string, RouteConfig>;
 
-export type RoutePath = keyof typeof RouteConfigs | keyof (typeof RouteConfigs)["/*"]["children"];
+export type RoutePath = keyof typeof RouteConfigs |
+  keyof (typeof RouteConfigs)["/*"]["children"] |
+  keyof (typeof RouteConfigs)["/game/:id/in-progress"]["children"];

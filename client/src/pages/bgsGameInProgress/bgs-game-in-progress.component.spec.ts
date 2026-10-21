@@ -255,4 +255,49 @@ describe("BgsGameInProgressComponent", () => {
       playerId: 42,
     });
   });
+
+  it("opens character selection as a child route when the server starts that phase", async () => {
+    const { socket } = await connectComponent();
+    socket.emit("message", new MessageEvent("message", {
+      data: JSON.stringify({
+        type: "game-state",
+        gameId: 42,
+        gameType: "eldorasia",
+        phase: "Setup",
+        currentPlayer: null,
+        turnPhase: "CharacterSelection",
+        allowedActions: ["CharacterSelection"],
+        chat: {
+          messages: [],
+        },
+        characterSelection: {
+          stage: "choosing",
+          endsAt: Date.now() + 30_000,
+          readyPlayerIds: [],
+          players: [
+            { playerId: 1,
+              nickname: "player-one" },
+          ],
+          availableCharacters: [
+            {
+              characterId: 1,
+              characterClass: "Chierico",
+              startingLife: 7,
+              startingEnergy: 5,
+              movementSpeed: 2,
+              defence: 1,
+            },
+          ],
+          selectedCharacters: [],
+        },
+        state: {},
+      }),
+    }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/game/:id/in-progress/character-selection",
+      { id: "42" },
+      { replace: true },
+    );
+  });
 });

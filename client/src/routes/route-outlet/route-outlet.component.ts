@@ -18,15 +18,35 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
 
   #allRoutes: Record<string, RouteConfig> = {};
 
+  #renderedRouteKey: string | null | undefined;
+
   get activeRoute () {
+    return this.#resolveActiveRoute()?.route ?? null;
+  }
+
+  #resolveActiveRoute (): { route: RouteConfig;
+    key: string; } | null {
     const allPaths = Object.keys(this.#allRoutes) as (keyof RouteConfig)[];
-    const match = allPaths.find((template) => matchPath(
-      template,
-      location.pathname,
-    ));
-    return match
-      ? this.#allRoutes[match]
-      : null;
+    for (const template of allPaths) {
+      const route = this.#allRoutes[template];
+      if (!route) continue;
+      const directMatch = matchPath(template, location.pathname);
+      if (directMatch) {
+        return {
+          route,
+          key: `${template}:${JSON.stringify(directMatch.params)}`,
+        };
+      }
+      const matchingChildPath = Object.keys(route.children ?? {}).find((childPath) => matchPath(childPath, location.pathname));
+      if (matchingChildPath) {
+        const childMatch = matchPath(matchingChildPath, location.pathname);
+        return {
+          route,
+          key: `${template}:${JSON.stringify(childMatch?.params ?? {})}`,
+        };
+      }
+    }
+    return null;
   }
 
   constructor () {
@@ -77,11 +97,20 @@ export const RouteOutlet: BgsComponentTypeStatic = class RouteOutlet extends HTM
 
   updateRoute () {
     requestAnimationFrame(() => {
-      if (this.activeRoute != null) {
-        if (!customElements.get(this.activeRoute.content.tagName)) {
-          this.activeRoute.content.register();
+      const resolvedRoute = this.#resolveActiveRoute();
+      const route = resolvedRoute?.route ?? null;
+      const routeKey = resolvedRoute?.key ?? null;
+      if (routeKey === this.#renderedRouteKey) return;
+      this.#renderedRouteKey = routeKey;
+      if (route === null) {
+        this.replaceChildren();
+        return;
+      }
+      if (route != null) {
+        if (!customElements.get(route.content.tagName)) {
+          route.content.register();
         }
-        this.innerHTML = `<${this.activeRoute.content.tagName}></${this.activeRoute.content.tagName}>`;
+        this.innerHTML = `<${route.content.tagName}></${route.content.tagName}>`;
       }
     });
   }

@@ -1,0 +1,232 @@
+.selection {
+  display: block;
+  min-height: 100%;
+}
+
+.characterPanel {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  color: #f4f6f8;
+}
+
+.selectionHeading {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.selectionHeading h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.selectionHeading p {
+  color: #c3ccd6;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e9c46a !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.selectionFeedback {
+  min-height: 1.5rem;
+  color: #e9c46a;
+  text-align: center;
+}
+
+.selectionTimer {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.selectionActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.readyButton {
+  padding: 0.75rem 2rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #e9c46a;
+  color: #171b21;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.readyButton:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.characterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+
+.characterCard {
+  display: flex;
+  aspect-ratio: 2 / 3;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.25rem;
+  border: 2px solid rgb(255 255 255 / 24%);
+  border-radius: 1rem;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 28%);
+  transition: transform 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+
+.characterCard:not(:disabled):hover,
+.characterCard:not(:disabled):focus-visible {
+  transform: translateY(-0.25rem);
+  border-color: #fff;
+}
+
+.characterCard:focus-visible {
+  outline: 3px solid #e9c46a;
+  outline-offset: 3px;
+}
+
+.characterCard:disabled {
+  cursor: default;
+}
+
+.characterCardPreferred {
+  border-color: #f7dc6f;
+  box-shadow: 0 0 1.25rem rgb(247 220 111 / 72%);
+}
+
+.characterCount {
+  align-self: flex-end;
+  min-width: 1.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #f4f6f8;
+  color: #171b21;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.characterThemeCleric,
+.characterThemeBarbarian,
+.characterThemeMage,
+.characterThemeRogue,
+.characterThemeBard {
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeCleric {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/chierico.jpg");
+}
+
+.characterThemeBarbarian {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/barbaro.jpg");
+}
+
+.characterThemeMage {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/mago.jpg");
+}
+
+.characterThemeRogue {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/ladro.jpg");
+}
+
+.characterThemeBard {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/bardo.jpg");
+}
+
+.characterThemeFallback {
+  background: linear-gradient(145deg, #345995, #1d3557);
+}
+
+.characterClass {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.characterName {
+  margin: 0.4rem 0 1rem;
+  font-size: 1.7rem;
+}
+
+.characterStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: auto 0 1rem;
+}
+
+.characterStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.characterStatLabel {
+  font-size: 0.7rem;
+  opacity: 0.78;
+  text-transform: uppercase;
+}
+
+.characterStatValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.characterAvailability {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(255 255 255 / 28%);
+  font-weight: 700;
+}
+
+.selectedRoster {
+  margin-top: 2rem;
+}
+
+.selectedRoster h2 {
+  font-size: 1.1rem;
+}
+
+.selectedRoster ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #c3ccd6;
+}
+
+@media (max-width: 700px) {
+  .characterPanel {
+    padding: 1.5rem 1rem;
+  }
+}

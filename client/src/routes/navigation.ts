@@ -23,25 +23,33 @@ export class NavigateEvent extends CustomEvent<{
   constructor (to: string, params?: Record<string, string>) {
     super(
       "navigate",
-      { 
-        detail: { 
+      {
+        detail: {
           to,
-          params
-        }
+          params,
+        },
       },
     );
   }
 
 }
 
-export function navigate<T extends RoutePath> (to: T, params?: RouteParameters<T>) {
+export function navigate<T extends RoutePath> (
+  to: T,
+  params?: RouteParameters<T>,
+  options: { replace?: boolean } = {},
+) {
   const event = new NavigateEvent(
     to,
     params,
   );
   document.dispatchEvent(event);
   if (!event.defaultPrevented) {
-    history.pushState({}, "", replaceParams(to, params));
+    if (options.replace) {
+      history.replaceState({}, "", replaceParams(to, params));
+    } else {
+      history.pushState({}, "", replaceParams(to, params));
+    }
   }
 }
 

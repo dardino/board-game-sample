@@ -20,6 +20,14 @@ interface BgsGameChatElement extends HTMLElement {
   failSend (message: string): void;
 }
 
+interface BgsCharacterSelectionElement extends HTMLElement {
+  setGameContext (
+    state: GameStateEvent,
+    playerId: number,
+    sendGameAction: (action: unknown) => Promise<GameActionResultEvent>,
+  ): void;
+}
+
 function isGameChatState (value: unknown): value is GameChatState {
   if (!isRecord(value) || !Array.isArray(value.messages)) return false;
   return value.messages.every((message) => {
@@ -155,10 +163,6 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
 
   #lastGameState: GameStateEvent | null = null;
 
-  #selectionPending = false;
-
-  #selectionClock: ReturnType<typeof setInterval> | null = null;
-
   #leavingPage = false;
 
   #pendingActions = new Map<string, {
@@ -188,9 +192,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   connectedCallback () {
     this.#leavingPage = false;
     this.addEventListener("game-chat-send", this.#handleChatSend);
-    this.#selectionClock = setInterval(() => {
-      if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
-    }, 1000);
+    this.addEventListener("bgs-character-selection-connected", this.#handleCharacterSelectionConnected);
     const gameId = Number(matchPath(
       "/game/:id/in-progress",
       location.pathname,
@@ -288,10 +290,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
 
   disconnectedCallback () {
     this.removeEventListener("game-chat-send", this.#handleChatSend);
-    if (this.#selectionClock !== null) {
-      clearInterval(this.#selectionClock);
-      this.#selectionClock = null;
-    }
+    this.removeEventListener("bgs-character-selection-connected", this.#handleCharacterSelectionConnected);
     this.#leavingPage = true;
     this.#socket?.close();
     this.#socket = null;
@@ -405,209 +404,44 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       ? `Available: ${state.allowedActions.join(", ")}`
       : "";
     this.#setText("#turnPhase", [turnPhase, allowedActions].filter(Boolean).join(" — "));
-    this.#renderCharacterSelection(state);
+    this.#syncCharacterSelectionRoute(state);
     this.#setConnectionStatus("Live");
   }
 
-  #renderCharacterSelection (state: GameStateEvent) {
-    const panel = this.querySelector<HTMLElement>("#characterSelection");
-    const grid = this.querySelector<HTMLElement>("#characterGrid");
-    const roster = this.querySelector<HTMLUListElement>("#selectedCharacters");
-    if (!panel || !grid || !roster) return;
+  #handleCharacterSelectionConnected = () => {
+    if (this.#lastGameState) this.#syncCharacterSelectionRoute(this.#lastGameState);
+  };
 
-    const selection = state.characterSelection;
-    const isChoosing = selection.stage === "choosing" && state.phase === "Setup";
-    const isRevealing = selection.stage === "revealing" && state.phase === "CharacterReveal";
-    panel.hidden = !isChoosing && !isRevealing;
-    if (!isChoosing && !isRevealing) return;
+  #syncCharacterSelectionRoute (state: GameStateEvent) {
+    const gameId = this.#gameId;
+    if (gameId === null) return;
 
-    const playerId = this.#playerId;
-    if (playerId === null) return;
-    const player = selection.players.find((candidate) => candidate.playerId === playerId);
-    const isReady = selection.readyPlayerIds.includes(playerId);
-    const canChoose = Boolean(player && isChoosing && !isReady);
-
-    let instructions = "Join this game to select a character.";
-    if (isRevealing) {
-      instructions = "These are the final character assignments. The game will begin shortly.";
-    } else if (player && isReady) {
-      instructions = "You're ready. Your preference is locked while the others finish.";
-    } else if (player) {
-      instructions = "Choose or change your preference. Multiple players can choose the same character.";
-    }
-    this.#setText("#selectionInstructions", instructions);
-    if (!this.#selectionPending) {
-      this.#setText(
-        "#selectionFeedback",
-        isRevealing
-          ? `${selection.readyPlayerIds.length} of ${selection.players.length} players are ready.`
-          : `${selection.selectedCharacters.length} of ${selection.players.length} players have chosen.`,
-      );
-    }
-    this.#setText(
-      "#selectionTimer",
-      selection.endsAt === null
-        ? ""
-        : `${Math.max(0, Math.ceil((selection.endsAt - Date.now()) / 1000))}s`,
-    );
-    const readyButton = this.querySelector<HTMLButtonElement>("#selectionReady");
-    if (readyButton) {
-      readyButton.hidden = !player;
-      readyButton.disabled = !player || isReady || this.#selectionPending;
-      readyButton.textContent = isReady
-        ? "Ready ✓"
-        : "Ready";
-      readyButton.onclick = () => {
-        void this.#readyForNextPhase(isChoosing);
-      };
-    }
-
-    const themes: Record<string, string> = {
-      Chierico: style.characterThemeCleric,
-      Barbaro: style.characterThemeBarbarian,
-      Mago: style.characterThemeMage,
-      Ladro: style.characterThemeRogue,
-      Bardo: style.characterThemeBard,
-    };
-    grid.replaceChildren(...selection.availableCharacters.map((character) => {
-      const selected = selection.selectedCharacters.filter((candidate) => candidate.characterId === character.characterId);
-      const ownPreference = selected.some((candidate) => candidate.playerId === playerId);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `${style.characterCard} ${themes[character.characterClass] ?? style.characterThemeFallback}`;
-      if (ownPreference) button.classList.add(style.characterCardPreferred);
-      button.disabled = !canChoose || this.#selectionPending;
-      button.setAttribute("aria-pressed", String(ownPreference));
-
-      const characterClass = document.createElement("span");
-      characterClass.className = style.characterClass;
-      characterClass.textContent = character.characterClass;
-
-      const name = document.createElement("h2");
-      name.className = style.characterName;
-      name.textContent = character.characterClass;
-
-      const stats = document.createElement("span");
-      stats.className = style.characterStats;
-      for (const [label, value] of [
-        ["Life", character.startingLife],
-        ["Energy", character.startingEnergy],
-        ["Movement", character.movementSpeed],
-        ["Defence", character.defence],
-      ] as const) {
-        const stat = document.createElement("span");
-        stat.className = style.characterStat;
-        const statLabel = document.createElement("span");
-        statLabel.className = style.characterStatLabel;
-        statLabel.textContent = label;
-        const statValue = document.createElement("strong");
-        statValue.className = style.characterStatValue;
-        statValue.textContent = String(value);
-        stat.append(statLabel, statValue);
-        stats.append(stat);
-      }
-
-      const availability = document.createElement("span");
-      availability.className = style.characterAvailability;
-      if (isRevealing) {
-        availability.textContent = selection.selectedCharacters.find((candidate) => candidate.characterId === character.characterId)?.nickname ?? "Assigned";
-      } else if (ownPreference) {
-        availability.textContent = "Your preference";
-      } else if (canChoose) {
-        availability.textContent = "Choose character";
-      } else {
-        availability.textContent = "Waiting";
-      }
-      button.append(characterClass, name, stats, availability);
-      if (selected.length > 0) {
-        const count = document.createElement("span");
-        count.className = style.characterCount;
-        count.textContent = String(selected.length);
-        count.setAttribute("aria-label", `Chosen by ${selected.length} players`);
-        button.append(count);
-      }
-      if (canChoose) {
-        button.addEventListener("click", () => {
-          void this.#selectCharacter(character.characterId, character.characterClass);
-        });
-      }
-      return button;
-    }));
-
-    roster.replaceChildren(...selection.selectedCharacters.map((chosen) => {
-      const item = document.createElement("li");
-      item.textContent = `${chosen.nickname}: ${chosen.characterName}`;
-      return item;
-    }));
-  }
-
-  async #selectCharacter (characterId: number, characterName: string) {
-    const playerId = this.#playerId;
-    if (playerId === null) return;
-
-    this.#selectionPending = true;
-    this.#setText("#selectionFeedback", `Selecting ${characterName}...`);
-    if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
-    try {
-      const result = await this.sendGameAction({
-        phase: "Setup",
-        kind: "CharacterSelection",
-        playerId,
-        characterId,
-        characterName,
-      });
-      this.#selectionPending = false;
-      if (result.status === "accepted") {
-        this.#setText("#selectionFeedback", `Selected ${characterName}.`);
+    const selectionPath = `/game/${gameId}/in-progress/character-selection`;
+    if (state.characterSelection.stage !== null) {
+      if (location.pathname !== selectionPath) {
+        navigate(
+          "/game/:id/in-progress/character-selection",
+          { id: String(gameId) },
+          { replace: true },
+        );
         return;
       }
-      if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
-      this.#setText("#selectionFeedback", result.error?.message ?? "The character selection was rejected.");
-    } catch (error) {
-      this.#selectionPending = false;
-      if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
-      this.#setText(
-        "#selectionFeedback",
-        error instanceof Error
-          ? error.message
-          : "Unable to send the character selection.",
+      const selectionComponent = this.querySelector<BgsCharacterSelectionElement>(
+        "#characterSelectionRoute bgs-character-selection",
       );
-    }
-  }
-
-  async #readyForNextPhase (isChoosing: boolean) {
-    const playerId = this.#playerId;
-    if (playerId === null || this.#selectionPending) return;
-    this.#selectionPending = true;
-    this.#setText("#selectionFeedback", "Confirming ready...");
-    if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
-    try {
-      const phase = isChoosing
-        ? "Setup"
-        : "CharacterReveal";
-      const kind = isChoosing
-        ? "CharacterSelectionReady"
-        : "CharacterRevealReady";
-      const result = await this.sendGameAction({
-        phase,
-        kind,
-        playerId,
-      });
-      this.#selectionPending = false;
-      if (result.status !== "accepted") {
-        this.#setText("#selectionFeedback", result.error?.message ?? "Unable to confirm ready.");
-      } else if (this.#lastGameState) {
-        this.#renderCharacterSelection(this.#lastGameState);
+      if (selectionComponent && this.#playerId !== null) {
+        selectionComponent.setGameContext(
+          state,
+          this.#playerId,
+          (action) => this.sendGameAction(action),
+        );
       }
-    } catch (error) {
-      this.#selectionPending = false;
-      this.#setText(
-        "#selectionFeedback",
-        error instanceof Error
-          ? error.message
-          : "Unable to confirm ready.",
+    } else if (location.pathname === selectionPath) {
+      navigate(
+        "/game/:id/in-progress",
+        { id: String(gameId) },
+        { replace: true },
       );
-      if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
     }
   }
 

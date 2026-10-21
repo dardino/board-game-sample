@@ -7,6 +7,10 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
 
   public static readonly tagName = "bgs-menu";
 
+  #unsubscribeRegistrationChanges: (() => void) | null = null;
+
+  #renderRequest = 0;
+
   public static register () {
     customElements.define(
       BgsMenuComponent.tagName,
@@ -22,8 +26,21 @@ export const BgsMenuComponent: BgsComponentTypeStatic = class BgsMenuComponent e
     this.render();
   }
 
+  connectedCallback () {
+    this.#unsubscribeRegistrationChanges = Registration.SubscribeToChanges(() => {
+      void this.render();
+    });
+  }
+
+  disconnectedCallback () {
+    this.#unsubscribeRegistrationChanges?.();
+    this.#unsubscribeRegistrationChanges = null;
+  }
+
   async render () {
+    const renderRequest = ++this.#renderRequest;
     const userInfo = await Registration.GetMe();
+    if (renderRequest !== this.#renderRequest) return;
     [
       this.#linkLogout,
       this.#gameList,
