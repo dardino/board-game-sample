@@ -71,36 +71,46 @@ describe("Complete game flow", () => {
     }
     expect(game.ruleState.allowedNextActions).toEqual(["CharacterSelection"]);
 
-    const socket = new TestGameSocket();
-    gateway.handleConnection(socket);
-    socket.receive(JSON.stringify({
-      type: "subscribe",
-      gameId: game.gameId,
-    }));
-    expect(JSON.parse(socket.messages[0])).toMatchObject({
-      type: "game-state",
-      gameId: game.gameId,
-      phase: "Setup",
-      turnPhase: "CharacterSelection",
-    });
+    const sockets = game.connectedPlayers.map(() => new TestGameSocket());
+    for (const socket of sockets) {
+      gateway.handleConnection(socket);
+      socket.receive(JSON.stringify({
+        type: "subscribe",
+        gameId: game.gameId,
+      }));
+      expect(JSON.parse(socket.messages[0])).toMatchObject({
+        type: "game-state",
+        gameId: game.gameId,
+        phase: "Setup",
+        turnPhase: "CharacterSelection",
+        characterSelection: {
+          selectedCharacters: [],
+        },
+      });
+    }
 
     const events: unknown[] = [];
     const subscription = lobbyEvents.events$.subscribe((event) => events.push(event));
-    socket.receive(JSON.stringify({
-      type: "game-action",
-      requestId: "character-selection-1",
-      gameId: game.gameId,
-      actorPlayerId: game.connectedPlayers[0].id,
-      action: {
-        phase: "Setup",
-        kind: "CharacterSelection",
-        selectedCharacters: game.connectedPlayers.map((player, index) => ({
+    for (const [index, player] of game.connectedPlayers.entries()) {
+      sockets[index].receive(JSON.stringify({
+        type: "game-action",
+        requestId: `character-selection-${index}`,
+        gameId: game.gameId,
+        actorPlayerId: player.id,
+        action: {
+          phase: "Setup",
+          kind: "CharacterSelection",
           playerId: player.id,
           characterId: CHARACTERS[index].characterId,
           characterName: CHARACTERS[index].characterClass,
-        })),
-      },
-    }));
+        },
+      }));
+      expect(JSON.parse(sockets[index].messages.at(-1)!)).toMatchObject({
+        type: "game-action-result",
+        requestId: `character-selection-${index}`,
+        status: "accepted",
+      });
+    }
     const selection = gamesService.getGameState(game.gameId);
 
     expect(selection.phase).toBe("PlayerTurn");
@@ -112,20 +122,20 @@ describe("Complete game flow", () => {
         }),
       }))),
     });
-    expect(events).toHaveLength(2);
-    expect(socket.messages).toHaveLength(3);
-    expect(JSON.parse(socket.messages[1])).toMatchObject({
-      type: "game-state",
-      gameId: game.gameId,
-      phase: "PlayerTurn",
-      allowedActions: ["Move", "Fight", "Pass"],
-    });
-    expect(JSON.parse(socket.messages[2])).toMatchObject({
-      type: "game-action-result",
-      requestId: "character-selection-1",
-      status: "accepted",
-    });
-    socket.receive(JSON.stringify({
+    expect(events).toHaveLength(8);
+    for (const socket of sockets) {
+      expect(socket.messages).toHaveLength(6);
+      const parsedMessages = socket.messages.map((message) => JSON.parse(message));
+      const gameStates = parsedMessages.filter((message) => message.type === "game-state");
+      expect(gameStates).toHaveLength(5);
+      expect(gameStates.at(-1)).toMatchObject({
+        type: "game-state",
+        gameId: game.gameId,
+        phase: "PlayerTurn",
+        allowedActions: ["Move", "Fight", "Pass"],
+      });
+    }
+    sockets[0].receive(JSON.stringify({
       type: "game-action",
       requestId: "wrong-player-1",
       gameId: game.gameId,
@@ -136,7 +146,7 @@ describe("Complete game flow", () => {
         playerId: game.connectedPlayers[1].id,
       },
     }));
-    expect(JSON.parse(socket.messages[3])).toMatchObject({
+    expect(JSON.parse(sockets[0].messages[6])).toMatchObject({
       type: "game-action-result",
       requestId: "wrong-player-1",
       status: "rejected",
@@ -144,7 +154,7 @@ describe("Complete game flow", () => {
         code: "ACTION_REJECTED",
       },
     });
-    gateway.handleDisconnect(socket);
+    for (const socket of sockets) gateway.handleDisconnect(socket);
     subscription.unsubscribe();
   });
 });

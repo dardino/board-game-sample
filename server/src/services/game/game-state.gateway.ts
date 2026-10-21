@@ -9,6 +9,7 @@ import { WebSocketGateway } from "@nestjs/websockets";
 import { GameEvent } from "@dto/matchmaking/game-event.dto";
 import { Connections } from "@/gameone/gameone-contents";
 import { AllPossibleAction } from "@/gameone/rules/state.types";
+import { GameJoinException } from "@/errors/gameJoin";
 import { GamesServices } from "./games.service";
 import { LobbyEventsService } from "./lobby-events.service";
 
@@ -55,14 +56,12 @@ function isClientGameAction (action: unknown): action is AllPossibleAction {
   if (!isRecord(action)) return false;
   if (action.kind === "CharacterSelection") {
     return action.phase === "Setup" &&
-      Array.isArray(action.selectedCharacters) &&
-      action.selectedCharacters.every((selection) => isRecord(selection) &&
-        typeof selection.playerId === "number" &&
-        Number.isSafeInteger(selection.playerId) &&
-        typeof selection.characterId === "number" &&
-        Number.isSafeInteger(selection.characterId) &&
-        typeof selection.characterName === "string" &&
-        selection.characterName.trim().length > 0);
+      typeof action.playerId === "number" &&
+      Number.isSafeInteger(action.playerId) &&
+      typeof action.characterId === "number" &&
+      Number.isSafeInteger(action.characterId) &&
+      typeof action.characterName === "string" &&
+      action.characterName.trim().length > 0;
   }
   if (action.phase !== "PlayerTurn" ||
     typeof action.playerId !== "number" ||
@@ -206,6 +205,7 @@ export class GameStateGateway {
           this.#send(client, {
             type: "game-error",
             gameId,
+            code: "GAME_NOT_FOUND",
             message: "The game is no longer available.",
           });
           client.close();
@@ -228,13 +228,17 @@ export class GameStateGateway {
   }
 
   #sendError (client: GameWebSocket, gameId: number, error: unknown) {
-    this.#send(client, {
+    const errorEvent: GameStateErrorEvent = {
       type: "game-error",
       gameId,
       message: error instanceof Error
         ? error.message
         : "Unable to retrieve game state.",
-    });
+    };
+    if (error instanceof GameJoinException && error.details.internalCode === 1001) {
+      errorEvent.code = "GAME_NOT_FOUND";
+    }
+    this.#send(client, errorEvent);
   }
 
   #send (

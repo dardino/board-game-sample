@@ -160,28 +160,49 @@ describe(
 
             const initialGameState = getInitialState();
             initialGameState.boss = BOSS_ENEMIES[0];
+            initialGameState.players = [
+              1,
+              2,
+              3,
+              4,
+            ];
             initialGameState.allowedNextActions = ["CharacterSelection"];
-            const newState = applyAction(
-              initialGameState,
+            let newState = initialGameState;
+            const choices = [
               {
-                phase: "Setup",
-                kind: "CharacterSelection",
-                selectedCharacters: [
-                  { characterId: 1,
-                    characterName: "Giocatore 1",
-                    playerId: 1 },
-                  { characterId: 2,
-                    characterName: "Giocatore 2",
-                    playerId: 2 },
-                  { characterId: 3,
-                    characterName: "Giocatore 3",
-                    playerId: 3 },
-                  { characterId: 4,
-                    characterName: "Giocatore 4",
-                    playerId: 4 },
-                ],
+                characterId: 1,
+                characterName: "Giocatore 1",
+                playerId: 1,
               },
-            );
+              {
+                characterId: 2,
+                characterName: "Giocatore 2",
+                playerId: 2,
+              },
+              {
+                characterId: 3,
+                characterName: "Giocatore 3",
+                playerId: 3,
+              },
+              {
+                characterId: 4,
+                characterName: "Giocatore 4",
+                playerId: 4,
+              },
+            ];
+            for (const choice of choices) {
+              newState = applyAction(
+                newState,
+                {
+                  phase: "Setup",
+                  kind: "CharacterSelection",
+                  ...choice,
+                },
+              );
+              if (choice.playerId !== 4) {
+                expect(newState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
+              }
+            }
             expect(newState.previousAction).toBe("CharacterSelection");
             expect(newState.charactersByPlayers.length).toBe(4);
             expect(newState.allowedNextActions).toStrictEqual(["GoToPlayerTurn"]);
@@ -315,7 +336,7 @@ describe(
             expect(newState.allowedNextActions).toStrictEqual(["PlaceTile"]);
             expect(newState.tileToPlace).not.toBeNull();
             // posiziono girandola di 1
-            newState = applyAction(
+            applyAction(
               newState,
               {
                 phase: "PlayerTurn",
@@ -376,35 +397,37 @@ describe(
                 ],
               },
             );
-            newState = GameOneMatchManager(
-              newState,
+            for (const selection of [
               {
-                phase: "Setup",
-                kind: "CharacterSelection",
-                selectedCharacters: [
-                  {
-                    characterId: 4,
-                    playerId: 1,
-                    characterName: "Tizio",
-                  },
-                  {
-                    characterId: 3,
-                    playerId: 2,
-                    characterName: "Caio",
-                  },
-                  {
-                    characterId: 2,
-                    playerId: 3,
-                    characterName: "Sempronio",
-                  },
-                  {
-                    characterId: 1,
-                    playerId: 4,
-                    characterName: "Riccardo",
-                  },
-                ],
+                characterId: 4,
+                playerId: 1,
+                characterName: "Tizio",
               },
-            );
+              {
+                characterId: 3,
+                playerId: 2,
+                characterName: "Caio",
+              },
+              {
+                characterId: 2,
+                playerId: 3,
+                characterName: "Sempronio",
+              },
+              {
+                characterId: 1,
+                playerId: 4,
+                characterName: "Riccardo",
+              },
+            ]) {
+              newState = GameOneMatchManager(
+                newState,
+                {
+                  phase: "Setup",
+                  kind: "CharacterSelection",
+                  ...selection,
+                },
+              );
+            }
             expect(newState.phase).toBe("PlayerTurn" satisfies GamePhases);
             expect(newState.allowedNextActions).toStrictEqual(Flow.PlayerTurn.Awake);
             expect(newState.previousAction).toBe("Awake" satisfies AllPossibleActionKind);

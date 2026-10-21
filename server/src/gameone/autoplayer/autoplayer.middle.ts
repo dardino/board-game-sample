@@ -48,11 +48,17 @@ function getAction (state: GameoneState): AllPossibleAction | null {
     case "DrawBoss":
     case "ShuffleTiles":
     case "PlaceFirstTile":
-    case "CharacterSelection":
       return {
         phase: "Setup",
         kind: Flow.Setup[state.previousAction][0],
       };
+    case "CharacterSelection":
+      return state.allowedNextActions[0] === "GoToPlayerTurn"
+        ? {
+          phase: "Setup",
+          kind: "GoToPlayerTurn",
+        }
+        : null;
     case "SetPlayngOrder":
       return null;
     case "GoToPlayerTurn":

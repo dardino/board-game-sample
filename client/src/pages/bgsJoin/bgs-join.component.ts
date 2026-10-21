@@ -4,6 +4,25 @@ import { navigate } from "../../routes/navigation";
 import { Registration } from "../../services/registration/registration.service";
 import template from "./bgs-join.template.html?raw";
 
+const LAST_USED_NICKNAME_KEY = "board-game-sample.last-used-nickname";
+
+function getLastUsedNickname (): string {
+  try {
+    return globalThis.localStorage.getItem(LAST_USED_NICKNAME_KEY) ?? "";
+  } catch (error) {
+    console.error("Unable to read the last used nickname:", error);
+    return "";
+  }
+}
+
+function rememberNickname (nickname: string) {
+  try {
+    globalThis.localStorage.setItem(LAST_USED_NICKNAME_KEY, nickname);
+  } catch (error) {
+    console.error("Unable to save the last used nickname:", error);
+  }
+}
+
 export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent extends HTMLElement {
 
   public static readonly tagName = "bgs-join";
@@ -76,7 +95,12 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   connectedCallback () {
     this.#attachEvents();
     Registration.GetMe().then((resp) => {
-      if (resp) this.#playerInfo = resp;
+      if (resp) {
+        this.#playerInfo = resp;
+        rememberNickname(resp.nickname);
+      } else {
+        this.#playerInfo.nickname = getLastUsedNickname();
+      }
       this.#errorMessages = Registration.Errors;
       this.render();
     });
@@ -124,7 +148,9 @@ export const BgsJoinComponent: BgsComponentTypeStatic = class BgsJoinComponent e
   #submit = async (event: SubmitEvent) => {
     event.preventDefault();
     event.stopImmediatePropagation();
-    const registered = await Registration.RegisterMe(this.#elInput.value);
+    const nickname = this.#elInput.value.trim();
+    if (nickname) rememberNickname(nickname);
+    const registered = await Registration.RegisterMe(nickname);
     if (!registered) {
       this.#errorMessages = Registration.Errors;
       this.render();

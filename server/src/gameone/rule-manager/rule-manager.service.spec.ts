@@ -21,29 +21,33 @@ describe("GameOneRuleService", () => {
     expect(transition.events).toEqual([]);
   });
 
-  it("applies character selection and advances to the first player turn", () => {
+  it("collects player character selections and advances after the last choice", () => {
     const initialized = service.initialize(context);
-    const transition = service.applyAction(
+    const firstSelection = service.applyAction(
       initialized.state,
       {
         phase: "Setup",
         kind: "CharacterSelection",
-        selectedCharacters: [
-          {
-            playerId: 1,
-            characterId: 1,
-            characterName: "Chierico",
-          },
-          {
-            playerId: 2,
-            characterId: 2,
-            characterName: "Barbaro",
-          },
-        ],
+        playerId: 1,
+        characterId: 1,
+        characterName: "Chierico",
       },
       context,
     );
+    expect(firstSelection.state.allowedNextActions).toEqual(["CharacterSelection"]);
+    expect(firstSelection.state.charactersByPlayers).toHaveLength(1);
 
+    const transition = service.applyAction(
+      firstSelection.state,
+      {
+        phase: "Setup",
+        kind: "CharacterSelection",
+        playerId: 2,
+        characterId: 2,
+        characterName: "Barbaro",
+      },
+      context,
+    );
     expect(transition.state.phase).toBe("PlayerTurn");
     expect(transition.state.previousAction).toBe("Awake");
     expect(transition.state.allowedNextActions).toEqual(["Move", "Fight", "Pass"]);

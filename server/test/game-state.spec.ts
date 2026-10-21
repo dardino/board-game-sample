@@ -101,23 +101,52 @@ describe("Game state WebSocket (e2e)", () => {
       });
       socket.send(JSON.stringify({
         type: "game-action",
-        requestId: "select-characters",
+        requestId: "select-character",
         gameId,
         actorPlayerId: playerIds[0],
         action: {
           phase: "Setup",
           kind: "CharacterSelection",
-          selectedCharacters: playerIds.map((playerId, index) => ({
-            playerId,
-            characterId: index + 1,
-            characterName: nicknames[index],
-          })),
+          playerId: playerIds[0],
+          characterId: 1,
+          characterName: nicknames[0],
         },
       }));
       await expect(actionResult).resolves.toMatchObject({
         type: "game-action-result",
-        requestId: "select-characters",
+        requestId: "select-character",
         status: "accepted",
+      });
+
+      const gameRemoved = new Promise<unknown>((resolve) => {
+        const handleMessage = (event: MessageEvent) => {
+          const message: unknown = JSON.parse(String(event.data));
+          if (
+            typeof message === "object" &&
+            message !== null &&
+            "type" in message &&
+            message.type === "game-error"
+          ) {
+            socket.removeEventListener("message", handleMessage);
+            resolve(message);
+          }
+        };
+        socket.addEventListener("message", handleMessage);
+      });
+      await request(app.getHttpServer()).
+        post("/mm/leave").
+        send({ nickName: nicknames[0],
+          gameId }).
+        expect(201);
+      await request(app.getHttpServer()).
+        post("/mm/leave").
+        send({ nickName: nicknames[1],
+          gameId }).
+        expect(201);
+      await expect(gameRemoved).resolves.toMatchObject({
+        type: "game-error",
+        gameId,
+        code: "GAME_NOT_FOUND",
       });
     } finally {
       socket.close();

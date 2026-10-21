@@ -43,14 +43,16 @@ describe(
           ],
         },
       );
-      state = GameOneMatchManager(
-        state,
-        {
-          kind: "CharacterSelection",
-          phase: "Setup",
-          selectedCharacters: characters,
-        },
-      );
+      for (const character of characters) {
+        state = GameOneMatchManager(
+          state,
+          {
+            kind: "CharacterSelection",
+            phase: "Setup",
+            ...character,
+          },
+        );
+      }
       return state;
 
     };

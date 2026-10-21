@@ -1,4 +1,18 @@
-<main class="gameBoard" aria-label="Game in progress"></main>
+<main class="gameBoard" aria-label="Game in progress">
+  <section id="characterSelection" class="characterPanel" aria-labelledby="characterSelectionTitle" hidden>
+    <header class="selectionHeading">
+      <p class="eyebrow">Character selection</p>
+      <h1 id="characterSelectionTitle">Choose your hero</h1>
+      <p id="selectionInstructions">Each player chooses a different character.</p>
+    </header>
+    <p id="selectionFeedback" class="selectionFeedback" role="status" aria-live="polite"></p>
+    <div id="characterGrid" class="characterGrid"></div>
+    <section class="selectedRoster" aria-labelledby="selectedRosterTitle">
+      <h2 id="selectedRosterTitle">Chosen by the party</h2>
+      <ul id="selectedCharacters"></ul>
+    </section>
+  </section>
+</main>
 <footer class="statusBar" aria-label="Live game status">
   <div class="statusItem">
     <span class="statusLabel">Game phase</span>

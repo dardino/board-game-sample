@@ -6,12 +6,35 @@ export interface GameStateEvent {
   currentPlayer: string | null;
   turnPhase: string | null;
   allowedActions: string[];
+  characterSelection: GameCharacterSelectionStatus;
   state: unknown;
+}
+
+export interface GameCharacterSelectionStatus {
+  players: {
+    playerId: number;
+    nickname: string;
+  }[];
+  availableCharacters: {
+    characterId: number;
+    characterClass: string;
+    startingLife: number;
+    startingEnergy: number;
+    movementSpeed: number;
+    defence: number;
+  }[];
+  selectedCharacters: {
+    playerId: number;
+    nickname: string;
+    characterId: number;
+    characterName: string;
+  }[];
 }
 
 export interface GameStateErrorEvent {
   type: "game-error";
   gameId?: number;
+  code?: "GAME_NOT_FOUND";
   message: string;
 }
 

@@ -1,16 +1,16 @@
 import { CHARACTERS } from "@/gameone/gameone-contents";
 import { Flow } from "../gameone.flow";
 import {
-    CharacterSelectionAction,
-    GameoneState,
-    StateReducer,
+  CharacterSelectionAction,
+  GameoneState,
+  StateReducer,
 } from "../state.types";
 
 function buildCharacters ({
   characterId,
   characterName,
   playerId,
-}: CharacterSelectionAction["selectedCharacters"][number]): GameoneState["charactersByPlayers"][number] {
+}: CharacterSelectionAction): GameoneState["charactersByPlayers"][number] {
 
   const character = CHARACTERS.find((char) => char.characterId === characterId);
   if (!character) throw new Error("Non ho trovato un personaggio con questo id: " + characterId);
@@ -28,11 +28,30 @@ function buildCharacters ({
 
 export const CharacterSelectionReducer: StateReducer<
   CharacterSelectionAction
-> = (_state, action) => {
+> = (state, action) => {
+  if (!state.players.includes(action.playerId)) {
+    throw new Error("Il giocatore non appartiene a questa partita.");
+  }
+  if (state.charactersByPlayers.some((selection) => selection.playerId === action.playerId)) {
+    throw new Error("Il giocatore ha già scelto un personaggio.");
+  }
+  if (state.charactersByPlayers.some((selection) => selection.character.characterId === action.characterId)) {
+    throw new Error("Il personaggio è già stato scelto.");
+  }
+
+  const charactersByPlayers = [
+    ...state.charactersByPlayers,
+    buildCharacters(action),
+  ];
+  const allPlayersSelected = state.players.every((playerId) => {
+    return charactersByPlayers.some((selection) => selection.playerId === playerId);
+  });
 
   return {
-    charactersByPlayers: action.selectedCharacters.map(buildCharacters),
-    allowedNextActions: Flow.Setup.CharacterSelection,
+    charactersByPlayers,
+    allowedNextActions: allPlayersSelected
+      ? Flow.Setup.CharacterSelection
+      : ["CharacterSelection"],
     previousAction: action.kind,
   };
 

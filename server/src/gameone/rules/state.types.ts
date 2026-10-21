@@ -112,11 +112,9 @@ export type SetPlayngOrderAction = SetupAction<"SetPlayngOrder">;
 export type CharacterSelectionAction = SetupAction<
   "CharacterSelection",
   {
-    selectedCharacters: {
-      playerId: number;
-      characterId: number;
-      characterName: string;
-    }[];
+    playerId: number;
+    characterId: number;
+    characterName: string;
   }
 >;
 export type DrawBossAction = SetupAction<"DrawBoss">;

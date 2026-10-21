@@ -8,6 +8,155 @@
   min-height: calc(100svh - 5rem);
 }
 
+.characterPanel {
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  color: #f4f6f8;
+}
+
+.selectionHeading {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.selectionHeading h1 {
+  margin: 0.25rem 0;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+}
+
+.selectionHeading p {
+  color: #c3ccd6;
+}
+
+.eyebrow {
+  margin: 0;
+  color: #e9c46a !important;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.selectionFeedback {
+  min-height: 1.5rem;
+  color: #e9c46a;
+  text-align: center;
+}
+
+.characterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+
+.characterCard {
+  display: flex;
+  min-height: 18rem;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.25rem;
+  border: 2px solid rgb(255 255 255 / 24%);
+  border-radius: 1rem;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 0.75rem 1.5rem rgb(0 0 0 / 28%);
+  transition: transform 150ms ease, border-color 150ms ease, opacity 150ms ease;
+}
+
+.characterCard:not(:disabled):hover,
+.characterCard:not(:disabled):focus-visible {
+  transform: translateY(-0.25rem);
+  border-color: #fff;
+}
+
+.characterCard:focus-visible {
+  outline: 3px solid #e9c46a;
+  outline-offset: 3px;
+}
+
+.characterCard:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.characterThemeBlue {
+  background: linear-gradient(145deg, #345995, #1d3557);
+}
+
+.characterThemeRed {
+  background: linear-gradient(145deg, #b94a48, #652f35);
+}
+
+.characterThemePurple {
+  background: linear-gradient(145deg, #7654a3, #42275e);
+}
+
+.characterThemeGreen {
+  background: linear-gradient(145deg, #43836a, #204d43);
+}
+
+.characterClass {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.characterName {
+  margin: 0.4rem 0 1rem;
+  font-size: 1.7rem;
+}
+
+.characterStats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: auto 0 1rem;
+}
+
+.characterStat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.characterStatLabel {
+  font-size: 0.7rem;
+  opacity: 0.78;
+  text-transform: uppercase;
+}
+
+.characterStatValue {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.characterAvailability {
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(255 255 255 / 28%);
+  font-weight: 700;
+}
+
+.selectedRoster {
+  margin-top: 2rem;
+}
+
+.selectedRoster h2 {
+  font-size: 1.1rem;
+}
+
+.selectedRoster ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  padding-left: 1.25rem;
+  color: #c3ccd6;
+}
+
 .statusBar {
   position: fixed;
   z-index: 10;
@@ -61,6 +210,10 @@
 
   .gameBoard {
     min-height: calc(100svh - 12rem);
+  }
+
+  .characterPanel {
+    padding: 1.5rem 1rem;
   }
 
   .statusItem {

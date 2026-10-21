@@ -42,12 +42,14 @@ describe(
         expect(gameState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
 
         // scelta dei personaggi
-        gameState = GameOneMatchManager(
-          gameState,
-          { phase: "Setup",
-            kind: "CharacterSelection",
-            selectedCharacters: characters },
-        );
+        for (const character of characters) {
+          gameState = GameOneMatchManager(
+            gameState,
+            { phase: "Setup",
+              kind: "CharacterSelection",
+              ...character },
+          );
+        }
         expect(gameState.allowedNextActions).toStrictEqual([
           "Move",
           "Fight",
@@ -55,7 +57,7 @@ describe(
         ] satisfies AllPossibleActionKind[]);
         expect(gameState.currentPlayerIndex).toBe(0);
         const playerOrder = gameState.players.slice();
-        let currentPlayerId = playerOrder[0];
+        const currentPlayerId = playerOrder[0];
 
         // giocatore 1 muove in alto a sinistra (TL)
         gameState = GameOneMatchManager(
@@ -94,7 +96,6 @@ describe(
             playerId: currentPlayerId },
         );
         expect(gameState.currentPlayerIndex).toBe(1);
-        currentPlayerId = playerOrder[1];
 
       },
     );

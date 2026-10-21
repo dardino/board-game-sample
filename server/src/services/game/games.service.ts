@@ -2,6 +2,7 @@ import { GameJoinException } from "@/errors/gameJoin";
 import { GameStartException } from "@/errors/gameStart";
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
 import { AllPossibleAction, GameoneState } from "@/gameone/rules/state.types";
+import { CHARACTERS } from "@/gameone/gameone-contents";
 import { GameStateEvent } from "@dto/game-state.dto/game-state.dto";
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { PlayersService } from "@/services/players/players.service";
@@ -135,6 +136,26 @@ export class GamesServices {
         ? state.previousAction
         : state.allowedNextActions[0] ?? state.previousAction,
       allowedActions: state.allowedNextActions,
+      characterSelection: {
+        players: game.connectedPlayers.map((player) => ({
+          playerId: player.id,
+          nickname: player.nickname,
+        })),
+        availableCharacters: CHARACTERS.map((character) => ({
+          characterId: character.characterId,
+          characterClass: character.characterClass,
+          startingLife: character.startingLife,
+          startingEnergy: character.startingEnergy,
+          movementSpeed: character.movementSpeed,
+          defence: character.defence,
+        })),
+        selectedCharacters: state.charactersByPlayers.map(({ playerId, character }) => ({
+          playerId,
+          nickname: game.connectedPlayers.find((player) => player.id === playerId)?.nickname ?? "",
+          characterId: character.characterId,
+          characterName: character.characterName,
+        })),
+      },
       state: this.ruleManagerService.getSnapshot(state),
     };
   }
@@ -146,19 +167,6 @@ export class GamesServices {
     }
     if ("playerId" in action && action.playerId !== actorPlayerId) {
       throw new Error("L'azione non corrisponde al giocatore mittente.");
-    }
-    if (action.kind === "CharacterSelection") {
-      const selectedPlayerIds = action.selectedCharacters.map((selection) => selection.playerId);
-      const selectedCharacterIds = action.selectedCharacters.map((selection) => selection.characterId);
-      const gamePlayerIds = game.connectedPlayers.map((player) => player.id);
-      if (
-        selectedPlayerIds.length !== gamePlayerIds.length ||
-        new Set(selectedPlayerIds).size !== gamePlayerIds.length ||
-          gamePlayerIds.some((playerId) => !selectedPlayerIds.includes(playerId)) ||
-          new Set(selectedCharacterIds).size !== selectedCharacterIds.length
-      ) {
-        throw new Error("Ogni giocatore deve scegliere un personaggio diverso.");
-      }
     }
     const transition = this.ruleManagerService.applyAction(
       state,
