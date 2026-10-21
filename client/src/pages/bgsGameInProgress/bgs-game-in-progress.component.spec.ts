@@ -59,6 +59,10 @@ class MockHTMLElement {
 
   static current: MockHTMLElement | null = null;
 
+  static characterSelection = {
+    setGameContext: vi.fn(),
+  };
+
   innerHTML = "";
 
   classList = { add: vi.fn() };
@@ -87,9 +91,11 @@ class MockHTMLElement {
   }
 
   querySelector (selector: string) {
-    return selector === "#connectionStatus"
-      ? this.connectionStatus
-      : null;
+    if (selector === "#connectionStatus") return this.connectionStatus;
+    if (selector === "#gameContentRoute bgs-character-selection") {
+      return MockHTMLElement.characterSelection;
+    }
+    return null;
   }
 
 }
@@ -299,6 +305,52 @@ describe("BgsGameInProgressComponent", () => {
       { id: "42" },
       { replace: true },
     );
+  });
+
+  it("passes the current game state to the character selection route", async () => {
+    vi.stubGlobal("location", {
+      href: "http://localhost/game/42/in-progress/character-selection",
+      pathname: "/game/42/in-progress/character-selection",
+    });
+    const { socket } = await connectComponent();
+    socket.emit("message", new MessageEvent("message", {
+      data: JSON.stringify({
+        type: "game-state",
+        gameId: 42,
+        gameType: "eldorasia",
+        phase: "Setup",
+        currentPlayer: null,
+        turnPhase: "CharacterSelection",
+        allowedActions: ["CharacterSelection"],
+        chat: {
+          messages: [],
+        },
+        characterSelection: {
+          stage: "choosing",
+          endsAt: Date.now() + 30_000,
+          readyPlayerIds: [],
+          players: [
+            { playerId: 1,
+              nickname: "player-one" },
+          ],
+          availableCharacters: [
+            {
+              characterId: 1,
+              characterClass: "Chierico",
+              startingLife: 7,
+              startingEnergy: 5,
+              movementSpeed: 2,
+              defence: 1,
+            },
+          ],
+          selectedCharacters: [],
+        },
+        state: {},
+      }),
+    }));
+
+    expect(MockHTMLElement.characterSelection.setGameContext).toHaveBeenCalledOnce();
+    expect(mocks.navigate).not.toHaveBeenCalled();
   });
 
   it("opens the game board after character selection is complete", async () => {

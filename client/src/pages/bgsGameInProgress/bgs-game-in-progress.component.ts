@@ -428,7 +428,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
         return;
       }
       const selectionComponent = this.querySelector<BgsCharacterSelectionElement>(
-        "#characterSelectionRoute bgs-character-selection",
+        "#gameContentRoute bgs-character-selection",
       );
       if (selectionComponent && this.#playerId !== null) {
         selectionComponent.setGameContext(
