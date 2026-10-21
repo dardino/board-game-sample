@@ -404,19 +404,20 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       ? `Available: ${state.allowedActions.join(", ")}`
       : "";
     this.#setText("#turnPhase", [turnPhase, allowedActions].filter(Boolean).join(" — "));
-    this.#syncCharacterSelectionRoute(state);
+    this.#syncGameContentRoute(state);
     this.#setConnectionStatus("Live");
   }
 
   #handleCharacterSelectionConnected = () => {
-    if (this.#lastGameState) this.#syncCharacterSelectionRoute(this.#lastGameState);
+    if (this.#lastGameState) this.#syncGameContentRoute(this.#lastGameState);
   };
 
-  #syncCharacterSelectionRoute (state: GameStateEvent) {
+  #syncGameContentRoute (state: GameStateEvent) {
     const gameId = this.#gameId;
     if (gameId === null) return;
 
     const selectionPath = `/game/${gameId}/in-progress/character-selection`;
+    const boardPath = `/game/${gameId}/in-progress/board`;
     if (state.characterSelection.stage !== null) {
       if (location.pathname !== selectionPath) {
         navigate(
@@ -436,9 +437,9 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
           (action) => this.sendGameAction(action),
         );
       }
-    } else if (location.pathname === selectionPath) {
+    } else if (location.pathname !== boardPath) {
       navigate(
-        "/game/:id/in-progress",
+        "/game/:id/in-progress/board",
         { id: String(gameId) },
         { replace: true },
       );

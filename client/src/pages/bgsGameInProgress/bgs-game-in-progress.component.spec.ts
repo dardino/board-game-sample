@@ -300,4 +300,40 @@ describe("BgsGameInProgressComponent", () => {
       { replace: true },
     );
   });
+
+  it("opens the game board after character selection is complete", async () => {
+    const { socket } = await connectComponent();
+    socket.emit("message", new MessageEvent("message", {
+      data: JSON.stringify({
+        type: "game-state",
+        gameId: 42,
+        gameType: "eldorasia",
+        phase: "PlayerTurn",
+        currentPlayer: "player-one",
+        turnPhase: "Awake",
+        allowedActions: ["Move"],
+        chat: {
+          messages: [],
+        },
+        characterSelection: {
+          stage: null,
+          endsAt: null,
+          readyPlayerIds: [],
+          players: [
+            { playerId: 1,
+              nickname: "player-one" },
+          ],
+          availableCharacters: [],
+          selectedCharacters: [],
+        },
+        state: {},
+      }),
+    }));
+
+    expect(mocks.navigate).toHaveBeenCalledWith(
+      "/game/:id/in-progress/board",
+      { id: "42" },
+      { replace: true },
+    );
+  });
 });

@@ -1,5 +1,6 @@
 import { BgsComponentTypeStatic } from "../helpers/components";
 import { BgsGameComponent } from "../pages/bgsGame/bgs-game.component";
+import { BgsGameBoardComponent } from "../pages/bgsGameBoard/bgs-game-board.component";
 import { BgsCharacterSelectionComponent } from "../pages/bgsCharacterSelection/bgs-character-selection.component";
 import { BgsGameInProgressComponent } from "../pages/bgsGameInProgress/bgs-game-in-progress.component";
 import { BgsGamesComponent } from "../pages/bgsGames/bgs-games.component";
@@ -19,6 +20,10 @@ export const RouteConfigs = {
     content: BgsGameInProgressComponent,
     auth: "always",
     children: {
+      "/game/:id/in-progress/board": {
+        content: BgsGameBoardComponent,
+        auth: "always",
+      },
       "/game/:id/in-progress/character-selection": {
         content: BgsCharacterSelectionComponent,
         auth: "always",
