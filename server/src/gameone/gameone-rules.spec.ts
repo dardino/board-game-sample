@@ -93,7 +93,7 @@ describe(
               },
             );
             expect(newState.previousAction).toBe("ShuffleTiles");
-            expect(newState.allowedNextActions).toStrictEqual(["PlaceFirstTile"]);
+            expect(newState.allowedNextActions).toStrictEqual(["SetPlayngOrder"]);
 
           },
         );
@@ -124,8 +124,9 @@ describe(
               3,
               4,
             ]);
+            expect(newState.onboardTiles[0].type).toBe("Start");
             expect(newState.previousAction).toBe("PlaceFirstTile");
-            expect(newState.allowedNextActions).toStrictEqual(["SetPlayngOrder"]);
+            expect(newState.allowedNextActions).toStrictEqual(["GoToPlayerTurn"]);
 
           },
         );
@@ -227,6 +228,13 @@ describe(
               phase: "CharacterReveal",
               kind: "FinishCharacterReveal",
             });
+            expect(newState.allowedNextActions).toStrictEqual(["PlaceFirstTile"]);
+            newState = applyAction(newState, {
+              phase: "Setup",
+              kind: "PlaceFirstTile",
+            });
+            expect(newState.onboardTiles).toHaveLength(1);
+            expect(newState.onboardTiles[0]?.type).toBe("Start");
             expect(newState.allowedNextActions).toStrictEqual(["GoToPlayerTurn"]);
             newState = applyAction(newState, {
               phase: "Setup",

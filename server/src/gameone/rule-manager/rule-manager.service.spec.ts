@@ -21,7 +21,7 @@ describe("GameOneRuleService", () => {
       "CharacterSelectionReady",
       "ResolveCharacterSelection",
     ]);
-    expect(transition.state.onboardTiles).toHaveLength(1);
+    expect(transition.state.onboardTiles).toHaveLength(0);
     expect(transition.events).toEqual([]);
   });
 
@@ -87,6 +87,8 @@ describe("GameOneRuleService", () => {
     expect(started.state.phase).toBe("PlayerTurn");
     expect(started.state.previousAction).toBe("Awake");
     expect(started.state.allowedNextActions).toEqual(["Move", "Fight", "Pass"]);
+    expect(started.state.onboardTiles).toHaveLength(1);
+    expect(started.state.onboardTiles[0]?.type).toBe("Start");
   });
 
   it("rejects actions from players outside the game", () => {
@@ -106,7 +108,15 @@ describe("GameOneRuleService", () => {
 
   it("returns a snapshot without circular tile links", () => {
     const initialized = service.initialize(context);
-    const snapshot = service.getSnapshot(initialized.state, context);
+    const beforePlacement = {
+      ...initialized.state,
+      allowedNextActions: ["PlaceFirstTile" as const],
+    };
+    const placed = service.applyAction(beforePlacement, {
+      phase: "Setup",
+      kind: "PlaceFirstTile",
+    }, context);
+    const snapshot = service.getSnapshot(placed.state, context);
 
     expect(() => JSON.stringify(snapshot)).not.toThrow();
     expect(snapshot.onboardTiles[0].nodes).toEqual({

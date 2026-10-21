@@ -66,6 +66,10 @@ class MockHTMLElement {
     setGameContext: vi.fn(),
   };
 
+  static gameBoard = {
+    setGameState: vi.fn(),
+  };
+
   innerHTML = "";
 
   classList = { add: vi.fn() };
@@ -97,6 +101,9 @@ class MockHTMLElement {
     if (selector === "#connectionStatus") return this.connectionStatus;
     if (selector === "#gameContentRoute bgs-character-selection") {
       return MockHTMLElement.characterSelection;
+    }
+    if (selector === "#gameContentRoute bgs-game-board") {
+      return MockHTMLElement.gameBoard;
     }
     return null;
   }
@@ -430,5 +437,72 @@ describe("BgsGameInProgressComponent", () => {
       { id: "42" },
       { replace: true },
     );
+  });
+
+  it("passes every game-state snapshot to the game board route", async () => {
+    vi.stubGlobal("location", {
+      href: "http://localhost/game/42/in-progress/board",
+      pathname: "/game/42/in-progress/board",
+    });
+    const { socket } = await connectComponent();
+    const snapshots = [
+      {
+        onboardTiles: [
+          { id: 1,
+            x: 0,
+            y: 0,
+            orientation: 0 },
+        ],
+      },
+      {
+        onboardTiles: [
+          { id: 1,
+            x: 0,
+            y: 0,
+            orientation: 0 },
+          { id: 2,
+            x: 1,
+            y: 0,
+            orientation: 2 },
+        ],
+      },
+    ];
+
+    for (const state of snapshots) {
+      socket.emit("message", new MessageEvent("message", {
+        data: JSON.stringify({
+          type: "game-state",
+          gameId: 42,
+          gameType: "eldorasia",
+          phase: "PlayerTurn",
+          currentPlayer: "player-one",
+          turnPhase: "Awake",
+          allowedActions: ["Move"],
+          chat: {
+            messages: [],
+          },
+          reconnection: {
+            paused: false,
+            resumesAt: null,
+            disconnectedPlayerIds: [],
+          },
+          characterSelection: {
+            stage: null,
+            endsAt: null,
+            readyPlayerIds: [],
+            players: [
+              { playerId: 1,
+                nickname: "player-one" },
+            ],
+            availableCharacters: [],
+            selectedCharacters: [],
+          },
+          state,
+        }),
+      }));
+    }
+
+    expect(MockHTMLElement.gameBoard.setGameState).toHaveBeenNthCalledWith(1, snapshots[0]);
+    expect(MockHTMLElement.gameBoard.setGameState).toHaveBeenNthCalledWith(2, snapshots[1]);
   });
 });

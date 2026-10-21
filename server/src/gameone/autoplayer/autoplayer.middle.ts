@@ -64,7 +64,10 @@ function getAction (state: GameoneState): AllPossibleAction | null {
     case "CharacterRevealReady":
       return null;
     case "FinishCharacterReveal":
-      return null;
+      return {
+        phase: "Setup",
+        kind: "PlaceFirstTile",
+      };
     case "SetPlayngOrder":
       return null;
     case "GoToPlayerTurn":

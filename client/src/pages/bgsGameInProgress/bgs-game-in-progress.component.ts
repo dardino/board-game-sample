@@ -9,6 +9,7 @@ import {
 } from "@dto/game-state.dto/game-state.dto";
 import { matchPath, navigate } from "../../routes/navigation";
 import { Registration } from "../../services/registration/registration.service";
+import type { BgsGameBoardElement } from "../bgsGameBoard/bgs-game-board.component";
 import { BgsGameChatComponent } from "./components/bgs-game-chat/bgs-game-chat.component";
 import { BgsGameSidebarComponent } from "./components/bgs-game-sidebar/bgs-game-sidebar.component";
 import style from "./bgs-game-in-progress.module.css";
@@ -203,6 +204,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     this.#leavingPage = false;
     this.addEventListener("game-chat-send", this.#handleChatSend);
     this.addEventListener("bgs-character-selection-connected", this.#handleCharacterSelectionConnected);
+    this.addEventListener("bgs-game-board-connected", this.#handleGameBoardConnected);
     const gameId = Number(
       matchPath("/game/:id/in-progress", location.pathname)?.params.id ??
       matchPath("/game/:id/in-progress/character-selection", location.pathname)?.params.id ??
@@ -302,6 +304,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   disconnectedCallback () {
     this.removeEventListener("game-chat-send", this.#handleChatSend);
     this.removeEventListener("bgs-character-selection-connected", this.#handleCharacterSelectionConnected);
+    this.removeEventListener("bgs-game-board-connected", this.#handleGameBoardConnected);
     this.#leavingPage = true;
     this.#socket?.close();
     this.#socket = null;
@@ -416,9 +419,20 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       : "";
     this.#setText("#turnPhase", [turnPhase, allowedActions].filter(Boolean).join(" — "));
     this.#renderReconnectionStatus(state);
+    this.#renderGameBoard(state);
     this.#syncGameContentRoute(state);
     this.#setConnectionStatus("Live");
   }
+
+  #renderGameBoard (state: GameStateEvent) {
+    this.querySelector<BgsGameBoardElement>(
+      "#gameContentRoute bgs-game-board",
+    )?.setGameState(state.state);
+  }
+
+  #handleGameBoardConnected = () => {
+    if (this.#lastGameState) this.#renderGameBoard(this.#lastGameState);
+  };
 
   #renderReconnectionStatus (state: GameStateEvent) {
     const status = this.querySelector<HTMLElement>("#reconnectionStatus");

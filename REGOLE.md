@@ -41,16 +41,16 @@ Il codice definisce questi valori, ma non ancora la formula per effettuare un at
 
 1. Si sceglie casualmente uno dei dieci boss elencati nella sezione [Boss disponibili](#boss-disponibili).
 2. Si mescolano separatamente le tessere dei tre anelli. La tessera del boss viene aggiunta al mazzo dell'anello 3.
-3. Si piazza la tessera iniziale, con sei possibili collegamenti.
-4. Si determina casualmente l'ordine dei giocatori.
-5. I giocatori scelgono le preferenze per 30 secondi, poi vengono risolti i conflitti e assegnati i personaggi mancanti.
-6. Si mostrano gli abbinamenti definitivi per 10 secondi, quindi si avvia il primo turno.
+3. Si determina casualmente l'ordine dei giocatori.
+4. I giocatori scelgono le preferenze per 30 secondi, poi vengono risolti i conflitti e assegnati i personaggi mancanti.
+5. Si mostrano gli abbinamenti definitivi per 10 secondi.
+6. Al termine del reveal viene inserita la tessera `Start`, quindi inizia il primo turno.
 
 L'ordine dei passaggi riflette il flusso del motore. La preparazione automatica della partita non è ancora collegata completamente al servizio di gioco.
 
 ## Plancia ed esplorazione
 
-La plancia è composta da tessere esagonali con sei lati: alto-sinistra, alto-destra, destra, basso-destra, basso-sinistra e sinistra. Ogni tessera definisce quali lati hanno un passaggio. Può essere ruotata in sei orientamenti.
+La plancia è composta da tessere esagonali con sei lati: alto-sinistra, alto-destra, destra, basso-destra, basso-sinistra e sinistra. Le tessere hanno le punte rivolte a nord e sud e i lati piatti a est e ovest; ogni tessera definisce quali lati hanno un passaggio e può essere ruotata in sei orientamenti. Il componente riutilizzabile `bgs-game-tile` usa `client/src/assets/tile-000.jpg` come immagine predefinita.
 
 La mappa si espande dalla partenza in tre anelli:
 
@@ -59,6 +59,8 @@ La mappa si espande dalla partenza in tre anelli:
 - **Anello 3:** tessere più interne, con nemici Advanced e la tessera del boss.
 
 Nel prototipo, quando un giocatore si muove attraverso un passaggio ancora inesplorato, viene pescata una tessera dal mazzo dell'anello corrispondente alla posizione. La tessera va ruotata in modo che il suo ingresso combaci con il passaggio aperto, poi viene collegata alla mappa. Se la tessera contiene nemici, vengono aggiunti nemici casuali della classe indicata.
+
+La pagina di gioco renderizza le tessere presenti nello snapshot ricevuto dal server. Per ora sono mostrate senza coordinate o collegamenti grafici; il posizionamento sulla plancia verrà aggiunto in seguito.
 
 Il boss viene collocato sulla tessera dedicata, che ha un solo collegamento.
 

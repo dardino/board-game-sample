@@ -277,6 +277,40 @@ describe("Complete game flow", () => {
     subscription.unsubscribe();
   });
 
+  it("places the START tile when the character reveal phase completes", async () => {
+    vi.useFakeTimers();
+    const playersService = new PlayersService();
+    const lobbyEvents = new LobbyEventsService();
+    const gamesService = new GamesServices(
+      playersService,
+      new GameOneRuleService(),
+      lobbyEvents,
+    );
+    const nicknames = ["owner", "player-two"];
+    for (const [index, nickname] of nicknames.entries()) {
+      await playersService.addPlayer(nickname, `start-tile-client-${index}`);
+    }
+    const game = await gamesService.createNewGame(nicknames[0], "Start tile timing");
+    await gamesService.joinToGame(nicknames[1], game.gameId);
+    await gamesService.startGame(nicknames[0], game.gameId);
+
+    expect(gamesService.getGameState(game.gameId).state).toMatchObject({
+      onboardTiles: [],
+    });
+
+    await vi.advanceTimersByTimeAsync(40_000);
+
+    const startedState = gamesService.getGameState(game.gameId);
+    expect(startedState.phase).toBe("PlayerTurn");
+    expect(startedState.state).toMatchObject({
+      onboardTiles: [
+        expect.objectContaining({
+          type: "Start",
+        }),
+      ],
+    });
+  });
+
   it("resolves preferences and assignments when the 30s and 10s timers expire", async () => {
     vi.useFakeTimers();
     const playersService = new PlayersService();

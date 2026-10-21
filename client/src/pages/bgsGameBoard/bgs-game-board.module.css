@@ -6,15 +6,31 @@
 }
 
 .gameField {
+  display: grid;
   width: min(100%, 72rem);
   min-height: min(70svh, 48rem);
   aspect-ratio: 16 / 10;
+  overflow: auto;
   border: 1px solid #48515c;
   border-radius: 1rem;
   background: linear-gradient(145deg, #242b34, #191e25);
+  place-items: center;
   box-shadow:
     inset 0 0 0 0.5rem rgb(255 255 255 / 2%),
     0 1.5rem 3rem rgb(0 0 0 / 22%);
+}
+
+.gameTiles {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
 }
 
 @media (max-width: 700px) {

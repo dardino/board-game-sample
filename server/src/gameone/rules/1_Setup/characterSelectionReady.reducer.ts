@@ -5,6 +5,7 @@ import {
   GameoneState,
   StateReducer,
 } from "../state.types";
+import { Flow } from "../gameone.flow";
 
 export const CharacterSelectionReadyReducer: StateReducer<
   CharacterSelectionReadyAction
@@ -38,10 +39,10 @@ export const CharacterRevealReadyReducer: StateReducer<
 
 export const FinishCharacterRevealReducer: StateReducer<
   FinishCharacterRevealAction
-> = (): Partial<GameoneState> => ({
+> = (_state, action): Partial<GameoneState> => ({
   phase: "Setup",
-  previousAction: "CharacterSelection",
-  allowedNextActions: ["GoToPlayerTurn"],
+  previousAction: action.kind,
+  allowedNextActions: Flow.CharacterReveal.FinishCharacterReveal,
   characterSelectionReadyPlayers: [],
   characterRevealReadyPlayers: [],
   characterPreferences: [],
