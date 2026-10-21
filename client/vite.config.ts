@@ -12,6 +12,10 @@ export default defineConfig({
           "",
         ), // toglie la parte `api` dall'url: il server non ne ha bisogno
       },
+      "/ws": {
+        target: "ws://localhost:3000",
+        ws: true,
+      },
     },
   },
 });

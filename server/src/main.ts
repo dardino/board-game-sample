@@ -4,6 +4,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { WsAdapter } from "@nestjs/platform-ws";
 import { AppModule } from "./app.module";
 import { HttpExceptionFilter } from "./errors/exceptionsFilter";
 
@@ -13,6 +14,7 @@ async function bootstrap () {
     AppModule,
     new FastifyAdapter({ logger: true }),
   );
+  app.useWebSocketAdapter(new WsAdapter(app));
   await app.register(
     fastifyCookie as never,
     {

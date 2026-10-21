@@ -1,10 +1,37 @@
-import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
 import { CHARACTERS } from "@/gameone/gameone-contents";
+import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
 import { GameoneState } from "@/gameone/rules/state.types";
+import { GameStateGateway, GameWebSocket } from "@/services/game/game-state.gateway";
 import { LobbyEventsService } from "@/services/game/lobby-events.service";
 import { PlayersService } from "@/services/players/players.service";
 import { GamesServices } from "./games.service";
 import { describe, expect, it } from "vitest";
+
+class TestGameSocket implements GameWebSocket {
+
+  readyState = 1;
+
+  #messageListener: ((data: { toString: () => string }) => void) | null = null;
+
+  messages: string[] = [];
+
+  on (_event: "message", listener: (data: { toString: () => string }) => void) {
+    this.#messageListener = listener;
+  }
+
+  send (message: string) {
+    this.messages.push(message);
+  }
+
+  close () {
+    this.readyState = 3;
+  }
+
+  receive (message: string) {
+    this.#messageListener?.({ toString: () => message });
+  }
+
+}
 
 function isGameoneState (state: unknown): state is GameoneState {
   return typeof state === "object" &&
@@ -16,12 +43,13 @@ function isGameoneState (state: unknown): state is GameoneState {
 describe("Complete game flow", () => {
   it("registers four players, starts their game, and assigns each a character", async () => {
     const playersService = new PlayersService();
-    const ruleService = new GameOneRuleService();
+    const lobbyEvents = new LobbyEventsService();
     const gamesService = new GamesServices(
       playersService,
-      ruleService,
-      new LobbyEventsService(),
+      new GameOneRuleService(),
+      lobbyEvents,
     );
+    const gateway = new GameStateGateway(gamesService, lobbyEvents);
     const nicknames = ["owner", "player-two", "player-three", "player-four"];
 
     for (const [index, nickname] of nicknames.entries()) {
@@ -43,32 +71,49 @@ describe("Complete game flow", () => {
     }
     expect(game.ruleState.allowedNextActions).toEqual(["CharacterSelection"]);
 
-    const context = {
+    const socket = new TestGameSocket();
+    gateway.handleConnection(socket);
+    socket.receive(JSON.stringify({
+      type: "subscribe",
       gameId: game.gameId,
-      players: game.connectedPlayers,
-    };
-    const selection = ruleService.applyAction(
-      game.ruleState,
-      {
-        phase: "Setup",
-        kind: "CharacterSelection",
-        selectedCharacters: game.connectedPlayers.map((player, index) => ({
-          playerId: player.id,
-          characterId: CHARACTERS[index].characterId,
-          characterName: CHARACTERS[index].characterClass,
-        })),
-      },
-      context,
-    );
+    }));
+    expect(JSON.parse(socket.messages[0])).toMatchObject({
+      type: "game-state",
+      gameId: game.gameId,
+      phase: "Setup",
+      turnPhase: "CharacterSelection",
+    });
 
-    expect(selection.state.phase).toBe("PlayerTurn");
-    expect(selection.state.charactersByPlayers).toHaveLength(4);
-    expect(selection.state.charactersByPlayers.map(({ playerId, character }) => ({
-      playerId,
-      characterName: character.characterName,
-    }))).toEqual(game.connectedPlayers.map((player, index) => ({
-      playerId: player.id,
-      characterName: CHARACTERS[index].characterClass,
-    })));
+    const events: unknown[] = [];
+    const subscription = lobbyEvents.events$.subscribe((event) => events.push(event));
+    const selection = gamesService.applyGameAction(game.gameId, {
+      phase: "Setup",
+      kind: "CharacterSelection",
+      selectedCharacters: game.connectedPlayers.map((player, index) => ({
+        playerId: player.id,
+        characterId: CHARACTERS[index].characterId,
+        characterName: CHARACTERS[index].characterClass,
+      })),
+    });
+
+    expect(selection.phase).toBe("PlayerTurn");
+    expect(selection.state).toMatchObject({
+      charactersByPlayers: expect.arrayContaining(game.connectedPlayers.map((player, index) => ({
+        playerId: player.id,
+        character: expect.objectContaining({
+          characterName: CHARACTERS[index].characterClass,
+        }),
+      }))),
+    });
+    expect(events).toHaveLength(2);
+    expect(socket.messages).toHaveLength(2);
+    expect(JSON.parse(socket.messages[1])).toMatchObject({
+      type: "game-state",
+      gameId: game.gameId,
+      phase: "PlayerTurn",
+      allowedActions: ["Move", "Fight", "Pass"],
+    });
+    gateway.handleDisconnect(socket);
+    subscription.unsubscribe();
   });
 });

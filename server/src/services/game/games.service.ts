@@ -1,6 +1,8 @@
 import { GameJoinException } from "@/errors/gameJoin";
 import { GameStartException } from "@/errors/gameStart";
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
+import { AllPossibleAction, GameoneState } from "@/gameone/rules/state.types";
+import { GameStateEvent } from "@dto/game-state.dto/game-state.dto";
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { PlayersService } from "@/services/players/players.service";
 import { LobbyEventsService } from "@/services/game/lobby-events.service";
@@ -13,6 +15,18 @@ import { Inject, Injectable } from "@nestjs/common";
 
 function isAvailableGame (game: GameModel): boolean {
   return game.startedAt == null && game.connectedPlayers.length < game.maxPlayers;
+}
+
+function isGameoneState (state: unknown): state is GameoneState {
+  return typeof state === "object" &&
+    state !== null &&
+    "phase" in state &&
+    "players" in state &&
+    Array.isArray(state.players) &&
+    "currentPlayerIndex" in state &&
+    typeof state.currentPlayerIndex === "number" &&
+    "allowedNextActions" in state &&
+    Array.isArray(state.allowedNextActions);
 }
 
 @Injectable()
@@ -104,6 +118,61 @@ export class GamesServices {
 
   getAvailableGameStats (): GameDto[] {
     return this.#allGames.filter(isAvailableGame).map((game) => this.getGameStats(game));
+  }
+
+  getGameState (gameId: number): GameStateEvent {
+    const { game, state } = this.#getStartedGame(gameId);
+    const currentPlayerId = state.players[state.currentPlayerIndex];
+    const currentPlayer = game.connectedPlayers.find((player) => player.id === currentPlayerId);
+
+    return {
+      type: "game-state",
+      gameId: game.gameId,
+      gameType: game.gameType,
+      phase: state.phase,
+      currentPlayer: currentPlayer?.nickname ?? null,
+      turnPhase: state.phase === "PlayerTurn"
+        ? state.previousAction
+        : state.allowedNextActions[0] ?? state.previousAction,
+      allowedActions: state.allowedNextActions,
+      state: this.ruleManagerService.getSnapshot(state),
+    };
+  }
+
+  applyGameAction (gameId: number, action: AllPossibleAction): GameStateEvent {
+    const { game, state } = this.#getStartedGame(gameId);
+    const transition = this.ruleManagerService.applyAction(
+      state,
+      action,
+      {
+        gameId: game.gameId,
+        players: game.connectedPlayers,
+      },
+    );
+    game.ruleState = transition.state;
+    this.#publishGameUpdate(game);
+    return this.getGameState(gameId);
+  }
+
+  #getStartedGame (gameId: number): { game: GameModel;
+    state: GameoneState; } {
+    const game = this.#allGames.find((currentGame) => currentGame.gameId === gameId);
+    if (!game) {
+      throw new GameJoinException({
+        message: replacePlaceholders(
+          GAME_MESSAGES,
+          "GAME_NOT_FOUND",
+          { gameIdString: gameId.toString() },
+        ),
+        internalCode: 1001,
+        gameId,
+      });
+    }
+    if (game.startedAt === null || !isGameoneState(game.ruleState)) {
+      throw new Error("The game state is not available.");
+    }
+    return { game,
+      state: game.ruleState };
   }
 
   /**

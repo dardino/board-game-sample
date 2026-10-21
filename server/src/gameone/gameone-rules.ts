@@ -85,6 +85,7 @@ export function applyAction (
   );
   const newGameState: GameoneState = {
     ...gameState,
+    phase: action.phase,
     ...partialGameState,
   };
   return newGameState;
