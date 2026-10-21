@@ -1,4 +1,6 @@
 import {
+  GameChatMessageRequest,
+  GameChatMessageResultEvent,
   GameActionRequest,
   GameActionResultEvent,
   GameStateErrorEvent,
@@ -21,13 +23,19 @@ export interface GameWebSocket {
 }
 
 function isSubscription (message: unknown): message is GameStateSubscription {
-  if (!isRecord(message) || !("type" in message) || !("gameId" in message)) {
+  if (!isRecord(message) ||
+    !("type" in message) ||
+    !("gameId" in message) ||
+    !("playerId" in message)) {
     return false;
   }
   return message.type === "subscribe" &&
     typeof message.gameId === "number" &&
     Number.isSafeInteger(message.gameId) &&
-    message.gameId >= 0;
+    message.gameId >= 0 &&
+    typeof message.playerId === "number" &&
+    Number.isSafeInteger(message.playerId) &&
+    message.playerId >= 0;
 }
 
 function isRecord (value: unknown): value is Record<string, unknown> {
@@ -50,6 +58,18 @@ function isGameActionRequest (message: unknown): message is GameActionRequest {
     typeof message.actorPlayerId === "number" &&
     Number.isSafeInteger(message.actorPlayerId) &&
     "action" in message;
+}
+
+function isGameChatMessageRequest (message: unknown): message is GameChatMessageRequest {
+  return isRecord(message) &&
+    message.type === "chat-message" &&
+    typeof message.requestId === "string" &&
+    message.requestId.length > 0 &&
+    message.requestId.length <= 100 &&
+    typeof message.gameId === "number" &&
+    Number.isSafeInteger(message.gameId) &&
+    message.gameId >= 0 &&
+    typeof message.message === "string";
 }
 
 function isClientGameAction (action: unknown): action is AllPossibleAction {
@@ -96,13 +116,17 @@ function isClientGameAction (action: unknown): action is AllPossibleAction {
 @WebSocketGateway({ path: "/ws" })
 export class GameStateGateway {
 
-  #subscriptions = new Map<GameWebSocket, number>();
+  #subscriptions = new Map<GameWebSocket, {
+    gameId: number;
+    playerId: number;
+  }>();
 
   constructor (
     private readonly gamesService: GamesServices,
     lobbyEvents: LobbyEventsService,
   ) {
     lobbyEvents.events$.subscribe((event) => this.#handleGameEvent(event));
+    lobbyEvents.gameStateUpdates$.subscribe((gameId) => this.#broadcastGameState(gameId));
   }
 
   handleConnection (client: GameWebSocket) {
@@ -125,21 +149,28 @@ export class GameStateGateway {
       return;
     }
 
+    if (isGameChatMessageRequest(message)) {
+      this.#handleChatMessage(client, message);
+      return;
+    }
+    if (isGameActionRequest(message)) {
+      this.#handleAction(client, message);
+      return;
+    }
     if (!isSubscription(message)) {
-      if (isGameActionRequest(message)) {
-        this.#handleAction(client, message);
-      } else {
-        this.#send(client, {
-          type: "game-error",
-          message: "Expected a game subscription or a valid game action.",
-        });
-      }
+      this.#send(client, {
+        type: "game-error",
+        message: "Expected a game subscription or a valid game action.",
+      });
       return;
     }
 
     try {
-      const state = this.gamesService.getGameState(message.gameId);
-      this.#subscriptions.set(client, message.gameId);
+      const state = this.gamesService.getGameStateForPlayer(message.gameId, message.playerId);
+      this.#subscriptions.set(client, {
+        gameId: message.gameId,
+        playerId: message.playerId,
+      });
       this.#send(client, state);
     } catch (error) {
       this.#sendError(client, message.gameId, error);
@@ -147,10 +178,18 @@ export class GameStateGateway {
   }
 
   #handleAction (client: GameWebSocket, request: GameActionRequest) {
-    if (this.#subscriptions.get(client) !== request.gameId) {
+    const subscription = this.#subscriptions.get(client);
+    if (!subscription || subscription.gameId !== request.gameId) {
       this.#sendActionResult(client, request, {
         code: "NOT_SUBSCRIBED",
         message: "Subscribe to this game before sending actions.",
+      });
+      return;
+    }
+    if (subscription.playerId !== request.actorPlayerId) {
+      this.#sendActionResult(client, request, {
+        code: "PLAYER_MISMATCH",
+        message: "The action player does not match the subscribed player.",
       });
       return;
     }
@@ -198,13 +237,63 @@ export class GameStateGateway {
     });
   }
 
+  #handleChatMessage (client: GameWebSocket, request: GameChatMessageRequest) {
+    const subscription = this.#subscriptions.get(client);
+    if (!subscription || subscription.gameId !== request.gameId) {
+      this.#sendChatMessageResult(client, request, {
+        code: "NOT_SUBSCRIBED",
+        message: "Subscribe to this game as a player before sending chat messages.",
+      });
+      return;
+    }
+
+    try {
+      this.gamesService.addChatMessage(
+        request.gameId,
+        subscription.playerId,
+        request.message,
+      );
+      this.#send(client, {
+        type: "chat-message-result",
+        requestId: request.requestId,
+        gameId: request.gameId,
+        status: "accepted",
+      });
+    } catch (error) {
+      this.#sendChatMessageResult(client, request, {
+        code: "CHAT_MESSAGE_REJECTED",
+        message: error instanceof Error
+          ? error.message
+          : "The chat message was rejected.",
+      });
+      if (error instanceof GameJoinException && error.details.internalCode === 1005) {
+        client.close();
+        this.#subscriptions.delete(client);
+      }
+    }
+  }
+
+  #sendChatMessageResult (
+    client: GameWebSocket,
+    request: GameChatMessageRequest,
+    error: NonNullable<GameChatMessageResultEvent["error"]>,
+  ) {
+    this.#send(client, {
+      type: "chat-message-result",
+      requestId: request.requestId,
+      gameId: request.gameId,
+      status: "rejected",
+      error,
+    });
+  }
+
   #handleGameEvent (event: GameEvent) {
     if (event.type === "game-removed") {
-      for (const [client, gameId] of this.#subscriptions) {
-        if (gameId === event.gameId) {
+      for (const [client, subscription] of this.#subscriptions) {
+        if (subscription.gameId === event.gameId) {
           this.#send(client, {
             type: "game-error",
-            gameId,
+            gameId: subscription.gameId,
             code: "GAME_NOT_FOUND",
             message: "The game is no longer available.",
           });
@@ -216,13 +305,22 @@ export class GameStateGateway {
     }
     if (event.type !== "game-updated") return;
 
-    for (const [client, gameId] of this.#subscriptions) {
-      if (gameId !== event.game.gameId) continue;
+    this.#broadcastGameState(event.game.gameId);
+  }
+
+  #broadcastGameState (gameId: number) {
+    for (const [client, subscription] of this.#subscriptions) {
+      if (subscription.gameId !== gameId) continue;
       try {
-        const state = this.gamesService.getGameState(gameId);
+        const state = this.gamesService.getGameStateForPlayer(gameId, subscription.playerId);
         this.#send(client, state);
       } catch (error) {
         this.#sendError(client, gameId, error);
+        if (error instanceof GameJoinException &&
+          [1001, 1005].includes(error.details.internalCode)) {
+          client.close();
+          this.#subscriptions.delete(client);
+        }
       }
     }
   }
@@ -235,15 +333,16 @@ export class GameStateGateway {
         ? error.message
         : "Unable to retrieve game state.",
     };
-    if (error instanceof GameJoinException && error.details.internalCode === 1001) {
-      errorEvent.code = "GAME_NOT_FOUND";
+    if (error instanceof GameJoinException) {
+      if (error.details.internalCode === 1001) errorEvent.code = "GAME_NOT_FOUND";
+      if (error.details.internalCode === 1005) errorEvent.code = "NOT_A_PLAYER";
     }
     this.#send(client, errorEvent);
   }
 
   #send (
     client: GameWebSocket,
-    message: GameStateEvent | GameStateErrorEvent | GameActionResultEvent,
+    message: GameStateEvent | GameStateErrorEvent | GameActionResultEvent | GameChatMessageResultEvent,
   ) {
     if (client.readyState === 1) {
       client.send(JSON.stringify(message));

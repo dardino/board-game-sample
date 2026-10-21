@@ -1,0 +1,130 @@
+.chat {
+  display: flex;
+  min-height: 22rem;
+  max-height: calc(100svh - 7rem);
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.chatHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #3f4752;
+}
+
+.chatHeader h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.chatHeader span {
+  color: #a9d5b2;
+  font-size: 0.75rem;
+}
+
+.chatMessages {
+  display: flex;
+  min-height: 10rem;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.8rem;
+  overflow-y: auto;
+  margin: 0;
+  padding: 1rem 0.25rem 1rem 0;
+  list-style: none;
+}
+
+.message {
+  width: fit-content;
+  max-width: 85%;
+  overflow-wrap: anywhere;
+}
+
+.ownMessage {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.2rem;
+}
+
+.messageAuthor {
+  color: #e9c46a;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.messageTime {
+  color: #aeb8c3;
+  font-size: 0.7rem;
+}
+
+.messageText {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.emptyMessage {
+  color: #aeb8c3;
+  font-size: 0.9rem;
+}
+
+.chatForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #3f4752;
+}
+
+.chatForm input {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.65rem;
+  border: 1px solid #596574;
+  border-radius: 0.4rem;
+  background: #20262e;
+  color: #f4f6f8;
+  font: inherit;
+}
+
+.chatForm button {
+  align-self: end;
+  padding: 0.65rem 0.8rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #e9c46a;
+  color: #171b21;
+  cursor: pointer;
+  font-weight: 700;
+  grid-column: 1 / -1;
+}
+
+.chatForm button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.chatError {
+  min-height: 1.2rem;
+  margin: 0.5rem 0 0;
+  color: #ff9b9b;
+  font-size: 0.8rem;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}

@@ -4,7 +4,26 @@
   padding-bottom: 5rem;
 }
 
+.gameLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-height: calc(100svh - 5rem);
+}
+
+.gameLayoutWithSidebar {
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
+}
+
+.gameSidebar {
+  min-width: 0;
+}
+
+.gameSidebar[hidden] {
+  display: none;
+}
+
 .gameBoard {
+  min-width: 0;
   min-height: calc(100svh - 5rem);
 }
 
@@ -210,6 +229,14 @@
 
   .gameBoard {
     min-height: calc(100svh - 12rem);
+  }
+
+  .gameLayoutWithSidebar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .gameSidebar {
+    height: min(65svh, 40rem);
   }
 
   .characterPanel {

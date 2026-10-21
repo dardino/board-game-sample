@@ -1,4 +1,5 @@
 import { PlayerDto } from "@dto/player.dto/player.dto";
+import { GameChatState } from "@dto/game-state.dto/game-state.dto";
 
 let gameCounter = 0;
 
@@ -27,6 +28,8 @@ export class GameModel {
 
   public ruleState: unknown | null;
 
+  public chat: GameChatState;
+
   /**
    * Creates a new game instance with the specified title and creator.
    *
@@ -43,6 +46,7 @@ export class GameModel {
     newGame.minPlayersToStart = 2;
     newGame.maxPlayers = 4;
     newGame.ruleState = null;
+    newGame.chat = { messages: [] };
     newGame.connectedPlayers = [creator];
     newGame.createdBy = creator.nickname;
     newGame.createdAt = new Date();

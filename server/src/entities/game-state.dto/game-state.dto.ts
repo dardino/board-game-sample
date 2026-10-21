@@ -6,9 +6,23 @@ export interface GameStateEvent {
   currentPlayer: string | null;
   turnPhase: string | null;
   allowedActions: string[];
+  chat: GameChatState;
   characterSelection: GameCharacterSelectionStatus;
   state: unknown;
 }
+
+export interface GameChatMessage {
+  playerId: number;
+  nickname: string;
+  text: string;
+  sentAt: string;
+}
+
+export interface GameChatState {
+  messages: GameChatMessage[];
+}
+
+export const MAX_GAME_CHAT_MESSAGE_LENGTH = 500;
 
 export interface GameCharacterSelectionStatus {
   players: {
@@ -34,13 +48,32 @@ export interface GameCharacterSelectionStatus {
 export interface GameStateErrorEvent {
   type: "game-error";
   gameId?: number;
-  code?: "GAME_NOT_FOUND";
+  code?: "GAME_NOT_FOUND" | "NOT_A_PLAYER";
   message: string;
 }
 
 export interface GameStateSubscription {
   type: "subscribe";
   gameId: number;
+  playerId: number;
+}
+
+export interface GameChatMessageRequest {
+  type: "chat-message";
+  requestId: string;
+  gameId: number;
+  message: string;
+}
+
+export interface GameChatMessageResultEvent {
+  type: "chat-message-result";
+  requestId: string;
+  gameId: number;
+  status: "accepted" | "rejected";
+  error?: {
+    code: string;
+    message: string;
+  };
 }
 
 export interface GameActionRequest {

@@ -1,0 +1,13 @@
+<section class="chat" aria-labelledby="chatTitle">
+  <header class="chatHeader">
+    <h2 id="chatTitle">Game chat</h2>
+    <span id="chatStatus" aria-live="polite">Connected</span>
+  </header>
+  <ol id="chatMessages" class="chatMessages" aria-live="polite" aria-relevant="additions text"></ol>
+  <form id="chatForm" class="chatForm">
+    <label class="visuallyHidden" for="chatInput">Write a message</label>
+    <input id="chatInput" type="text" maxlength="500" placeholder="Write a message..." required />
+    <button id="chatSend" type="submit">Send</button>
+  </form>
+  <p id="chatError" class="chatError" role="alert"></p>
+</section>

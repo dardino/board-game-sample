@@ -72,15 +72,21 @@ describe("Complete game flow", () => {
     expect(game.ruleState.allowedNextActions).toEqual(["CharacterSelection"]);
 
     const sockets = game.connectedPlayers.map(() => new TestGameSocket());
-    for (const socket of sockets) {
+    for (const [index, socket] of sockets.entries()) {
+      const player = game.connectedPlayers[index];
+      if (!player) throw new Error("Expected a player for each game socket.");
       gateway.handleConnection(socket);
       socket.receive(JSON.stringify({
         type: "subscribe",
         gameId: game.gameId,
+        playerId: player.id,
       }));
       expect(JSON.parse(socket.messages[0])).toMatchObject({
         type: "game-state",
         gameId: game.gameId,
+        chat: {
+          messages: [],
+        },
         phase: "Setup",
         turnPhase: "CharacterSelection",
         characterSelection: {
@@ -122,12 +128,45 @@ describe("Complete game flow", () => {
         }),
       }))),
     });
-    expect(events).toHaveLength(8);
+
+    sockets[0].receive(JSON.stringify({
+      type: "chat-message",
+      requestId: "chat-message-1",
+      gameId: game.gameId,
+      message: "Hello party!",
+    }));
+    expect(JSON.parse(sockets[0].messages.at(-1)!)).toMatchObject({
+      type: "chat-message-result",
+      requestId: "chat-message-1",
+      status: "accepted",
+    });
     for (const socket of sockets) {
-      expect(socket.messages).toHaveLength(6);
       const parsedMessages = socket.messages.map((message) => JSON.parse(message));
       const gameStates = parsedMessages.filter((message) => message.type === "game-state");
-      expect(gameStates).toHaveLength(5);
+      expect(gameStates).toHaveLength(6);
+      expect(gameStates.at(-1)).toMatchObject({
+        chat: {
+          messages: [
+            {
+              playerId: game.connectedPlayers[0].id,
+              nickname: nicknames[0],
+              text: "Hello party!",
+            },
+          ],
+        },
+      });
+    }
+
+    expect(events).toHaveLength(8);
+    for (const socket of sockets) {
+      if (socket === sockets[0]) {
+        expect(socket.messages).toHaveLength(8);
+      } else {
+        expect(socket.messages).toHaveLength(7);
+      }
+      const parsedMessages = socket.messages.map((message) => JSON.parse(message));
+      const gameStates = parsedMessages.filter((message) => message.type === "game-state");
+      expect(gameStates).toHaveLength(6);
       expect(gameStates.at(-1)).toMatchObject({
         type: "game-state",
         gameId: game.gameId,
@@ -146,7 +185,7 @@ describe("Complete game flow", () => {
         playerId: game.connectedPlayers[1].id,
       },
     }));
-    expect(JSON.parse(sockets[0].messages[6])).toMatchObject({
+    expect(JSON.parse(sockets[0].messages[8])).toMatchObject({
       type: "game-action-result",
       requestId: "wrong-player-1",
       status: "rejected",
@@ -154,6 +193,43 @@ describe("Complete game flow", () => {
         code: "ACTION_REJECTED",
       },
     });
+    const outsider = await playersService.addPlayer("observer", "client-observer");
+    const outsiderSocket = new TestGameSocket();
+    gateway.handleConnection(outsiderSocket);
+    outsiderSocket.receive(JSON.stringify({
+      type: "subscribe",
+      gameId: game.gameId,
+      playerId: outsider.id,
+    }));
+    expect(JSON.parse(outsiderSocket.messages[0])).toMatchObject({
+      type: "game-error",
+      gameId: game.gameId,
+      code: "NOT_A_PLAYER",
+    });
+    outsiderSocket.receive(JSON.stringify({
+      type: "chat-message",
+      requestId: "outsider-chat",
+      gameId: game.gameId,
+      message: "I am not playing.",
+    }));
+    expect(JSON.parse(outsiderSocket.messages[1])).toMatchObject({
+      type: "chat-message-result",
+      requestId: "outsider-chat",
+      status: "rejected",
+      error: {
+        code: "NOT_SUBSCRIBED",
+      },
+    });
+    gateway.handleDisconnect(outsiderSocket);
+
+    await gamesService.leaveGame(nicknames[3], game.gameId);
+    expect(JSON.parse(sockets[3].messages.at(-1)!)).toMatchObject({
+      type: "game-error",
+      gameId: game.gameId,
+      code: "NOT_A_PLAYER",
+    });
+    expect(sockets[3].readyState).toBe(3);
+
     for (const socket of sockets) gateway.handleDisconnect(socket);
     subscription.unsubscribe();
   });

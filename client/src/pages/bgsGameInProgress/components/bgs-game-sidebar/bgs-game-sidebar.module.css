@@ -1,0 +1,11 @@
+.sidebarHost {
+  display: block;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 100%;
+  overflow: auto;
+  border-left: 1px solid #3f4752;
+  background: #171b21;
+  color: #f4f6f8;
+  padding: 1rem;
+}

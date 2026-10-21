@@ -68,6 +68,7 @@ describe("Game state WebSocket (e2e)", () => {
         socket.send(JSON.stringify({
           type: "subscribe",
           gameId,
+          playerId: playerIds[0],
         }));
       });
       socket.addEventListener("message", (event) => resolve(JSON.parse(String(event.data))));
@@ -135,12 +136,12 @@ describe("Game state WebSocket (e2e)", () => {
       });
       await request(app.getHttpServer()).
         post("/mm/leave").
-        send({ nickName: nicknames[0],
+        send({ nickName: nicknames[1],
           gameId }).
         expect(201);
       await request(app.getHttpServer()).
         post("/mm/leave").
-        send({ nickName: nicknames[1],
+        send({ nickName: nicknames[0],
           gameId }).
         expect(201);
       await expect(gameRemoved).resolves.toMatchObject({

@@ -3,7 +3,11 @@ import { GameStartException } from "@/errors/gameStart";
 import { GameOneRuleService } from "@/gameone/rule-manager/rule-manager.service";
 import { AllPossibleAction, GameoneState } from "@/gameone/rules/state.types";
 import { CHARACTERS } from "@/gameone/gameone-contents";
-import { GameStateEvent } from "@dto/game-state.dto/game-state.dto";
+import {
+  GameChatMessage,
+  GameStateEvent,
+  MAX_GAME_CHAT_MESSAGE_LENGTH,
+} from "@dto/game-state.dto/game-state.dto";
 import { GameDto } from "@dto/matchmaking/game.dto";
 import { PlayersService } from "@/services/players/players.service";
 import { LobbyEventsService } from "@/services/game/lobby-events.service";
@@ -136,6 +140,9 @@ export class GamesServices {
         ? state.previousAction
         : state.allowedNextActions[0] ?? state.previousAction,
       allowedActions: state.allowedNextActions,
+      chat: {
+        messages: game.chat.messages.map((message) => ({ ...message })),
+      },
       characterSelection: {
         players: game.connectedPlayers.map((player) => ({
           playerId: player.id,
@@ -158,6 +165,34 @@ export class GamesServices {
       },
       state: this.ruleManagerService.getSnapshot(state),
     };
+  }
+
+  getGameStateForPlayer (gameId: number, playerId: number): GameStateEvent {
+    const { game } = this.#getStartedGame(gameId);
+    if (!game.connectedPlayers.some((player) => player.id === playerId)) {
+      throw this.#playerNotInGame(gameId, playerId);
+    }
+    return this.getGameState(gameId);
+  }
+
+  addChatMessage (gameId: number, playerId: number, message: string): GameStateEvent {
+    const { game } = this.#getStartedGame(gameId);
+    const player = game.connectedPlayers.find((candidate) => candidate.id === playerId);
+    if (!player) throw this.#playerNotInGame(gameId, playerId);
+    const text = message.trim();
+    if (text.length === 0 || text.length > MAX_GAME_CHAT_MESSAGE_LENGTH) {
+      throw new Error(`Chat messages must contain between 1 and ${MAX_GAME_CHAT_MESSAGE_LENGTH} characters.`);
+    }
+
+    const chatMessage: GameChatMessage = {
+      playerId,
+      nickname: player.nickname,
+      text,
+      sentAt: new Date().toISOString(),
+    };
+    game.chat.messages.push(chatMessage);
+    this.lobbyEvents.publishGameStateUpdate(game.gameId);
+    return this.getGameState(gameId);
   }
 
   applyGameAction (gameId: number, actorPlayerId: number, action: AllPossibleAction): GameStateEvent {
@@ -200,6 +235,18 @@ export class GamesServices {
     }
     return { game,
       state: game.ruleState };
+  }
+
+  #playerNotInGame (gameId: number, playerId: number): GameJoinException {
+    return new GameJoinException({
+      message: replacePlaceholders(
+        GAME_MESSAGES,
+        "PLAYER_NOT_IN_GAME",
+        { playername: playerId.toString() },
+      ),
+      internalCode: 1005,
+      gameId,
+    });
   }
 
   /**

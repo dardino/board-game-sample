@@ -1,4 +1,5 @@
-<main class="gameBoard" aria-label="Game in progress">
+<div id="gameLayout" class="gameLayout">
+  <main class="gameBoard" aria-label="Game in progress">
   <section id="characterSelection" class="characterPanel" aria-labelledby="characterSelectionTitle" hidden>
     <header class="selectionHeading">
       <p class="eyebrow">Character selection</p>
@@ -12,7 +13,11 @@
       <ul id="selectedCharacters"></ul>
     </section>
   </section>
-</main>
+  </main>
+  <bgs-game-sidebar id="gameSidebar" class="gameSidebar" hidden>
+    <bgs-game-chat id="gameChat"></bgs-game-chat>
+  </bgs-game-sidebar>
+</div>
 <footer class="statusBar" aria-label="Live game status">
   <div class="statusItem">
     <span class="statusLabel">Game phase</span>

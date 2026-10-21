@@ -1,5 +1,7 @@
 import { BgsComponentTypeStatic } from "../../helpers/components";
 import {
+  GameChatMessageResultEvent,
+  GameChatState,
   GameCharacterSelectionStatus,
   GameActionResultEvent,
   GameStateErrorEvent,
@@ -7,8 +9,27 @@ import {
 } from "@dto/game-state.dto/game-state.dto";
 import { matchPath, navigate } from "../../routes/navigation";
 import { Registration } from "../../services/registration/registration.service";
+import { BgsGameChatComponent } from "./components/bgs-game-chat/bgs-game-chat.component";
+import { BgsGameSidebarComponent } from "./components/bgs-game-sidebar/bgs-game-sidebar.component";
 import style from "./bgs-game-in-progress.module.css";
 import template from "./bgs-game-in-progress.template.html?css-module";
+
+interface BgsGameChatElement extends HTMLElement {
+  setChatState (state: GameChatState, currentPlayerId: number): void;
+  completeSend (result: GameChatMessageResultEvent): void;
+  failSend (message: string): void;
+}
+
+function isGameChatState (value: unknown): value is GameChatState {
+  if (!isRecord(value) || !Array.isArray(value.messages)) return false;
+  return value.messages.every((message) => {
+    return isRecord(message) &&
+      typeof message.playerId === "number" &&
+      typeof message.nickname === "string" &&
+      typeof message.text === "string" &&
+      typeof message.sentAt === "string";
+  });
+}
 
 function isCharacterSelectionStatus (value: unknown): value is GameCharacterSelectionStatus {
   if (typeof value !== "object" || value === null) return false;
@@ -61,6 +82,8 @@ function isGameStateEvent (message: unknown): message is GameStateEvent {
     "allowedActions" in message &&
     Array.isArray(message.allowedActions) &&
     message.allowedActions.every((action) => typeof action === "string") &&
+    "chat" in message &&
+    isGameChatState(message.chat) &&
     "characterSelection" in message &&
     isCharacterSelectionStatus(message.characterSelection);
 }
@@ -72,7 +95,9 @@ function isGameStateErrorEvent (message: unknown): message is GameStateErrorEven
     message.type === "game-error" &&
     "message" in message &&
     typeof message.message === "string" &&
-    (!("code" in message) || message.code === "GAME_NOT_FOUND");
+    (!("code" in message) ||
+      message.code === "GAME_NOT_FOUND" ||
+      message.code === "NOT_A_PLAYER");
 }
 
 function isGameActionResultEvent (message: unknown): message is GameActionResultEvent {
@@ -100,6 +125,20 @@ function isGameActionResultEvent (message: unknown): message is GameActionResult
     typeof message.error.message === "string";
 }
 
+function isGameChatMessageResultEvent (message: unknown): message is GameChatMessageResultEvent {
+  if (!isRecord(message) ||
+    message.type !== "chat-message-result" ||
+    typeof message.requestId !== "string" ||
+    typeof message.gameId !== "number" ||
+    message.status !== "accepted" && message.status !== "rejected") {
+    return false;
+  }
+  return message.status === "accepted" ||
+    isRecord(message.error) &&
+    typeof message.error.code === "string" &&
+    typeof message.error.message === "string";
+}
+
 export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameInProgressComponent extends HTMLElement {
 
   public static readonly tagName = "bgs-game-in-progress";
@@ -107,6 +146,8 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   #socket: WebSocket | null = null;
 
   #gameId: number | null = null;
+
+  #playerId: number | null = null;
 
   #lastGameState: GameStateEvent | null = null;
 
@@ -126,6 +167,12 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   }
 
   public static register () {
+    if (!customElements.get(BgsGameSidebarComponent.tagName)) {
+      BgsGameSidebarComponent.register();
+    }
+    if (!customElements.get(BgsGameChatComponent.tagName)) {
+      BgsGameChatComponent.register();
+    }
     customElements.define(
       BgsGameInProgressComponent.tagName,
       BgsGameInProgressComponent,
@@ -133,6 +180,8 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   }
 
   connectedCallback () {
+    this.#leavingPage = false;
+    this.addEventListener("game-chat-send", this.#handleChatSend);
     const gameId = Number(matchPath(
       "/game/:id/in-progress",
       location.pathname,
@@ -144,6 +193,29 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     this.#gameId = gameId;
 
     this.#setConnectionStatus("Connecting...");
+    void this.#connectToGame(gameId);
+  }
+
+  async #connectToGame (gameId: number) {
+    let player: Awaited<ReturnType<typeof Registration.GetMe>>;
+    try {
+      player = await Registration.GetMe();
+    } catch (error) {
+      console.error("Unable to load the current player:", error);
+      this.#setConnectionStatus("Unable to load player identity.");
+      return;
+    }
+    if (this.#leavingPage) return;
+    if (player === null) {
+      if (Registration.status === "error") {
+        this.#setConnectionStatus(Registration.Errors.join(" "));
+      } else {
+        navigate("/join");
+      }
+      return;
+    }
+
+    this.#playerId = player.id;
     const url = new URL("/ws", location.href);
     url.protocol = url.protocol === "https:"
       ? "wss:"
@@ -153,6 +225,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       this.#socket?.send(JSON.stringify({
         type: "subscribe",
         gameId,
+        playerId: player.id,
       }));
       this.#setConnectionStatus("Live");
     });
@@ -164,7 +237,8 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   sendGameAction (action: unknown): Promise<GameActionResultEvent> {
     const socket = this.#socket;
     const gameId = this.#gameId;
-    if (!socket || socket.readyState !== WebSocket.OPEN || gameId === null) {
+    const playerId = this.#playerId;
+    if (!socket || socket.readyState !== WebSocket.OPEN || gameId === null || playerId === null) {
       return Promise.reject(new Error("The game connection is not open."));
     }
 
@@ -192,7 +266,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
           type: "game-action",
           requestId,
           gameId,
-          actorPlayerId: Registration.PlayerId,
+          actorPlayerId: playerId,
           action,
         }));
       } catch (error) {
@@ -204,6 +278,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   }
 
   disconnectedCallback () {
+    this.removeEventListener("game-chat-send", this.#handleChatSend);
     this.#leavingPage = true;
     this.#socket?.close();
     this.#socket = null;
@@ -222,7 +297,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     if (isGameStateEvent(message)) {
       this.#renderGameState(message);
     } else if (isGameStateErrorEvent(message)) {
-      if (message.code === "GAME_NOT_FOUND") {
+      if (message.code === "GAME_NOT_FOUND" || message.code === "NOT_A_PLAYER") {
         this.#returnToGames();
       } else {
         this.#setConnectionStatus(message.message);
@@ -238,6 +313,36 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
         detail: message,
         bubbles: true,
       }));
+    } else if (isGameChatMessageResultEvent(message)) {
+      this.querySelector<BgsGameChatElement>("#gameChat")?.completeSend(message);
+    }
+  };
+
+  #handleChatSend = (event: Event) => {
+    if (!(event instanceof CustomEvent) || !isRecord(event.detail) ||
+      typeof event.detail.message !== "string") {
+      return;
+    }
+
+    const socket = this.#socket;
+    const gameId = this.#gameId;
+    const chat = this.querySelector<BgsGameChatElement>("#gameChat");
+    if (!socket || socket.readyState !== WebSocket.OPEN || gameId === null) {
+      chat?.failSend("The game connection is not open.");
+      return;
+    }
+
+    try {
+      socket.send(JSON.stringify({
+        type: "chat-message",
+        requestId: crypto.randomUUID(),
+        gameId,
+        message: event.detail.message,
+      }));
+    } catch (error) {
+      chat?.failSend(error instanceof Error
+        ? error.message
+        : "Unable to send the chat message.");
     }
   };
 
@@ -268,6 +373,18 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
 
   #renderGameState (state: GameStateEvent) {
     this.#lastGameState = state;
+    const layout = this.querySelector<HTMLElement>("#gameLayout");
+    const sidebar = this.querySelector<HTMLElement>("#gameSidebar");
+    if (layout && sidebar) {
+      sidebar.hidden = false;
+      layout.classList.add(style.gameLayoutWithSidebar);
+    }
+    if (this.#playerId !== null) {
+      this.querySelector<BgsGameChatElement>("#gameChat")?.setChatState(
+        state.chat,
+        this.#playerId,
+      );
+    }
     this.#setText("#gamePhase", state.phase ?? "—");
     this.#setText("#currentPlayer", state.currentPlayer ?? "—");
     const turnPhase = state.turnPhase ?? "—";
@@ -290,7 +407,8 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     panel.hidden = !isSelectionPhase;
     if (!isSelectionPhase) return;
 
-    const playerId = Registration.PlayerId;
+    const playerId = this.#playerId;
+    if (playerId === null) return;
     const player = selection.players.find((candidate) => candidate.playerId === playerId);
     const ownSelection = selection.selectedCharacters.find((candidate) => candidate.playerId === playerId);
     const selectedByCharacter = new Map(
@@ -385,6 +503,9 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
   }
 
   async #selectCharacter (characterId: number, characterName: string) {
+    const playerId = this.#playerId;
+    if (playerId === null) return;
+
     this.#selectionPending = true;
     this.#setText("#selectionFeedback", `Selecting ${characterName}...`);
     if (this.#lastGameState) this.#renderCharacterSelection(this.#lastGameState);
@@ -392,7 +513,7 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       const result = await this.sendGameAction({
         phase: "Setup",
         kind: "CharacterSelection",
-        playerId: Registration.PlayerId,
+        playerId,
         characterId,
         characterName,
       });
