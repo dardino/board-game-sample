@@ -8,7 +8,14 @@ export interface GameStateEvent {
   allowedActions: string[];
   chat: GameChatState;
   characterSelection: GameCharacterSelectionStatus;
+  reconnection: GameReconnectionStatus;
   state: unknown;
+}
+
+export interface GameReconnectionStatus {
+  paused: boolean;
+  resumesAt: number | null;
+  disconnectedPlayerIds: number[];
 }
 
 export interface GameChatMessage {

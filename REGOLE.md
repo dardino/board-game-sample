@@ -105,7 +105,7 @@ La gestione dei turni dei nemici, la risoluzione dei danni, il calcolo del risul
 
 ## Stato attuale del prototipo
 
-Il server permette di creare una lobby, far entrare 2–4 partecipanti e avviare la partita. La selezione dei personaggi include timer, preferenze modificabili fino a **Ready**, risoluzione casuale dei conflitti e visualizzazione temporizzata degli abbinamenti. Il motore contiene inoltre modelli e reducer per alcune fasi di preparazione, movimento ed esplorazione; non è ancora integrato nel flusso completo delle azioni di gioco.
+Il server permette di creare una lobby, far entrare 2–4 partecipanti e avviare la partita. La selezione dei personaggi include timer, preferenze modificabili fino a **Ready**, risoluzione casuale dei conflitti e visualizzazione temporizzata degli abbinamenti. Durante una partita, un aggiornamento della pagina sulle route in-progress ripristina la connessione usando l'ID della partita nell'URL e il cookie HTTP-only dell'account. Se un client si disconnette, il gioco sospende le azioni e i timer per un massimo di **15 secondi**: il rientro del giocatore riprende subito la partita; se il tempo scade, la partita riprende comunque e il giocatore può rientrare successivamente. Il motore contiene inoltre modelli e reducer per alcune fasi di preparazione, movimento ed esplorazione; non è ancora integrato nel flusso completo delle azioni di gioco.
 
 Perciò questo documento è una base verificabile per il regolamento, non ancora un manuale sufficiente per giocare una partita completa. Le regole di combattimento, le abilità, l'equipaggiamento, le trappole e i tesori, il comportamento dei nemici e le condizioni pratiche di vittoria devono essere definite e implementate prima del rilascio.
 

@@ -326,4 +326,133 @@ describe("Complete game flow", () => {
     expect(gamesService.getGameState(game.gameId).phase).toBe("PlayerTurn");
     expect(gamesService.getGameState(game.gameId).characterSelection.stage).toBeNull();
   });
+
+  it("pauses game actions on disconnect and resumes the selection timer after reconnection", async () => {
+    vi.useFakeTimers();
+    const playersService = new PlayersService();
+    const lobbyEvents = new LobbyEventsService();
+    const gamesService = new GamesServices(
+      playersService,
+      new GameOneRuleService(),
+      lobbyEvents,
+    );
+    const gateway = new GameStateGateway(gamesService, lobbyEvents);
+    const nicknames = ["owner", "player-two"];
+    for (const [index, nickname] of nicknames.entries()) {
+      await playersService.addPlayer(nickname, `reconnect-client-${index}`);
+    }
+    const game = await gamesService.createNewGame(nicknames[0], "Reconnect game");
+    await gamesService.joinToGame(nicknames[1], game.gameId);
+    await gamesService.startGame(nicknames[0], game.gameId);
+
+    const player = game.connectedPlayers[0];
+    const otherPlayer = game.connectedPlayers[1];
+    if (!player || !otherPlayer) throw new Error("The started game is missing its players.");
+    const sockets = [player, otherPlayer].map((connectedPlayer) => {
+      const socket = new TestGameSocket();
+      gateway.handleConnection(socket);
+      socket.receive(JSON.stringify({
+        type: "subscribe",
+        gameId: game.gameId,
+        playerId: connectedPlayer.id,
+      }));
+      return socket;
+    });
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    gateway.handleDisconnect(sockets[0]);
+
+    expect(gamesService.getGameState(game.gameId).characterSelection.endsAt).toBe(Date.now() + 40_000);
+    expect(gamesService.getGameState(game.gameId)).toMatchObject({
+      reconnection: {
+        paused: true,
+        resumesAt: Date.now() + 15_000,
+        disconnectedPlayerIds: [player.id],
+      },
+    });
+    expect(() => gamesService.applyGameAction(game.gameId, otherPlayer.id, {
+      phase: "Setup",
+      kind: "CharacterSelection",
+      playerId: otherPlayer.id,
+      characterId: CHARACTERS[0].characterId,
+      characterName: CHARACTERS[0].characterClass,
+    })).toThrow("paused");
+
+    await vi.advanceTimersByTimeAsync(4_000);
+    const reconnectingSocket = new TestGameSocket();
+    gateway.handleConnection(reconnectingSocket);
+    reconnectingSocket.receive(JSON.stringify({
+      type: "subscribe",
+      gameId: game.gameId,
+      playerId: player.id,
+    }));
+
+    expect(JSON.parse(reconnectingSocket.messages[0] ?? "{}")).toMatchObject({
+      type: "game-state",
+      reconnection: {
+        paused: false,
+        resumesAt: null,
+        disconnectedPlayerIds: [],
+      },
+      characterSelection: {
+        endsAt: Date.now() + 25_000,
+      },
+    });
+    expect(JSON.parse(sockets[1].messages.at(-1) ?? "{}")).toMatchObject({
+      type: "game-state",
+      reconnection: {
+        paused: false,
+      },
+    });
+  });
+
+  it("resumes the game after the 15-second reconnect window expires", async () => {
+    vi.useFakeTimers();
+    const playersService = new PlayersService();
+    const lobbyEvents = new LobbyEventsService();
+    const gamesService = new GamesServices(
+      playersService,
+      new GameOneRuleService(),
+      lobbyEvents,
+    );
+    const gateway = new GameStateGateway(gamesService, lobbyEvents);
+    const nicknames = ["owner", "player-two"];
+    for (const [index, nickname] of nicknames.entries()) {
+      await playersService.addPlayer(nickname, `timeout-client-${index}`);
+    }
+    const game = await gamesService.createNewGame(nicknames[0], "Reconnect timeout");
+    await gamesService.joinToGame(nicknames[1], game.gameId);
+    await gamesService.startGame(nicknames[0], game.gameId);
+
+    const player = game.connectedPlayers[0];
+    if (!player) throw new Error("The started game is missing its owner.");
+    const socket = new TestGameSocket();
+    gateway.handleConnection(socket);
+    socket.receive(JSON.stringify({
+      type: "subscribe",
+      gameId: game.gameId,
+      playerId: player.id,
+    }));
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    gateway.handleDisconnect(socket);
+    await vi.advanceTimersByTimeAsync(14_999);
+    expect(gamesService.getGameState(game.gameId)).toMatchObject({
+      reconnection: {
+        paused: true,
+      },
+    });
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(gamesService.getGameState(game.gameId)).toMatchObject({
+      reconnection: {
+        paused: false,
+        resumesAt: null,
+        disconnectedPlayerIds: [],
+      },
+      characterSelection: {
+        endsAt: Date.now() + 25_000,
+      },
+    });
+  });
 });

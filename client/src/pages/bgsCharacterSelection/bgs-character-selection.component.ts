@@ -78,7 +78,7 @@ export const BgsCharacterSelectionComponent: BgsComponentTypeStatic = class BgsC
     if (playerId === null) return;
     const player = selection.players.find((candidate) => candidate.playerId === playerId);
     const isReady = selection.readyPlayerIds.includes(playerId);
-    const canChoose = Boolean(player && isChoosing && !isReady);
+    const canChoose = Boolean(player && isChoosing && !isReady && !state.reconnection.paused);
 
     let instructions = "Join this game to select a character.";
     if (isRevealing) {
@@ -99,14 +99,16 @@ export const BgsCharacterSelectionComponent: BgsComponentTypeStatic = class BgsC
     }
     this.#setText(
       "#selectionTimer",
-      selection.endsAt === null
-        ? ""
-        : `${Math.max(0, Math.ceil((selection.endsAt - Date.now()) / 1000))}s`,
+      state.reconnection.paused
+        ? "Paused"
+        : selection.endsAt === null
+          ? ""
+          : `${Math.max(0, Math.ceil((selection.endsAt - Date.now()) / 1000))}s`,
     );
     const readyButton = this.querySelector<HTMLButtonElement>("#selectionReady");
     if (readyButton) {
       readyButton.hidden = !player;
-      readyButton.disabled = !player || isReady || this.#selectionPending;
+      readyButton.disabled = !player || isReady || state.reconnection.paused || this.#selectionPending;
       readyButton.textContent = isReady
         ? "Ready ✓"
         : "Ready";

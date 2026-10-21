@@ -34,12 +34,23 @@ function isGameoneState (state: unknown): state is GameoneState {
     Array.isArray(state.allowedNextActions);
 }
 
+export const GAME_RECONNECT_GRACE_PERIOD_MS = 15_000;
+
+interface GameReconnectPause {
+  disconnectedPlayerIds: Set<number>;
+  resumesAt: number;
+  remainingCharacterSelectionMs: number | null;
+  timeout: ReturnType<typeof setTimeout> | null;
+}
+
 @Injectable()
 export class GamesServices {
 
   #allGames: GameModel[] = [];
 
   #characterSelectionTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+  #reconnectPauses = new Map<number, GameReconnectPause>();
 
   /**
    *
@@ -179,8 +190,50 @@ export class GamesServices {
             characterName: character.characterName,
           })),
       },
+      reconnection: this.#getReconnectionStatus(game.gameId),
       state: this.ruleManagerService.getSnapshot(state),
     };
+  }
+
+  pauseForReconnect (gameId: number, playerId: number) {
+    const game = this.#allGames.find((candidate) => candidate.gameId === gameId);
+    if (!game?.startedAt || !game.connectedPlayers.some((player) => player.id === playerId)) return;
+
+    let pause = this.#reconnectPauses.get(gameId);
+    if (pause) {
+      if (pause.disconnectedPlayerIds.has(playerId)) return;
+      pause.disconnectedPlayerIds.add(playerId);
+    } else {
+      const now = Date.now();
+      const remainingCharacterSelectionMs = game.characterSelectionEndsAt === null
+        ? null
+        : Math.max(0, game.characterSelectionEndsAt - now);
+      const selectionTimer = this.#characterSelectionTimers.get(gameId);
+      if (selectionTimer) clearTimeout(selectionTimer);
+      this.#characterSelectionTimers.delete(gameId);
+
+      pause = {
+        disconnectedPlayerIds: new Set([playerId]),
+        resumesAt: now + GAME_RECONNECT_GRACE_PERIOD_MS,
+        remainingCharacterSelectionMs,
+        timeout: null,
+      };
+      this.#reconnectPauses.set(gameId, pause);
+    }
+
+    this.#scheduleReconnectTimeout(gameId, pause);
+    this.#publishGameStateUpdate(gameId);
+  }
+
+  resumeAfterReconnect (gameId: number, playerId: number) {
+    const pause = this.#reconnectPauses.get(gameId);
+    if (!pause || !pause.disconnectedPlayerIds.delete(playerId)) return;
+
+    if (pause.disconnectedPlayerIds.size === 0) {
+      this.#resumeGame(gameId);
+      return;
+    }
+    this.#publishGameStateUpdate(gameId);
   }
 
   getGameStateForPlayer (gameId: number, playerId: number): GameStateEvent {
@@ -213,6 +266,13 @@ export class GamesServices {
 
   applyGameAction (gameId: number, actorPlayerId: number, action: AllPossibleAction): GameStateEvent {
     const { game, state } = this.#getStartedGame(gameId);
+    if (this.#reconnectPauses.has(gameId) &&
+      Date.now() >= (this.#reconnectPauses.get(gameId)?.resumesAt ?? 0)) {
+      this.#resumeGame(gameId);
+    }
+    if (this.#reconnectPauses.has(gameId)) {
+      throw new Error("The game is paused while waiting for players to reconnect.");
+    }
     if (game.characterSelectionEndsAt !== null && Date.now() >= game.characterSelectionEndsAt) {
       if (game.characterSelectionStage === "choosing") {
         this.#resolveCharacterSelection(game, state);
@@ -552,6 +612,53 @@ export class GamesServices {
     }, delay);
     timer.unref?.();
     this.#characterSelectionTimers.set(game.gameId, timer);
+  }
+
+  #getReconnectionStatus (gameId: number) {
+    const pause = this.#reconnectPauses.get(gameId);
+    return {
+      paused: pause !== undefined,
+      resumesAt: pause?.resumesAt ?? null,
+      disconnectedPlayerIds: pause
+        ? [...pause.disconnectedPlayerIds]
+        : [],
+    };
+  }
+
+  #scheduleReconnectTimeout (gameId: number, pause: GameReconnectPause) {
+    if (pause.timeout !== null) clearTimeout(pause.timeout);
+    pause.resumesAt = Date.now() + GAME_RECONNECT_GRACE_PERIOD_MS;
+    pause.timeout = setTimeout(
+      () => this.#resumeAfterReconnectWindow(gameId),
+      GAME_RECONNECT_GRACE_PERIOD_MS,
+    );
+    pause.timeout.unref?.();
+
+    const game = this.#allGames.find((candidate) => candidate.gameId === gameId);
+    if (game && pause.remainingCharacterSelectionMs !== null) {
+      game.characterSelectionEndsAt = pause.resumesAt + pause.remainingCharacterSelectionMs;
+    }
+  }
+
+  #resumeAfterReconnectWindow (gameId: number) {
+    this.#resumeGame(gameId);
+  }
+
+  #resumeGame (gameId: number) {
+    const pause = this.#reconnectPauses.get(gameId);
+    if (!pause) return;
+    if (pause.timeout !== null) clearTimeout(pause.timeout);
+    this.#reconnectPauses.delete(gameId);
+    const game = this.#allGames.find((candidate) => candidate.gameId === gameId);
+    if (game && pause.remainingCharacterSelectionMs !== null) {
+      game.characterSelectionEndsAt = Date.now() + pause.remainingCharacterSelectionMs;
+      this.#scheduleCharacterSelectionTimer(game, pause.remainingCharacterSelectionMs);
+    }
+    this.#publishGameStateUpdate(gameId);
+  }
+
+  #publishGameStateUpdate (gameId: number) {
+    this.lobbyEvents.publishGameStateUpdate(gameId);
   }
 
   #resolveCharacterSelection (game: GameModel, state: GameoneState) {

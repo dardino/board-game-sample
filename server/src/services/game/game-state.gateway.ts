@@ -144,7 +144,7 @@ export class GameStateGateway {
   }
 
   handleDisconnect (client: GameWebSocket) {
-    this.#subscriptions.delete(client);
+    this.#removeSubscription(client);
   }
 
   #handleMessage (client: GameWebSocket, payload: string) {
@@ -176,14 +176,34 @@ export class GameStateGateway {
     }
 
     try {
-      const state = this.gamesService.getGameStateForPlayer(message.gameId, message.playerId);
+      this.gamesService.getGameStateForPlayer(message.gameId, message.playerId);
+      const currentSubscription = this.#subscriptions.get(client);
+      if (currentSubscription &&
+        (currentSubscription.gameId !== message.gameId ||
+          currentSubscription.playerId !== message.playerId)) {
+        this.#removeSubscription(client);
+      }
+      this.gamesService.resumeAfterReconnect(message.gameId, message.playerId);
       this.#subscriptions.set(client, {
         gameId: message.gameId,
         playerId: message.playerId,
       });
-      this.#send(client, state);
+      this.#send(client, this.gamesService.getGameStateForPlayer(message.gameId, message.playerId));
     } catch (error) {
       this.#sendError(client, message.gameId, error);
+    }
+  }
+
+  #removeSubscription (client: GameWebSocket) {
+    const subscription = this.#subscriptions.get(client);
+    if (!subscription) return;
+    this.#subscriptions.delete(client);
+    const hasAnotherConnection = [...this.#subscriptions.values()].some((current) => {
+      return current.gameId === subscription.gameId &&
+        current.playerId === subscription.playerId;
+    });
+    if (!hasAnotherConnection) {
+      this.gamesService.pauseForReconnect(subscription.gameId, subscription.playerId);
     }
   }
 

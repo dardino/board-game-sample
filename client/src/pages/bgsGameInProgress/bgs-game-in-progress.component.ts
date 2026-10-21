@@ -97,7 +97,17 @@ function isGameStateEvent (message: unknown): message is GameStateEvent {
     "chat" in message &&
     isGameChatState(message.chat) &&
     "characterSelection" in message &&
-    isCharacterSelectionStatus(message.characterSelection);
+    isCharacterSelectionStatus(message.characterSelection) &&
+    "reconnection" in message &&
+    isGameReconnectionStatus(message.reconnection);
+}
+
+function isGameReconnectionStatus (value: unknown): boolean {
+  return isRecord(value) &&
+    typeof value.paused === "boolean" &&
+    (value.resumesAt === null || typeof value.resumesAt === "number") &&
+    Array.isArray(value.disconnectedPlayerIds) &&
+    value.disconnectedPlayerIds.every((playerId) => typeof playerId === "number");
 }
 
 function isGameStateErrorEvent (message: unknown): message is GameStateErrorEvent {
@@ -193,10 +203,11 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
     this.#leavingPage = false;
     this.addEventListener("game-chat-send", this.#handleChatSend);
     this.addEventListener("bgs-character-selection-connected", this.#handleCharacterSelectionConnected);
-    const gameId = Number(matchPath(
-      "/game/:id/in-progress",
-      location.pathname,
-    )?.params.id);
+    const gameId = Number(
+      matchPath("/game/:id/in-progress", location.pathname)?.params.id ??
+      matchPath("/game/:id/in-progress/character-selection", location.pathname)?.params.id ??
+      matchPath("/game/:id/in-progress/board", location.pathname)?.params.id,
+    );
     if (!Number.isSafeInteger(gameId) || gameId < 0) {
       navigate("/games");
       return;
@@ -404,8 +415,25 @@ export const BgsGameInProgressComponent: BgsComponentTypeStatic = class BgsGameI
       ? `Available: ${state.allowedActions.join(", ")}`
       : "";
     this.#setText("#turnPhase", [turnPhase, allowedActions].filter(Boolean).join(" — "));
+    this.#renderReconnectionStatus(state);
     this.#syncGameContentRoute(state);
     this.#setConnectionStatus("Live");
+  }
+
+  #renderReconnectionStatus (state: GameStateEvent) {
+    const status = this.querySelector<HTMLElement>("#reconnectionStatus");
+    if (!status) return;
+    status.hidden = !state.reconnection.paused;
+    if (!state.reconnection.paused) {
+      status.textContent = "";
+      return;
+    }
+    const disconnectedPlayers = state.reconnection.disconnectedPlayerIds.map((playerId) => {
+      return state.characterSelection.players.find((player) => player.playerId === playerId)?.nickname;
+    }).filter((nickname): nickname is string => nickname !== undefined);
+    status.textContent = disconnectedPlayers.length > 0
+      ? `Game paused — waiting for ${disconnectedPlayers.join(", ")} to reconnect.`
+      : "Game paused — waiting for a player to reconnect.";
   }
 
   #handleCharacterSelectionConnected = () => {

@@ -6,7 +6,7 @@ This is a TypeScript pnpm monorepo for a cooperative board-game sample. The `cli
 
 ## Architecture and Existing Features
 
-- Player registration uses the `/me` API and HTTP-only cookies. The client loads the current player through `Registration.GetMe()`.
+- Player registration uses the `/me` API and HTTP-only cookies. The client loads the current player through `Registration.GetMe()`; game refresh recovery uses the game ID in the URL and this existing cookie-backed identity, not a player ID stored in `localStorage`.
 - Components that remain mounted across route changes should subscribe to `Registration.SubscribeToChanges()` and unsubscribe when disconnected so registration and logout state stays current without a full page reload.
 - The server manages lobbies and in-memory game models; game and lobby updates are delivered through WebSocket and SSE streams.
 - Game setup includes character selection. The in-progress page presents game status and a reusable sidebar with an in-game chat.
@@ -14,6 +14,7 @@ This is a TypeScript pnpm monorepo for a cooperative board-game sample. The `cli
 - Character selection is a two-stage, server-authoritative flow. During the 30-second choosing stage, players can change preferences and share the same preference; `Ready` locks that player's preference. When the timer expires or everyone is ready, conflicts are resolved randomly and unassigned players receive random remaining characters.
 - Final character assignments are shown during a 10-second reveal stage. `Ready` in this stage advances early when every player is ready. Keep stage deadlines and per-game timers in `GamesServices`; selection preferences and ready-player state belong to `GameoneState`.
 - The game-state WebSocket event exposes selection stage, deadline, ready player IDs, preferences or final assignments. Keep its DTO, gateway action validation, service, rules/reducers, and the in-progress UI in sync when changing this flow.
+- A game WebSocket disconnect pauses gameplay actions and character-selection timers for up to 15 seconds. Reconnecting the same cookie-authenticated player resumes immediately; if the grace period expires first, the game resumes and that player may still rejoin. Keep this status in the game-state DTO and preserve it on refresh of either in-progress child route.
 - The in-progress page owns the persistent game connection and status/sidebar shell; character selection UI lives in `client/src/pages/bgsCharacterSelection/` at `/game/:id/in-progress/character-selection`, and the game board lives in `client/src/pages/bgsGameBoard/` at `/game/:id/in-progress/board`. When selection ends, automatically route to the initially empty board field. Keep the parent mounted across child routes so its WebSocket is not recreated, and replace rather than push history for automatic phase transitions.
 - Chat state lives in memory in each game model. Messages include `playerId`, nickname, text, and server timestamp; the server validates non-empty messages up to 500 characters.
 - The in-progress client must await `Registration.GetMe()` before opening its game WebSocket and use the returned player ID for its subscription, rendering, and actions. This prevents multiple clients from being treated as the same player before identity has loaded.

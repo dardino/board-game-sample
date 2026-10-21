@@ -7,11 +7,14 @@ const mocks = vi.hoisted(() => ({
     isPlaying: true,
     nickname: "player-one",
   })),
-  matchPath: vi.fn(() => ({
-    params: {
-      id: "42",
-    },
-  })),
+  matchPath: vi.fn((pattern: string, pathname: string) => {
+    const parameterNames = Array.from(pattern.matchAll(/:(\w+)/g), (match) => match[1] ?? "");
+    const match = pathname.match(new RegExp(`^${pattern.replace(/:\w+/g, "([^/]+)")}$`));
+    if (!match) return null;
+    return {
+      params: Object.fromEntries(parameterNames.map((name, index) => [name, match[index + 1] ?? ""])),
+    };
+  }),
 }));
 
 vi.mock("../../routes/navigation", () => ({
@@ -162,6 +165,10 @@ describe("BgsGameInProgressComponent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     MockWebSocket.instances = [];
+    vi.stubGlobal("location", {
+      href: "http://localhost/game/42/in-progress",
+      pathname: "/game/42/in-progress",
+    });
     mocks.getMe.mockResolvedValue({
       id: 1,
       isPlaying: true,
@@ -262,6 +269,27 @@ describe("BgsGameInProgressComponent", () => {
     });
   });
 
+  it.each([
+    "/game/42/in-progress/character-selection",
+    "/game/42/in-progress/board",
+  ])("reconnects to game %s after a page refresh", async (pathname) => {
+    vi.stubGlobal("location", {
+      href: `http://localhost${pathname}`,
+      pathname,
+    });
+    const { component, socket } = await connectComponent();
+    socket.emit("open", new Event("open"));
+
+    expect(socket.sentMessages.map((message) => JSON.parse(message))).toContainEqual({
+      type: "subscribe",
+      gameId: 42,
+      playerId: 1,
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+
+    component.disconnectedCallback?.();
+  });
+
   it("opens character selection as a child route when the server starts that phase", async () => {
     const { socket } = await connectComponent();
     socket.emit("message", new MessageEvent("message", {
@@ -275,6 +303,11 @@ describe("BgsGameInProgressComponent", () => {
         allowedActions: ["CharacterSelection"],
         chat: {
           messages: [],
+        },
+        reconnection: {
+          paused: false,
+          resumesAt: null,
+          disconnectedPlayerIds: [],
         },
         characterSelection: {
           stage: "choosing",
@@ -325,6 +358,11 @@ describe("BgsGameInProgressComponent", () => {
         chat: {
           messages: [],
         },
+        reconnection: {
+          paused: false,
+          resumesAt: null,
+          disconnectedPlayerIds: [],
+        },
         characterSelection: {
           stage: "choosing",
           endsAt: Date.now() + 30_000,
@@ -366,6 +404,11 @@ describe("BgsGameInProgressComponent", () => {
         allowedActions: ["Move"],
         chat: {
           messages: [],
+        },
+        reconnection: {
+          paused: false,
+          resumesAt: null,
+          disconnectedPlayerIds: [],
         },
         characterSelection: {
           stage: null,
