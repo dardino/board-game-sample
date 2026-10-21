@@ -150,7 +150,11 @@ describe(
               },
             );
             expect(newState.previousAction).toBe("SetPlayngOrder");
-            expect(newState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
+            expect(newState.allowedNextActions).toStrictEqual([
+              "CharacterSelection",
+              "CharacterSelectionReady",
+              "ResolveCharacterSelection",
+            ]);
 
           },
         );
@@ -200,12 +204,35 @@ describe(
                 },
               );
               if (choice.playerId !== 4) {
-                expect(newState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
+                expect(newState.allowedNextActions).toContain("CharacterSelection");
               }
             }
             expect(newState.previousAction).toBe("CharacterSelection");
-            expect(newState.charactersByPlayers.length).toBe(4);
+            expect(newState.characterPreferences.length).toBe(4);
+            expect(newState.charactersByPlayers).toHaveLength(0);
+            for (const playerId of newState.players) {
+              newState = applyAction(newState, {
+                phase: "Setup",
+                kind: "CharacterSelectionReady",
+                playerId,
+              });
+            }
+            newState = applyAction(newState, {
+              phase: "Setup",
+              kind: "ResolveCharacterSelection",
+            });
+            expect(newState.phase).toBe("CharacterReveal");
+            expect(newState.charactersByPlayers).toHaveLength(4);
+            newState = applyAction(newState, {
+              phase: "CharacterReveal",
+              kind: "FinishCharacterReveal",
+            });
             expect(newState.allowedNextActions).toStrictEqual(["GoToPlayerTurn"]);
+            newState = applyAction(newState, {
+              phase: "Setup",
+              kind: "GoToPlayerTurn",
+            });
+            expect(newState.phase).toBe("PlayerTurn");
 
           },
         );
@@ -428,6 +455,28 @@ describe(
                 },
               );
             }
+            for (const playerId of newState.players) {
+              newState = GameOneMatchManager(newState, {
+                phase: "Setup",
+                kind: "CharacterSelectionReady",
+                playerId,
+              });
+            }
+            newState = GameOneMatchManager(newState, {
+              phase: "Setup",
+              kind: "ResolveCharacterSelection",
+            });
+            for (const playerId of newState.players) {
+              newState = GameOneMatchManager(newState, {
+                phase: "CharacterReveal",
+                kind: "CharacterRevealReady",
+                playerId,
+              });
+            }
+            newState = GameOneMatchManager(newState, {
+              phase: "CharacterReveal",
+              kind: "FinishCharacterReveal",
+            });
             expect(newState.phase).toBe("PlayerTurn" satisfies GamePhases);
             expect(newState.allowedNextActions).toStrictEqual(Flow.PlayerTurn.Awake);
             expect(newState.previousAction).toBe("Awake" satisfies AllPossibleActionKind);

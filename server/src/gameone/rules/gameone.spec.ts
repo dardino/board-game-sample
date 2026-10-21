@@ -39,7 +39,11 @@ describe(
             kind: "SetPlayers",
             players },
         );
-        expect(gameState.allowedNextActions).toStrictEqual(["CharacterSelection"]);
+        expect(gameState.allowedNextActions).toStrictEqual([
+          "CharacterSelection",
+          "CharacterSelectionReady",
+          "ResolveCharacterSelection",
+        ]);
 
         // scelta dei personaggi
         for (const character of characters) {
@@ -50,6 +54,28 @@ describe(
               ...character },
           );
         }
+        for (const playerId of gameState.players) {
+          gameState = GameOneMatchManager(gameState, {
+            phase: "Setup",
+            kind: "CharacterSelectionReady",
+            playerId,
+          });
+        }
+        gameState = GameOneMatchManager(gameState, {
+          phase: "Setup",
+          kind: "ResolveCharacterSelection",
+        });
+        for (const playerId of gameState.players) {
+          gameState = GameOneMatchManager(gameState, {
+            phase: "CharacterReveal",
+            kind: "CharacterRevealReady",
+            playerId,
+          });
+        }
+        gameState = GameOneMatchManager(gameState, {
+          phase: "CharacterReveal",
+          kind: "FinishCharacterReveal",
+        });
         expect(gameState.allowedNextActions).toStrictEqual([
           "Move",
           "Fight",

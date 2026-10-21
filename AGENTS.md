@@ -1,0 +1,42 @@
+# Project Context
+
+## Overview
+
+This is a TypeScript pnpm monorepo for a cooperative board-game sample. The `client/` is a Vite web app; the `server/` is a NestJS app using Fastify. Game rules and implementation status are documented in [REGOLE.md](./REGOLE.md).
+
+## Architecture and Existing Features
+
+- Player registration uses the `/me` API and HTTP-only cookies. The client loads the current player through `Registration.GetMe()`.
+- The server manages lobbies and in-memory game models; game and lobby updates are delivered through WebSocket and SSE streams.
+- Game setup includes character selection. The in-progress page presents game status and a reusable sidebar with an in-game chat.
+- Character definitions and the canonical character catalog (including the Bardo) live in `server/src/gameone/gameone-contents.ts`; derive client-facing character data from `CHARACTERS` rather than duplicating the catalog. The selection card backgrounds are in `client/src/assets/` and are mapped by class in the in-progress component; keep their 2:3 aspect ratio.
+- Character selection is a two-stage, server-authoritative flow. During the 30-second choosing stage, players can change preferences and share the same preference; `Ready` locks that player's preference. When the timer expires or everyone is ready, conflicts are resolved randomly and unassigned players receive random remaining characters.
+- Final character assignments are shown during a 10-second reveal stage. `Ready` in this stage advances early when every player is ready. Keep stage deadlines and per-game timers in `GamesServices`; selection preferences and ready-player state belong to `GameoneState`.
+- The game-state WebSocket event exposes selection stage, deadline, ready player IDs, preferences or final assignments. Keep its DTO, gateway action validation, service, rules/reducers, and the in-progress UI in sync when changing this flow.
+- Chat state lives in memory in each game model. Messages include `playerId`, nickname, text, and server timestamp; the server validates non-empty messages up to 500 characters.
+- The in-progress client must await `Registration.GetMe()` before opening its game WebSocket and use the returned player ID for its subscription, rendering, and actions. This prevents multiple clients from being treated as the same player before identity has loaded.
+- WebSocket subscriptions currently trust a client-supplied `playerId` and validate it against the game roster; it is not yet bound to the authenticated HTTP session. Treat this as a known authorization limitation.
+- Client templates may use CSS Modules via the Vite template plugin; preserve the existing template/CSS-module import pattern rather than switching those styles to global CSS.
+
+## Development and Validation
+
+- Install/use the repository's declared package manager, pnpm.
+- Build all packages: `pnpm build`
+- Run all tests: `pnpm test`
+- Run client tests: `pnpm --filter client test`
+- Run server tests: `pnpm --filter server test`
+- Run lint: `pnpm lint`
+
+## Recent Work
+
+- `e34a673` — completed character selection and game recovery behavior.
+- `3968c4a` — added in-game chat and fixed current-player identity loading.
+- The chat input is single-line; the current player's messages are right-aligned and labeled “You”.
+- Regression coverage verifies that the in-progress page subscribes with the player ID loaded for that browser.
+- Selection rules and timer/reveal integration coverage live in `server/src/gameone/rule-manager/rule-manager.service.spec.ts` and `server/src/services/game/game-flow.integration.spec.ts`.
+
+The user generally communicates in Italian and requests commits explicitly.
+
+## Important
+
+- Keep this file up-to-date

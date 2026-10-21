@@ -25,6 +25,9 @@ export interface GameChatState {
 export const MAX_GAME_CHAT_MESSAGE_LENGTH = 500;
 
 export interface GameCharacterSelectionStatus {
+  stage: "choosing" | "revealing" | null;
+  endsAt: number | null;
+  readyPlayerIds: number[];
   players: {
     playerId: number;
     nickname: string;

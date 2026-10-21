@@ -10,7 +10,9 @@ Nel motore, le condizioni di fine partita previste sono la sconfitta del boss op
 
 ## Giocatori e personaggi
 
-Una partita può essere creata con **2–4 giocatori**. All'avvio, ogni giocatore dovrebbe scegliere un personaggio. Il prototipo definisce quattro classi:
+Una partita può essere creata con **2–4 giocatori**. All'avvio, i giocatori hanno **30 secondi** per indicare una preferenza. Le preferenze non sono confermate subito: più giocatori possono scegliere lo stesso personaggio, il contatore sulla carta mostra quante preferenze ha ricevuto e la scelta del giocatore corrente è evidenziata in giallo. Premendo **Ready** la preferenza viene bloccata; se tutti sono pronti, la fase termina in anticipo.
+
+Alla scadenza, per ogni personaggio conteso il sistema sceglie casualmente un solo vincitore; chi perde il conflitto e chi non ha espresso una preferenza riceve casualmente uno dei personaggi rimasti. Gli abbinamenti definitivi restano visibili per **10 secondi** prima dell'avvio della partita. Anche in questa fase tutti i giocatori possono premere **Ready** per iniziare prima. Il prototipo definisce cinque classi:
 
 | Classe | Forza | Intelligenza | Agilità | Vita iniziale / massima | Energia iniziale / massima | Movimento | Armatura fisica / magica |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -18,8 +20,9 @@ Una partita può essere creata con **2–4 giocatori**. All'avvio, ogni giocator
 | Barbaro | 3 | 1 | 2 | 8 / 8 | 5 / 10 | 2 | 2 / 0 |
 | Mago | 1 | 3 | 2 | 7 / 7 | 5 / 10 | 2 | 2 / 0 |
 | Ladro | 1 | 2 | 3 | 7 / 7 | 5 / 10 | 2 | 2 / 0 |
+| Bardo | 2 | 2 | 2 | 7 / 7 | 5 / 10 | 2 | 1 / 1 |
 
-Ogni personaggio ha difesa 1, due attacchi iniziali a mani nude e l'incantesimo Fireball. I dati sono quelli definiti nel prototipo; selezione, equipaggiamento e progressione non sono ancora esposti nell'interfaccia. Il motore non impone ancora che personaggi diversi siano scelti da giocatori diversi.
+Ogni personaggio ha difesa 1, due attacchi iniziali a mani nude e l'incantesimo Fireball. La risoluzione finale assegna personaggi distinti; le preferenze possono invece coincidere durante la scelta.
 
 ### Armi definite
 
@@ -40,7 +43,8 @@ Il codice definisce questi valori, ma non ancora la formula per effettuare un at
 2. Si mescolano separatamente le tessere dei tre anelli. La tessera del boss viene aggiunta al mazzo dell'anello 3.
 3. Si piazza la tessera iniziale, con sei possibili collegamenti.
 4. Si determina casualmente l'ordine dei giocatori.
-5. Si assegnano i personaggi e si avvia il primo turno.
+5. I giocatori scelgono le preferenze per 30 secondi, poi vengono risolti i conflitti e assegnati i personaggi mancanti.
+6. Si mostrano gli abbinamenti definitivi per 10 secondi, quindi si avvia il primo turno.
 
 L'ordine dei passaggi riflette il flusso del motore. La preparazione automatica della partita non è ancora collegata completamente al servizio di gioco.
 
@@ -101,7 +105,7 @@ La gestione dei turni dei nemici, la risoluzione dei danni, il calcolo del risul
 
 ## Stato attuale del prototipo
 
-Il server permette di creare una lobby, far entrare 2–4 partecipanti e avviare la partita. Il motore contiene modelli e reducer per alcune fasi di preparazione, movimento ed esplorazione, ma non è ancora integrato nel flusso completo delle azioni client-server. La pagina **Game in progress** è al momento vuota.
+Il server permette di creare una lobby, far entrare 2–4 partecipanti e avviare la partita. La selezione dei personaggi include timer, preferenze modificabili fino a **Ready**, risoluzione casuale dei conflitti e visualizzazione temporizzata degli abbinamenti. Il motore contiene inoltre modelli e reducer per alcune fasi di preparazione, movimento ed esplorazione; non è ancora integrato nel flusso completo delle azioni di gioco.
 
 Perciò questo documento è una base verificabile per il regolamento, non ancora un manuale sufficiente per giocare una partita completa. Le regole di combattimento, le abilità, l'equipaggiamento, le trappole e i tesori, il comportamento dei nemici e le condizioni pratiche di vittoria devono essere definite e implementate prima del rilascio.
 

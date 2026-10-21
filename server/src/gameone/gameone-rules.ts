@@ -1,5 +1,11 @@
 import { autoPlayer } from "./autoplayer/autoplayer.middle";
 import { CharacterSelectionReducer } from "./rules/1_Setup/characterSelection.reducer";
+import { ResolveCharacterSelectionReducer } from "./rules/1_Setup/characterSelection.reducer";
+import {
+  CharacterRevealReadyReducer,
+  CharacterSelectionReadyReducer,
+  FinishCharacterRevealReducer,
+} from "./rules/1_Setup/characterSelectionReady.reducer";
 import { DrawBossReducer } from "./rules/1_Setup/drawBoss.reducer";
 import { GoToPlayerTurnReducer } from "./rules/1_Setup/gotoPlayerTurn.reducer";
 import { PlaceFirstTileReducer } from "./rules/1_Setup/placeFirstTile.reducer";
@@ -37,6 +43,10 @@ const allActionsMap: {
   DrawBoss: DrawBossReducer,
   SetPlayngOrder: SetPlayngOrderReducer,
   CharacterSelection: CharacterSelectionReducer,
+  CharacterSelectionReady: CharacterSelectionReadyReducer,
+  ResolveCharacterSelection: ResolveCharacterSelectionReducer,
+  CharacterRevealReady: CharacterRevealReadyReducer,
+  FinishCharacterReveal: FinishCharacterRevealReducer,
   GoToPlayerTurn: GoToPlayerTurnReducer,
   // 2 Player Turn
   Move: MoveReducer,

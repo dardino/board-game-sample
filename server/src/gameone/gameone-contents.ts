@@ -196,6 +196,31 @@ export const CHARACTERS: Character[] = [
     charm: [],
     spells: [WEAPONS.FIREBALL],
   },
+  {
+    characterId: 5,
+    characterClass: "Bardo",
+
+    lifeMax: 7,
+    energyMax: 10,
+    startingLife: 7,
+    startingEnergy: 5,
+
+    movementSpeed: 2,
+    defence: 1,
+
+    intelligence: 2,
+    strenght: 2,
+    agility: 2,
+
+    armor: { magic: 1,
+      phisic: 1 },
+    attacks: [
+      WEAPONS.FIST,
+      WEAPONS.FIST,
+    ],
+    charm: [],
+    spells: [WEAPONS.FIREBALL],
+  },
 ] as const;
 
 const connectionSchemas = {

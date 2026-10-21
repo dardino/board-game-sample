@@ -30,6 +30,10 @@ export class GameModel {
 
   public chat: GameChatState;
 
+  public characterSelectionStage: "choosing" | "revealing" | null;
+
+  public characterSelectionEndsAt: number | null;
+
   /**
    * Creates a new game instance with the specified title and creator.
    *
@@ -47,6 +51,8 @@ export class GameModel {
     newGame.maxPlayers = 4;
     newGame.ruleState = null;
     newGame.chat = { messages: [] };
+    newGame.characterSelectionStage = null;
+    newGame.characterSelectionEndsAt = null;
     newGame.connectedPlayers = [creator];
     newGame.createdBy = creator.nickname;
     newGame.createdAt = new Date();

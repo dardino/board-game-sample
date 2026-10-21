@@ -59,6 +59,12 @@ function getAction (state: GameoneState): AllPossibleAction | null {
           kind: "GoToPlayerTurn",
         }
         : null;
+    case "CharacterSelectionReady":
+    case "ResolveCharacterSelection":
+    case "CharacterRevealReady":
+      return null;
+    case "FinishCharacterReveal":
+      return null;
     case "SetPlayngOrder":
       return null;
     case "GoToPlayerTurn":

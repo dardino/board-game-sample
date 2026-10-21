@@ -83,6 +83,16 @@ function isClientGameAction (action: unknown): action is AllPossibleAction {
       typeof action.characterName === "string" &&
       action.characterName.trim().length > 0;
   }
+  if (action.kind === "CharacterSelectionReady") {
+    return action.phase === "Setup" &&
+      typeof action.playerId === "number" &&
+      Number.isSafeInteger(action.playerId);
+  }
+  if (action.kind === "CharacterRevealReady") {
+    return action.phase === "CharacterReveal" &&
+      typeof action.playerId === "number" &&
+      Number.isSafeInteger(action.playerId);
+  }
   if (action.phase !== "PlayerTurn" ||
     typeof action.playerId !== "number" ||
     !Number.isSafeInteger(action.playerId)) {

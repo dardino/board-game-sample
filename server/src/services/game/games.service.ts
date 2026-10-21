@@ -39,6 +39,8 @@ export class GamesServices {
 
   #allGames: GameModel[] = [];
 
+  #characterSelectionTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
   /**
    *
    */
@@ -138,12 +140,19 @@ export class GamesServices {
       currentPlayer: currentPlayer?.nickname ?? null,
       turnPhase: state.phase === "PlayerTurn"
         ? state.previousAction
-        : state.allowedNextActions[0] ?? state.previousAction,
+        : state.phase === "CharacterReveal"
+          ? "CharacterReveal"
+          : state.allowedNextActions[0] ?? state.previousAction,
       allowedActions: state.allowedNextActions,
       chat: {
         messages: game.chat.messages.map((message) => ({ ...message })),
       },
       characterSelection: {
+        stage: game.characterSelectionStage,
+        endsAt: game.characterSelectionEndsAt,
+        readyPlayerIds: game.characterSelectionStage === "choosing"
+          ? state.characterSelectionReadyPlayers
+          : state.characterRevealReadyPlayers,
         players: game.connectedPlayers.map((player) => ({
           playerId: player.id,
           nickname: player.nickname,
@@ -156,12 +165,19 @@ export class GamesServices {
           movementSpeed: character.movementSpeed,
           defence: character.defence,
         })),
-        selectedCharacters: state.charactersByPlayers.map(({ playerId, character }) => ({
-          playerId,
-          nickname: game.connectedPlayers.find((player) => player.id === playerId)?.nickname ?? "",
-          characterId: character.characterId,
-          characterName: character.characterName,
-        })),
+        selectedCharacters: game.characterSelectionStage === "choosing"
+          ? state.characterPreferences.map(({ playerId, characterId, characterName }) => ({
+            playerId,
+            nickname: game.connectedPlayers.find((player) => player.id === playerId)?.nickname ?? "",
+            characterId,
+            characterName,
+          }))
+          : state.charactersByPlayers.map(({ playerId, character }) => ({
+            playerId,
+            nickname: game.connectedPlayers.find((player) => player.id === playerId)?.nickname ?? "",
+            characterId: character.characterId,
+            characterName: character.characterName,
+          })),
       },
       state: this.ruleManagerService.getSnapshot(state),
     };
@@ -197,6 +213,15 @@ export class GamesServices {
 
   applyGameAction (gameId: number, actorPlayerId: number, action: AllPossibleAction): GameStateEvent {
     const { game, state } = this.#getStartedGame(gameId);
+    if (game.characterSelectionEndsAt !== null && Date.now() >= game.characterSelectionEndsAt) {
+      if (game.characterSelectionStage === "choosing") {
+        this.#resolveCharacterSelection(game, state);
+      } else if (game.characterSelectionStage === "revealing") {
+        this.#finishCharacterReveal(game, state);
+      }
+      this.#publishGameUpdate(game);
+      throw new Error("Il timer della fase è scaduto.");
+    }
     if (!game.connectedPlayers.some((player) => player.id === actorPlayerId)) {
       throw new Error("Il giocatore non appartiene a questa partita.");
     }
@@ -212,6 +237,13 @@ export class GamesServices {
       },
     );
     game.ruleState = transition.state;
+    if (action.kind === "CharacterSelectionReady" &&
+      state.players.every((playerId) => transition.state.characterSelectionReadyPlayers.includes(playerId))) {
+      this.#resolveCharacterSelection(game, transition.state);
+    } else if (action.kind === "CharacterRevealReady" &&
+      state.players.every((playerId) => transition.state.characterRevealReadyPlayers.includes(playerId))) {
+      this.#finishCharacterReveal(game, transition.state);
+    }
     this.#publishGameUpdate(game);
     return this.getGameState(gameId);
   }
@@ -390,6 +422,9 @@ export class GamesServices {
     });
     game.ruleState = transition.state;
     game.startedAt = new Date();
+    game.characterSelectionStage = "choosing";
+    game.characterSelectionEndsAt = Date.now() + 30_000;
+    this.#scheduleCharacterSelectionTimer(game, 30_000);
     this.#publishGameUpdate(game);
     return new OkResponse(replacePlaceholders(
       GAME_MESSAGES,
@@ -499,6 +534,58 @@ export class GamesServices {
       game: this.getGameStats(game),
     });
     this.#publishLobbyUpdate();
+  }
+
+  #scheduleCharacterSelectionTimer (game: GameModel, delay: number) {
+    const existingTimer = this.#characterSelectionTimers.get(game.gameId);
+    if (existingTimer) clearTimeout(existingTimer);
+
+    const timer = setTimeout(() => {
+      const state = game.ruleState;
+      if (!isGameoneState(state)) throw new Error("The game state is not available.");
+      if (game.characterSelectionStage === "choosing") {
+        this.#resolveCharacterSelection(game, state);
+      } else if (game.characterSelectionStage === "revealing") {
+        this.#finishCharacterReveal(game, state);
+      }
+      this.#publishGameUpdate(game);
+    }, delay);
+    timer.unref?.();
+    this.#characterSelectionTimers.set(game.gameId, timer);
+  }
+
+  #resolveCharacterSelection (game: GameModel, state: GameoneState) {
+    const timer = this.#characterSelectionTimers.get(game.gameId);
+    if (timer) clearTimeout(timer);
+    const transition = this.ruleManagerService.applyAction(
+      state,
+      {
+        phase: "Setup",
+        kind: "ResolveCharacterSelection",
+      },
+      { gameId: game.gameId, players: game.connectedPlayers },
+    );
+    game.ruleState = transition.state;
+    game.characterSelectionStage = "revealing";
+    game.characterSelectionEndsAt = Date.now() + 10_000;
+    this.#scheduleCharacterSelectionTimer(game, 10_000);
+  }
+
+  #finishCharacterReveal (game: GameModel, state: GameoneState) {
+    const timer = this.#characterSelectionTimers.get(game.gameId);
+    if (timer) clearTimeout(timer);
+    const transition = this.ruleManagerService.applyAction(
+      state,
+      {
+        phase: "CharacterReveal",
+        kind: "FinishCharacterReveal",
+      },
+      { gameId: game.gameId, players: game.connectedPlayers },
+    );
+    game.ruleState = transition.state;
+    game.characterSelectionStage = null;
+    game.characterSelectionEndsAt = null;
+    this.#characterSelectionTimers.delete(game.gameId);
   }
 
   #publishLobbyUpdate () {

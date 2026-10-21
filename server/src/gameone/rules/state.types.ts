@@ -3,6 +3,7 @@ import { Character, Connections, Enemy, Tile } from "../gameone-contents";
 // #region GameState
 export const GAME_PHASES = [
   "Setup",
+  "CharacterReveal",
   "PlayerTurn",
   "PhaseFeed",
   "EndGame",
@@ -57,6 +58,13 @@ export interface GameoneState {
     playerId: number;
     character: CharacterWithName;
   }[];
+  characterPreferences: {
+    playerId: number;
+    characterId: number;
+    characterName: string;
+  }[];
+  characterSelectionReadyPlayers: number[];
+  characterRevealReadyPlayers: number[];
   boss: Enemy | null;
   currentPlayerIndex: number;
   currentPlayerPerformedActions: AllPossibleActionKind[];
@@ -66,6 +74,9 @@ export function getInitialState (): GameoneState {
   return {
     boss: null,
     charactersByPlayers: [],
+    characterPreferences: [],
+    characterSelectionReadyPlayers: [],
+    characterRevealReadyPlayers: [],
     onboardTiles: [],
     tileToPlace: null,
     phase: null,
@@ -116,6 +127,20 @@ export type CharacterSelectionAction = SetupAction<
     characterId: number;
     characterName: string;
   }
+>;
+export type CharacterSelectionReadyAction = SetupAction<
+  "CharacterSelectionReady",
+  { playerId: number }
+>;
+export type ResolveCharacterSelectionAction = SetupAction<"ResolveCharacterSelection">;
+export type CharacterRevealReadyAction = GameAction<
+  "CharacterReveal",
+  "CharacterRevealReady",
+  { playerId: number }
+>;
+export type FinishCharacterRevealAction = GameAction<
+  "CharacterReveal",
+  "FinishCharacterReveal"
 >;
 export type DrawBossAction = SetupAction<"DrawBoss">;
 export type GoToPlayerTurnAction = SetupAction<"GoToPlayerTurn">;
@@ -175,6 +200,10 @@ export type AllPossibleAction =
   PlaceFirstTileAction |
   SetPlayngOrderAction |
   CharacterSelectionAction |
+  CharacterSelectionReadyAction |
+  ResolveCharacterSelectionAction |
+  CharacterRevealReadyAction |
+  FinishCharacterRevealAction |
   GoToPlayerTurnAction |
   // PlayerTurn
   MoveAction |

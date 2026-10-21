@@ -63,6 +63,36 @@
   text-align: center;
 }
 
+.selectionTimer {
+  margin: 0;
+  color: #f4f6f8;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.selectionActions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.readyButton {
+  padding: 0.75rem 2rem;
+  border: 0;
+  border-radius: 0.6rem;
+  background: #e9c46a;
+  color: #171b21;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.readyButton:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
 .characterGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
@@ -71,7 +101,7 @@
 
 .characterCard {
   display: flex;
-  min-height: 18rem;
+  aspect-ratio: 2 / 3;
   flex-direction: column;
   align-items: stretch;
   padding: 1.25rem;
@@ -96,24 +126,68 @@
 }
 
 .characterCard:disabled {
-  cursor: not-allowed;
-  opacity: 0.62;
+  cursor: default;
 }
 
-.characterThemeBlue {
+.characterCardPreferred {
+  border-color: #f7dc6f;
+  box-shadow: 0 0 1.25rem rgb(247 220 111 / 72%);
+}
+
+.characterCount {
+  align-self: flex-end;
+  min-width: 1.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  background: #f4f6f8;
+  color: #171b21;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.characterThemeCleric {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/chierico.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeBarbarian {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/barbaro.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeMage {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/mago.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeRogue {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/ladro.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeBard {
+  background-image:
+    linear-gradient(180deg, rgb(12 16 24 / 8%) 0%, rgb(12 16 24 / 24%) 42%, rgb(12 16 24 / 92%) 100%),
+    url("../../assets/bardo.jpg");
+  background-position: center;
+  background-size: cover;
+}
+
+.characterThemeFallback {
   background: linear-gradient(145deg, #345995, #1d3557);
-}
-
-.characterThemeRed {
-  background: linear-gradient(145deg, #b94a48, #652f35);
-}
-
-.characterThemePurple {
-  background: linear-gradient(145deg, #7654a3, #42275e);
-}
-
-.characterThemeGreen {
-  background: linear-gradient(145deg, #43836a, #204d43);
 }
 
 .characterClass {

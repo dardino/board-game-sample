@@ -22,9 +22,15 @@ export const Flow = {
     DrawBoss: ["ShuffleTiles"],
     ShuffleTiles: ["PlaceFirstTile"],
     PlaceFirstTile: ["SetPlayngOrder"],
-    SetPlayngOrder: ["CharacterSelection"],
-    CharacterSelection: ["GoToPlayerTurn"],
+    SetPlayngOrder: ["CharacterSelection", "CharacterSelectionReady", "ResolveCharacterSelection"],
+    CharacterSelection: ["CharacterSelection", "CharacterSelectionReady", "ResolveCharacterSelection"],
+    CharacterSelectionReady: ["CharacterSelection", "CharacterSelectionReady", "ResolveCharacterSelection"],
+    ResolveCharacterSelection: ["CharacterRevealReady", "FinishCharacterReveal"],
     GoToPlayerTurn: ["Awake"],
+  },
+  CharacterReveal: {
+    CharacterRevealReady: ["CharacterRevealReady", "FinishCharacterReveal"],
+    FinishCharacterReveal: ["GoToPlayerTurn"],
   },
   PlayerTurn: {
     Pass: ["CheckEndGame"],
